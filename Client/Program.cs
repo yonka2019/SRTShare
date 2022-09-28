@@ -17,6 +17,8 @@ namespace ConsoleApp5
     class Program
     {
         private static int p_length = 0;
+        private static int sum = 0;
+
         static void Main(string[] args)
         {
             // Retrieve the device list from the local machine
@@ -72,8 +74,7 @@ namespace ConsoleApp5
         private static void PacketHandler(Packet packet)
         {
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
-
-
+            
             if (datagram != null && datagram.SourcePort == 6969)
             {
                 if (p_length == 0)
@@ -82,8 +83,13 @@ namespace ConsoleApp5
                     var a = datagram.Payload.ToMemoryStream();
                     var b = a.ToArray();
                     var c = BitConverter.ToUInt32(b, 0);
-                    //ms.Read(buff, 0, 4);
+                    a.Read(buff, 0, 4);
                     //p_length = BitConverter.ToInt32(buff, 0);
+                    Console.WriteLine(c + " " + b.Length);
+
+                    sum += b.Length;
+                    Console.WriteLine("sum: " + sum);
+
                     //string value = Encoding.ASCII.GetString(ms.Read(buff, 0, 32));
 
 

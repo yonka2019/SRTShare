@@ -100,8 +100,7 @@ namespace ConsoleApp4
             Console.WriteLine("hello");
             Console.WriteLine(value.Length);
 
-            MemoryStream stream2 = new MemoryStream(Encoding.ASCII.GetBytes(value ?? ""));
-            Console.WriteLine(value == Encoding.ASCII.GetString(stream2.ToArray()));
+           
             EthernetLayer ethernetLayer =
                 new EthernetLayer
                 {
