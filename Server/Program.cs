@@ -169,61 +169,6 @@ namespace ConsoleApp4
 
             return packets;
         }
-        private static Packet BuildUdpPacket()
-        {
-            Bitmap bmp = TakeScreenShot();
-            MemoryStream stream = GetJpegStream(bmp);
-
-            string value = Encoding.ASCII.GetString(stream.ToArray());
-            uint p_length = (uint)value.Length;
-
-            Console.WriteLine("hello");
-            Console.WriteLine(value);
-
-            MemoryStream stream2 = new MemoryStream(Encoding.ASCII.GetBytes(value ?? ""));
-            Console.WriteLine(value == Encoding.ASCII.GetString(stream2.ToArray()));
-            EthernetLayer ethernetLayer =
-                new EthernetLayer
-                {
-                    Source = new MacAddress("7C:B0:C2:FE:0F:C5"),
-                    Destination = new MacAddress("7C:B0:C2:FE:0F:C5"),
-                    EtherType = EthernetType.None, // Will be filled automatically.
-                };
-
-
-            IpV4Layer ipV4Layer =
-                new IpV4Layer
-                {
-                    Source = new IpV4Address("127.0.0.1"),
-                    CurrentDestination = new IpV4Address("127.0.0.1"),
-                    Fragmentation = IpV4Fragmentation.None,
-                    HeaderChecksum = null, // Will be filled automatically.
-                    Identification = 123,
-                    Options = IpV4Options.None,
-                    Protocol = null, // Will be filled automatically.
-                    Ttl = 100,
-                    TypeOfService = 0,
-                };
-
-            UdpLayer udpLayer =
-                new UdpLayer
-                {
-                    SourcePort = 6969,
-                    DestinationPort = 10000,
-                    Checksum = null, // Will be filled automatically.
-                    CalculateChecksumValue = true,
-                };
-
-            PayloadLayer payloadLayer =
-                new PayloadLayer
-                {
-                    Data = new Datagram(Encoding.ASCII.GetBytes(value)),
-                };
-
-            PacketBuilder builder = new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, payloadLayer);
-
-            return builder.Build(DateTime.Now);
-        }
 
         static Bitmap TakeScreenShot()
         {
