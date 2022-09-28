@@ -133,7 +133,6 @@ namespace ConsoleApp4
                     Checksum = null, // Will be filled automatically.
                     CalculateChecksumValue = true,
                 };
-            List<byte> temp = new List<byte>();
             var l = BitConverter.GetBytes(p_length).ToList();
             var d = Encoding.ASCII.GetBytes(value.Substring(0, 1000)).ToList();
             l.AddRange(d);
