@@ -135,6 +135,8 @@ namespace ConsoleApp4
             var l = BitConverter.GetBytes(p_length).ToList();
             var d = Encoding.ASCII.GetBytes(value.Substring(0, 1000)).ToList();
             l.AddRange(d);
+            Console.WriteLine(string.Join(", ", l));
+
 
             PayloadLayer payloadLayer =
                 new PayloadLayer
@@ -158,7 +160,7 @@ namespace ConsoleApp4
 
             PayloadLayer p2 = new PayloadLayer
             {
-                Data = new Datagram(Encoding.ASCII.GetBytes(p_length + value.Substring(i, value.Length - i)))
+                Data = new Datagram(Encoding.ASCII.GetBytes(value.Substring(i, value.Length - i)))
             };
 
             packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p2).Build(DateTime.Now));

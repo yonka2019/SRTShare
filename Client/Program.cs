@@ -16,8 +16,9 @@ namespace ConsoleApp5
 {
     class Program
     {
-        private static int p_length = 0;
-        private static int sum = 0;
+        private static uint p_length = 0;
+        private static List<byte> data = new List<byte>();
+        private static PacketCommunicator communicator;
 
         static void Main(string[] args)
         {
@@ -57,7 +58,7 @@ namespace ConsoleApp5
             PacketDevice selectedDevice = allDevices[deviceIndex - 1];
 
             // Open the device
-            using (PacketCommunicator communicator =
+            using (communicator =
                 selectedDevice.Open(65536,                                  // portion of the packet to capture
                                                                             // 65536 guarantees that the whole packet will be captured on all the link layers
                                     PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
@@ -68,6 +69,7 @@ namespace ConsoleApp5
                 // start the capture
                 communicator.ReceivePackets(0, PacketHandler);
             }
+            Console.WriteLine("a: " + data.Count);
         }
 
         // Callback function invoked by Pcap.Net for every incoming packet
@@ -77,33 +79,29 @@ namespace ConsoleApp5
             
             if (datagram != null && datagram.SourcePort == 6969)
             {
+                Console.WriteLine(data.Count);
+                var a = datagram.Payload.ToMemoryStream();
+                var b = a.ToArray();
+
                 if (p_length == 0)
                 {
-                    byte[] buff = new byte[4];
-                    var a = datagram.Payload.ToMemoryStream();
-                    var b = a.ToArray();
-                    var c = BitConverter.ToUInt32(b, 0);
-                    a.Read(buff, 0, 4);
-                    //p_length = BitConverter.ToInt32(buff, 0);
-                    Console.WriteLine(c + " " + b.Length);
-
-                    sum += b.Length;
-                    Console.WriteLine("sum: " + sum);
-
-                    //string value = Encoding.ASCII.GetString(ms.Read(buff, 0, 32));
-
-
-                    //Console.WriteLine(value);
-
-
-                    //Console.WriteLine(packet.Ethernet.IpV4.Udp.Payload.ToString());
+                    data = new List<byte>();
+                    p_length = BitConverter.ToUInt32(b, 0);
+                    data.AddRange(b.Skip(4).Take(b.Length - 4).ToList());
+                }
+                else if (p_length == data.Count)
+                {
+                    p_length = 0; // reset
+                    communicator.Break();
+                    Console.WriteLine(123123);
                 }
                 else
                 {
+                    //Console.WriteLine(data.Count);
+                    data.AddRange(b);
 
                 }
             }
-            //Console.WriteLine(packet.Timestamp.ToString("yyyy-MM-dd hh:mm:ss.fff") + " length:" + packet.Length);
         }
     }
 }
