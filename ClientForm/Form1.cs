@@ -1,5 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,16 +25,22 @@ using PcapDotNet.Packets.Transport;
 using System.Net.NetworkInformation;
 using System.IO;
 
-namespace ConsoleApp5
+using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
+namespace ClientForm
 {
-    class Program
+    public partial class Form1 : Form
     {
         private static uint p_length = 0;
         private static List<byte> data = new List<byte>();
         private static PacketCommunicator communicator;
         static int c = 0;
-        static void Main(string[] args)
+        Task screen = null;
+
+        public Form1()
         {
+            InitializeComponent();
             // Retrieve the device list from the local machine
             IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
 
@@ -72,9 +91,8 @@ namespace ConsoleApp5
             Console.WriteLine(data.Count);
             Console.ReadKey();
         }
-
         // Callback function invoked by Pcap.Net for every incoming packet
-        private static void PacketHandler(Packet packet)
+        private  void PacketHandler(Packet packet)
         {
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
             if (datagram != null && datagram.SourcePort == 6969)
@@ -93,7 +111,13 @@ namespace ConsoleApp5
                 {
                     data.AddRange(b);
                     p_length = 0; // reset
+                    using (var ms = new MemoryStream(data.ToArray()))
+                    {
+                        pictureBox1.Image = new Bitmap(Image.FromStream(ms));
+                   
+                    }
                     communicator.Break();
+
                 }
                 else
                 {
@@ -103,6 +127,31 @@ namespace ConsoleApp5
 
                 }
             }
+        }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            button1.Enabled = true;
+        }
+
+        private void button1_Click(object sender, EventArgs e) //Connect
+        {
+           
+
+        }
+
+        private void splitContainer1_Panel2_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        public Bitmap ConvertToBitmap(Stream stream)
+        {
+            Bitmap bitmap;
+
+            Image image = Image.FromStream(stream);
+            bitmap = new Bitmap(image);
+
+            return bitmap;
         }
     }
 }

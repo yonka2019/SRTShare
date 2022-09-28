@@ -74,7 +74,10 @@ namespace ConsoleApp4
                                                                              PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
                                                                              1000)) // read timeout
                     {
-                        foreach (Packet p in SplitToPackets())
+                        List<Packet> a = SplitToPackets();
+                        Console.WriteLine(a.Count);
+
+                        foreach (Packet p in a)
                         {
                             communicator.SendPacket(p);
                         }
@@ -94,11 +97,10 @@ namespace ConsoleApp4
             Bitmap bmp = TakeScreenShot();
             MemoryStream stream = GetJpegStream(bmp);
 
-            string value = Encoding.ASCII.GetString(stream.ToArray());
-            uint p_length = (uint)value.Length;
+            List<byte> str = stream.ToArray().ToList();
+            int p_length = str.Count;
+            Console.WriteLine(p_length);
 
-            Console.WriteLine("hello");
-            Console.WriteLine(value.Length);
 
            
             EthernetLayer ethernetLayer =
@@ -133,9 +135,8 @@ namespace ConsoleApp4
                     CalculateChecksumValue = true,
                 };
             var l = BitConverter.GetBytes(p_length).ToList();
-            var d = Encoding.ASCII.GetBytes(value.Substring(0, 1000)).ToList();
+            var d = str.GetRange(0, 1000);
             l.AddRange(d);
-            Console.WriteLine(string.Join(", ", l));
 
 
             PayloadLayer payloadLayer =
@@ -148,11 +149,11 @@ namespace ConsoleApp4
 
             packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, payloadLayer).Build(DateTime.Now));
             int i;
-            for (i = 2000; (i + 1000) < value.Length; i += 1000)
+            for (i = 2000; (i + 1000) < str.Count; i += 1000)
             {
                 PayloadLayer p = new PayloadLayer
                 {
-                    Data = new Datagram(Encoding.ASCII.GetBytes(value.Substring(i - 1000, 1000)))
+                    Data = new Datagram(str.GetRange(i - 1000, 1000).ToArray())
                 };
 
                 packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p).Build(DateTime.Now));
@@ -160,11 +161,10 @@ namespace ConsoleApp4
 
             PayloadLayer p2 = new PayloadLayer
             {
-                Data = new Datagram(Encoding.ASCII.GetBytes(value.Substring(i, value.Length - i)))
+                Data = new Datagram(str.GetRange(i, str.Count - i).ToArray())
             };
 
             packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p2).Build(DateTime.Now));
-            Console.WriteLine(p_length);
 
 
             return packets;
