@@ -1,25 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using PcapDotNet;
-using PcapDotNet.Core;
+﻿using PcapDotNet.Core;
 using PcapDotNet.Packets;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
-using System.Net.NetworkInformation;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Runtime.InteropServices;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace ConsoleApp4
 {
     internal class Program
     {
-        static class Win32Native
+        private static class Win32Native
         {
             public const int DESKTOPVERTRES = 0x75;
             public const int DESKTOPHORZRES = 0x76;
@@ -52,7 +48,7 @@ namespace ConsoleApp4
                         Console.WriteLine(" (No description available)");
                 }
 
-                int deviceIndex = 0;
+                int deviceIndex;
                 do
                 {
                     Console.WriteLine("Enter the interface number (1-" + allDevices.Count + "):");
@@ -87,9 +83,7 @@ namespace ConsoleApp4
                 // Open the output device
 
                 catch (Exception ex) { Console.WriteLine("Wrong device\n--------------------\n\n" + ex + "\n\n\n"); }
-
             }
-
         }
 
         private static List<Packet> SplitToPackets()
@@ -99,10 +93,11 @@ namespace ConsoleApp4
 
             List<byte> str = stream.ToArray().ToList();
             int p_length = str.Count;
-            Console.WriteLine(p_length);
+            Console.WriteLine("Total Length: " + p_length);
 
+            List<Packet> packets = new List<Packet>();
+            int i;
 
-           
             EthernetLayer ethernetLayer =
                 new EthernetLayer
                 {
@@ -134,48 +129,44 @@ namespace ConsoleApp4
                     Checksum = null, // Will be filled automatically.
                     CalculateChecksumValue = true,
                 };
-            var l = BitConverter.GetBytes(p_length).ToList();
-            var d = str.GetRange(0, 1000);
-            l.AddRange(d);
+
+            List<byte> length = BitConverter.GetBytes(p_length).ToList();
+            List<byte> data = str.GetRange(0, 1000);
+            length.AddRange(data); // [data length - (4bytes)][data]
+
+            PayloadLayer p1 = new PayloadLayer // [data length(4bytes)][data(1000)]
+            {
+
+                Data = new Datagram(length.ToArray())
+            };
+            packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p1).Build(DateTime.Now));
 
 
-            PayloadLayer payloadLayer =
-                new PayloadLayer
-                {
-
-                    Data = new Datagram(l.ToArray())
-                };
-            List<Packet> packets = new List<Packet>();
-
-            packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, payloadLayer).Build(DateTime.Now));
-            int i;
             for (i = 2000; (i + 1000) < str.Count; i += 1000)
             {
-                PayloadLayer p = new PayloadLayer
+                PayloadLayer p2 = new PayloadLayer // [data (1000)]
                 {
                     Data = new Datagram(str.GetRange(i - 1000, 1000).ToArray())
                 };
-
-                packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p).Build(DateTime.Now));
+                packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p2).Build(DateTime.Now));
             }
 
-            PayloadLayer p2 = new PayloadLayer
+
+            PayloadLayer p3 = new PayloadLayer // [last data]
             {
                 Data = new Datagram(str.GetRange(i, str.Count - i).ToArray())
             };
-
-            packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p2).Build(DateTime.Now));
-
+            packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p3).Build(DateTime.Now));
 
             return packets;
         }
 
-        static Bitmap TakeScreenShot()
+        private static Bitmap TakeScreenShot()
         {
             int width, height;
-            using (var g = Graphics.FromHwnd(IntPtr.Zero))
+            using (Graphics g = Graphics.FromHwnd(IntPtr.Zero))
             {
-                var hDC = g.GetHdc();
+                IntPtr hDC = g.GetHdc();
                 width = Win32Native.GetDeviceCaps(hDC, Win32Native.DESKTOPHORZRES);
                 height = Win32Native.GetDeviceCaps(hDC, Win32Native.DESKTOPVERTRES);
                 g.ReleaseHdc(hDC);
@@ -203,8 +194,6 @@ namespace ConsoleApp4
             myEncoderParameters.Param[0] = myEncoderParameter;
 
             bmp.Save(stream, jpgEncoder, myEncoderParameters);
-
-            //bmp.Save(stream, ImageFormat.Jpeg);
 
             return stream;
         }
