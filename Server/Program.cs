@@ -80,8 +80,6 @@ namespace ConsoleApp4
                         Console.WriteLine("--------------------\n\n\n");
                     }
                 }
-                // Open the output device
-
                 catch (Exception ex) { Console.WriteLine("Wrong device\n--------------------\n\n" + ex + "\n\n\n"); }
             }
         }
@@ -185,7 +183,7 @@ namespace ConsoleApp4
         {
             MemoryStream stream = new MemoryStream();
 
-            System.Drawing.Imaging.Encoder myEncoder = System.Drawing.Imaging.Encoder.Quality;
+            Encoder myEncoder = Encoder.Quality;
 
             ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
             EncoderParameters myEncoderParameters = new EncoderParameters(1);
@@ -200,7 +198,6 @@ namespace ConsoleApp4
 
         private static ImageCodecInfo GetEncoder(ImageFormat format)
         {
-
             ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
 
             foreach (ImageCodecInfo codec in codecs)
@@ -212,6 +209,5 @@ namespace ConsoleApp4
             }
             return null;
         }
-
     }
 }

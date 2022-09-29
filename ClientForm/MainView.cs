@@ -13,11 +13,9 @@ namespace ClientForm
 {
     public partial class MainView : Form
     {
-        private static uint p_length = 0;
+        private static uint packet_length = 0;
         private static readonly List<byte> data = new List<byte>();
         private static PacketCommunicator communicator;
-        private static readonly int c = 0;
-        private readonly Task screen = null;
 
         public MainView()
         {
@@ -72,8 +70,8 @@ namespace ClientForm
             Console.WriteLine(data.Count);
             Console.ReadKey();
         }
-        // Callback function invoked by Pcap.Net for every incoming packet
 
+        // Callback function invoked by Pcap.Net for every incoming packet
         private void PacketHandler(Packet packet)
         {
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
@@ -83,15 +81,15 @@ namespace ClientForm
                 byte[] byteStream = stream.ToArray();
                 Console.WriteLine(byteStream.Length);
 
-                if (p_length == 0) // first packet ([length][data])
+                if (packet_length == 0) // first packet ([length][data])
                 {
-                    p_length = BitConverter.ToUInt32(byteStream, 0);
+                    packet_length = BitConverter.ToUInt32(byteStream, 0);
                     data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
                 }
                 else if (byteStream.Length < 1000) // last data packet
                 {
                     communicator.Break();
-                    p_length = 0; // reset
+                    packet_length = 0; // reset
 
                     data.AddRange(byteStream);
 
@@ -101,7 +99,6 @@ namespace ClientForm
                     data.AddRange(byteStream);
             }
         }
-
 
         private void ShowImage()
         {
