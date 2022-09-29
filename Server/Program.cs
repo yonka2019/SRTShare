@@ -84,10 +84,14 @@ namespace ConsoleApp4
                     {
                         List<Packet> a = SplitToPackets();
                         Console.WriteLine(a.Count);
+                        int chunk_counter = -1;
 
                         foreach (Packet p in a)
                         {
                             communicator.SendPacket(p);
+                            Console.WriteLine($"Send chunk number:" +
+                                $" {++chunk_counter}");
+
                         }
                         Console.WriteLine("--------------------\n\n\n");
                     }
