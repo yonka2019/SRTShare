@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace ClientForm
 {
-    public partial class Form1 : Form
+    public partial class MainView : Form
     {
         private static uint p_length = 0;
         private static readonly List<byte> data = new List<byte>();
@@ -19,7 +19,7 @@ namespace ClientForm
         private static readonly int c = 0;
         private readonly Task screen = null;
 
-        public Form1()
+        public MainView()
         {
             InitializeComponent();
             // Retrieve the device list from the local machine
@@ -101,6 +101,7 @@ namespace ClientForm
                     data.AddRange(byteStream);
             }
         }
+
 
         private void ShowImage()
         {
