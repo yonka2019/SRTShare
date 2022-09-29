@@ -13,15 +13,20 @@ namespace ClientForm
 {
     public partial class MainView : Form
     {
-        private static uint packet_length = 0;
+        private static ushort current_packet_id = 0;
+        private static ushort last_packet_id = 1;
+
         private static readonly List<byte> data = new List<byte>();
         private static PacketCommunicator communicator;
+
+        private const string DEFAULT_INTERFACE_SUBSTRING = "Intel"; // default interface must contain this substring to be automatically chosen
 
         public MainView()
         {
             InitializeComponent();
             // Retrieve the device list from the local machine
             IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
+            int deviceIndex = -1;
 
             if (allDevices.Count == 0)
             {
@@ -35,22 +40,32 @@ namespace ClientForm
                 LivePacketDevice device = allDevices[i];
                 Console.Write(i + 1 + ". " + device.Name);
                 if (device.Description != null)
-                    Console.WriteLine(" (" + device.Description + ")");
+                    if (device.Description.Contains(DEFAULT_INTERFACE_SUBSTRING))
+                    {
+                        deviceIndex = i + 1;
+                        Console.WriteLine("\n\n[!] Interface selected automatically: " + allDevices[deviceIndex - 1].Description);
+                        Console.WriteLine("Press any button to continue..");
+                        Console.ReadKey();
+                        break;
+                    }
+                    else
+                        Console.WriteLine(" (" + device.Description + ")");
                 else
                     Console.WriteLine(" (No description available)");
             }
-
-            int deviceIndex = 0;
-            do
+            if (deviceIndex == -1)
             {
-                Console.WriteLine("Enter the interface number (1-" + allDevices.Count + "):");
-                string deviceIndexString = Console.ReadLine();
-                if (!int.TryParse(deviceIndexString, out deviceIndex) ||
-                    deviceIndex < 1 || deviceIndex > allDevices.Count)
+                do
                 {
-                    deviceIndex = 0;
-                }
-            } while (deviceIndex == 0);
+                    Console.WriteLine("Enter the interface number (1-" + allDevices.Count + "):");
+                    string deviceIndexString = Console.ReadLine();
+                    if (!int.TryParse(deviceIndexString, out deviceIndex) ||
+                        deviceIndex < 1 || deviceIndex > allDevices.Count)
+                    {
+                        deviceIndex = 0;
+                    }
+                } while (deviceIndex == 0);
+            }
 
             // Take the selected adapter
             PacketDevice selectedDevice = allDevices[deviceIndex - 1];
@@ -79,24 +94,21 @@ namespace ClientForm
             {
                 MemoryStream stream = datagram.Payload.ToMemoryStream();
                 byte[] byteStream = stream.ToArray();
-                Console.WriteLine(byteStream.Length);
 
-                if (packet_length == 0) // first packet ([length][data])
+                current_packet_id = BitConverter.ToUInt16(byteStream, 0);
+                Console.WriteLine(current_packet_id);
+                if (current_packet_id < last_packet_id) // new image (first chunk)
                 {
-                    packet_length = BitConverter.ToUInt32(byteStream, 0);
-                    data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
+
+                    data.Clear(); // clear all data from past images
+                    data.AddRange(byteStream.Skip(2).Take(byteStream.Length - 2).ToList());
                 }
-                else if (byteStream.Length < 1000) // last data packet
+                else // next packets (same chunk continue)
                 {
-                    communicator.Break();
-                    packet_length = 0; // reset
-
-                    data.AddRange(byteStream);
-
-                    ShowImage();
+                    data.AddRange(byteStream.Skip(2).Take(byteStream.Length - 2).ToList());
                 }
-                else // data packet
-                    data.AddRange(byteStream);
+                last_packet_id = current_packet_id;
+
             }
         }
 

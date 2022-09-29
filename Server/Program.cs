@@ -15,6 +15,8 @@ namespace ConsoleApp4
 {
     internal class Program
     {
+        private const string DEFAULT_INTERFACE_SUBSTRING = "Intel"; // default interface must contain this substring to be automatically chosen
+
         private static class Win32Native
         {
             public const int DESKTOPVERTRES = 0x75;
@@ -30,6 +32,7 @@ namespace ConsoleApp4
             {
                 // Retrieve the device list from the local machine
                 IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
+                int deviceIndex = -1;
 
                 if (allDevices.Count == 0)
                 {
@@ -43,23 +46,32 @@ namespace ConsoleApp4
                     LivePacketDevice device = allDevices[i];
                     Console.Write(i + 1 + ". " + device.Name);
                     if (device.Description != null)
-                        Console.WriteLine(" (" + device.Description + ")");
+                        if (device.Description.Contains(DEFAULT_INTERFACE_SUBSTRING))
+                        {
+                            deviceIndex = i + 1;
+                            Console.WriteLine("\n\n[!] Interface selected automatically: " + allDevices[deviceIndex - 1].Description);
+                            Console.WriteLine("Press any button to continue..");
+                            Console.ReadKey();
+                            break;
+                        }
+                        else
+                            Console.WriteLine(" (" + device.Description + ")");
                     else
                         Console.WriteLine(" (No description available)");
                 }
-
-                int deviceIndex;
-                do
+                if (deviceIndex == -1)
                 {
-                    Console.WriteLine("Enter the interface number (1-" + allDevices.Count + "):");
-                    string deviceIndexString = Console.ReadLine();
-                    if (deviceIndexString == "q") return;
-                    if (!int.TryParse(deviceIndexString, out deviceIndex) ||
-                        deviceIndex < 1 || deviceIndex > allDevices.Count)
+                    do
                     {
-                        deviceIndex = 0;
-                    }
-                } while (deviceIndex == 0);
+                        Console.WriteLine("Enter the interface number (1-" + allDevices.Count + "):");
+                        string deviceIndexString = Console.ReadLine();
+                        if (!int.TryParse(deviceIndexString, out deviceIndex) ||
+                            deviceIndex < 1 || deviceIndex > allDevices.Count)
+                        {
+                            deviceIndex = 0;
+                        }
+                    } while (deviceIndex == 0);
+                }
 
                 // Take the selected adapter
                 PacketDevice selectedDevice = allDevices[deviceIndex - 1];
@@ -87,13 +99,12 @@ namespace ConsoleApp4
         private static List<Packet> SplitToPackets()
         {
             Bitmap bmp = TakeScreenShot();
-            MemoryStream stream = GetJpegStream(bmp);
+            MemoryStream mStream = GetJpegStream(bmp);
 
-            List<byte> str = stream.ToArray().ToList();
-            int p_length = str.Count;
-            Console.WriteLine("Total Length: " + p_length);
-
+            List<byte> stream = mStream.ToArray().ToList();
             List<Packet> packets = new List<Packet>();
+            List<byte> packet_id;
+            List<byte> packet_data;
             int i;
 
             EthernetLayer ethernetLayer =
@@ -103,7 +114,6 @@ namespace ConsoleApp4
                     Destination = new MacAddress("7C:B0:C2:FE:0F:C5"),
                     EtherType = EthernetType.None, // Will be filled automatically.
                 };
-
 
             IpV4Layer ipV4Layer =
                 new IpV4Layer
@@ -128,33 +138,28 @@ namespace ConsoleApp4
                     CalculateChecksumValue = true,
                 };
 
-            List<byte> length = BitConverter.GetBytes(p_length).ToList();
-            List<byte> data = str.GetRange(0, 1000);
-            length.AddRange(data); // [data length - (4bytes)][data]
-
-            PayloadLayer p1 = new PayloadLayer // [data length(4bytes)][data(1000)]
+            for (i = 1000; (i + 1000) < stream.Count; i += 1000)
             {
+                packet_id = BitConverter.GetBytes((ushort)((i - 1000) / 1000)).ToList();
+                packet_data = stream.GetRange(i - 1000, 1000);
+                packet_id.AddRange(packet_data); // [packet id - (2bytes)][data]
 
-                Data = new Datagram(length.ToArray())
-            };
-            packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p1).Build(DateTime.Now));
-
-
-            for (i = 2000; (i + 1000) < str.Count; i += 1000)
-            {
-                PayloadLayer p2 = new PayloadLayer // [data (1000)]
+                PayloadLayer p1 = new PayloadLayer // [data (1000 bytes each chunk)]
                 {
-                    Data = new Datagram(str.GetRange(i - 1000, 1000).ToArray())
+                    Data = new Datagram(packet_id.ToArray())
                 };
-                packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p2).Build(DateTime.Now));
+                packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p1).Build(DateTime.Now));
             }
 
+            packet_id = BitConverter.GetBytes((ushort)((i - 1000) / 1000)).ToList();
+            packet_data = stream.GetRange(i, stream.Count - i);
+            packet_id.AddRange(packet_data); // [packet id - (2bytes)][last data]
 
-            PayloadLayer p3 = new PayloadLayer // [last data]
+            PayloadLayer p2 = new PayloadLayer // [last data]
             {
-                Data = new Datagram(str.GetRange(i, str.Count - i).ToArray())
+                Data = new Datagram(packet_id.ToArray())
             };
-            packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p3).Build(DateTime.Now));
+            packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p2).Build(DateTime.Now));
 
             return packets;
         }
