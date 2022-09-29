@@ -7,7 +7,6 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -99,44 +98,9 @@ namespace ClientForm
             Console.ReadKey();
         }
 
-        Packet packet;
         private void recvP()
         {
-            while (true)
-            {
-                PacketCommunicatorReceiveResult result = communicator.ReceivePacket(out packet);
-                switch (result)
-                {
-                    case PacketCommunicatorReceiveResult.Timeout:
-                        // Timeout elapsed
-                        continue;
-                    case PacketCommunicatorReceiveResult.Ok:
-                        UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
-                        if (datagram != null && datagram.SourcePort == 6969)
-                        {
-                            MemoryStream stream = datagram.Payload.ToMemoryStream();
-                            byte[] byteStream = stream.ToArray();
-
-                            current_packet_id = BitConverter.ToUInt16(byteStream, 0);
-                            Console.WriteLine("Got chunk number: " + current_packet_id);
-                            if (current_packet_id < last_packet_id) // new image (first chunk of the image)
-                            {
-                                if (!firstImage)
-                                    ShowImage(); // show image if all his chunks arrived
-
-                                data.Clear(); // clear all data from past images
-                                data.AddRange(byteStream.Skip(2).Take(byteStream.Length - 2).ToList());
-                            }
-                            else // next packets (same chunk continues)
-                                data.AddRange(byteStream.Skip(2).Take(byteStream.Length - 2).ToList());
-
-                            last_packet_id = current_packet_id;
-                        }
-                        break;
-                    default:
-                        throw new InvalidOperationException("The result " + result + " should never be reached here");
-                }
-            }
+            communicator.ReceivePackets(0, PacketHandler);
         }
 
         // Callback function invoked by Pcap.Net for every incoming packet
