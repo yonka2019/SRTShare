@@ -1,42 +1,23 @@
-﻿using System;
+﻿using PcapDotNet.Core;
+using PcapDotNet.Packets;
+using PcapDotNet.Packets.Transport;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using PcapDotNet;
-using PcapDotNet.Core;
-using PcapDotNet.Packets;
-using PcapDotNet.Packets.Ethernet;
-using PcapDotNet.Packets.IpV4;
-using PcapDotNet.Packets.Transport;
-using System.Net.NetworkInformation;
-using System.IO;
-
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace ClientForm
 {
     public partial class Form1 : Form
     {
         private static uint p_length = 0;
-        private static List<byte> data = new List<byte>();
+        private static readonly List<byte> data = new List<byte>();
         private static PacketCommunicator communicator;
-        static int c = 0;
-        Task screen = null;
+        private static readonly int c = 0;
+        private readonly Task screen = null;
 
         public Form1()
         {
@@ -54,7 +35,7 @@ namespace ClientForm
             for (int i = 0; i != allDevices.Count; ++i)
             {
                 LivePacketDevice device = allDevices[i];
-                Console.Write((i + 1) + ". " + device.Name);
+                Console.Write(i + 1 + ". " + device.Name);
                 if (device.Description != null)
                     Console.WriteLine(" (" + device.Description + ")");
                 else
@@ -92,66 +73,41 @@ namespace ClientForm
             Console.ReadKey();
         }
         // Callback function invoked by Pcap.Net for every incoming packet
-        private  void PacketHandler(Packet packet)
+
+        private void PacketHandler(Packet packet)
         {
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
             if (datagram != null && datagram.SourcePort == 6969)
             {
-                //Console.WriteLine(data.Count);
-                var a = datagram.Payload.ToMemoryStream();
-                var b = a.ToArray();
-                Console.WriteLine(b.Length);
+                MemoryStream stream = datagram.Payload.ToMemoryStream();
+                byte[] byteStream = stream.ToArray();
+                Console.WriteLine(byteStream.Length);
 
-                if (p_length == 0)
+                if (p_length == 0) // first packet ([length][data])
                 {
-                    p_length = BitConverter.ToUInt32(b, 0);
-                    data.AddRange(b.Skip(4).Take(b.Length - 4).ToList());
+                    p_length = BitConverter.ToUInt32(byteStream, 0);
+                    data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
                 }
-                else if (b.Length < 1000) // last packet received
+                else if (byteStream.Length < 1000) // last data packet
                 {
-                    data.AddRange(b);
-                    p_length = 0; // reset
-                    using (var ms = new MemoryStream(data.ToArray()))
-                    {
-                        pictureBox1.Image = new Bitmap(Image.FromStream(ms));
-                   
-                    }
                     communicator.Break();
+                    p_length = 0; // reset
 
-                }
-                else
-                {
-                    //Console.WriteLine(data.Count);
-                    data.AddRange(b);
-                    //Console.WriteLine(++c);
+                    data.AddRange(byteStream);
 
+                    ShowImage();
                 }
+                else // data packet
+                    data.AddRange(byteStream);
             }
         }
-        private void Form1_Load(object sender, EventArgs e)
+
+        private void ShowImage()
         {
-            button1.Enabled = true;
-        }
-
-        private void button1_Click(object sender, EventArgs e) //Connect
-        {
-           
-
-        }
-
-        private void splitContainer1_Panel2_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        public Bitmap ConvertToBitmap(Stream stream)
-        {
-            Bitmap bitmap;
-
-            Image image = Image.FromStream(stream);
-            bitmap = new Bitmap(image);
-
-            return bitmap;
+            using (MemoryStream ms = new MemoryStream(data.ToArray()))
+            {
+                pictureBox1.Image = new Bitmap(Image.FromStream(ms));
+            }
         }
     }
 }
