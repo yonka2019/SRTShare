@@ -3,7 +3,6 @@ using PcapDotNet.Packets;
 using PcapDotNet.Packets.Transport;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -20,8 +19,6 @@ namespace ClientForm
 
         private static readonly List<byte> data = new List<byte>();
         private static PacketCommunicator communicator;
-        private Thread packetRecvThread;
-
 
         private const string DEFAULT_INTERFACE_SUBSTRING = "Intel"; // default interface must contain this substring to be automatically chosen
 
@@ -71,28 +68,22 @@ namespace ClientForm
                 } while (deviceIndex == 0);
             }
 
-            BackgroundWorker bw = new BackgroundWorker();
-            bw.DoWork += new DoWorkEventHandler(
-            delegate (object o, DoWorkEventArgs args)
-            {
-                BackgroundWorker b = o as BackgroundWorker;
-                recvP();
-            });
+            Thread pThread = new Thread(new ThreadStart(recvP));
 
             // Take the selected adapter
             PacketDevice selectedDevice = allDevices[deviceIndex - 1];
 
             // Open the device
             using (communicator =
-                selectedDevice.Open(65536,                                  // portion of the packet to capture
-                                                                            // 65536 guarantees that the whole packet will be captured on all the link layers
-                                    PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
-                                    1000))                                  // read timeout
+            selectedDevice.Open(65536,                                  // portion of the packet to capture
+                                                                        // 65536 guarantees that the whole packet will be captured on all the link layers
+                                PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
+                                1000))                                  // read timeout
             {
                 Console.WriteLine("Listening on " + selectedDevice.Description + "...");
 
                 // start the capture
-                bw.RunWorkerAsync();
+                pThread.Start();
 
             }
             Console.ReadKey();
