@@ -54,6 +54,7 @@ namespace ClientForm
                 else
                     Console.WriteLine(" (No description available)");
             }
+
             if (deviceIndex == -1)
             {
                 do
@@ -67,7 +68,6 @@ namespace ClientForm
                     }
                 } while (deviceIndex == 0);
             }
-
             Thread pThread = new Thread(new ThreadStart(recvP));
 
             // Take the selected adapter
@@ -84,7 +84,6 @@ namespace ClientForm
 
                 // start the capture
                 pThread.Start();
-
             }
             Console.ReadKey();
         }
@@ -105,6 +104,7 @@ namespace ClientForm
 
                 current_packet_id = BitConverter.ToUInt16(byteStream, 0);
                 Console.WriteLine("Got chunk number: " + current_packet_id);
+
                 if (current_packet_id < last_packet_id) // new image (first chunk of the image)
                 {
                     if (!firstImage)

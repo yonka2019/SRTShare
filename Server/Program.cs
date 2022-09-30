@@ -171,6 +171,7 @@ namespace ConsoleApp4
         private static Bitmap TakeScreenShot()
         {
             int width, height;
+
             using (Graphics g = Graphics.FromHwnd(IntPtr.Zero))
             {
                 IntPtr hDC = g.GetHdc();
