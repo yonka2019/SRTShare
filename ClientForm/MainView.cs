@@ -68,7 +68,7 @@ namespace ClientForm
                     }
                 } while (deviceIndex == 0);
             }
-            Thread pThread = new Thread(new ThreadStart(RecvP));
+            Thread pThread = new Thread(new ThreadStart(recvP));
 
             // Take the selected adapter
             PacketDevice selectedDevice = allDevices[deviceIndex - 1];
@@ -88,7 +88,7 @@ namespace ClientForm
             Console.ReadKey();
         }
 
-        private void RecvP()
+        private void recvP()
         {
             communicator.ReceivePackets(0, PacketHandler);
         }
