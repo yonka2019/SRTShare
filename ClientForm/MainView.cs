@@ -117,7 +117,7 @@ namespace ClientForm
 
                 // [2][3]
                 total_chunks_number = BitConverter.ToUInt16(byteStream, 2); // take second two bytes of the chunk ([ID (2 bytes)] --> [CHUNKS NUMBER (2 bytes)] <--[DATA]
-                Console.WriteLine($"[GOT] Chunk number: {current_packet_id}/{total_chunks_number} | Size: {byteStream.Length}");
+                //Console.WriteLine($"[GOT] Chunk number: {current_packet_id}/{total_chunks_number} | Size: {byteStream.Length}"); // each chunk print
                 if (current_packet_id == total_chunks_number) // last chunk of image received
                 {
                     imageBuilt = true;
@@ -147,6 +147,8 @@ namespace ClientForm
 
         private void ShowImage(bool allChunksReceived)
         {
+            Console.WriteLine($"[GOT] Image (Total chunks: {total_chunks_number})"); // each image
+
             if (allChunksReceived)
                 Console.WriteLine("[IMAGE BUILT SUCCESSFULLY] SHOWING IMAGE\n--------------------\n\n\n");
             else

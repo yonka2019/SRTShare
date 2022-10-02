@@ -86,24 +86,38 @@ namespace Server
 
                 try
                 {
-                    using (PacketCommunicator communicator = selectedDevice.Open(100, // name of the device
-                                                                             PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
-                                                                             1000)) // read timeout
-                    {
-                        List<Packet> a = SplitToPackets();
-                        int chunk_counter = -1;
-                        int total_chunks = a.Count - 1;
-
-                        foreach (Packet p in a)
-                        {
-                            communicator.SendPacket(p);
-                            Console.WriteLine($"[SEND] Chunk number: {++chunk_counter}/{total_chunks} | Size: {p.Count}");
-
-                        }
-                        Console.WriteLine("--------------------\n\n\n");
-                    }
+                    Video(selectedDevice);
                 }
                 catch (Exception ex) { Console.WriteLine("Wrong device\n--------------------\n\n" + ex + "\n\n\n"); }
+            }
+        }
+
+        private static void Video(PacketDevice device)
+        {
+            while (true)
+            {
+                    ShotBuildSend(device);
+            }
+        }
+
+        private static void ShotBuildSend(PacketDevice device)
+        {
+            using (PacketCommunicator communicator = device.Open(100, // name of the device
+                                                         PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
+                                                         1000)) // read timeout
+            {
+                List<Packet> a = SplitToPackets();
+                int chunk_counter = -1;
+                int total_chunks = a.Count - 1;
+
+                Console.WriteLine($"[SEND] Image (Total chunks: {total_chunks})"); // each image
+                foreach (Packet p in a)
+                {
+                    communicator.SendPacket(p);
+                    //Console.WriteLine($"[SEND] Chunk number: {++chunk_counter}/{total_chunks} | Size: {p.Count}"); // each chunk
+
+                }
+                Console.WriteLine("--------------------\n\n\n");
             }
         }
 
