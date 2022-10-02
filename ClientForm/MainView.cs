@@ -15,10 +15,12 @@ namespace ClientForm
     {
         private static ushort current_packet_id = 0;
         private static ushort last_packet_id = 1;
-        private static readonly bool firstImage = true;
+        private static bool firstChunk = true;
 
         private static readonly List<byte> data = new List<byte>();
         private static PacketCommunicator communicator;
+        private readonly PacketDevice selectedDevice;
+        private readonly Thread pRecvThread;
 
         private const string DEFAULT_INTERFACE_SUBSTRING = "Intel"; // default interface must contain this substring to be automatically chosen
 
@@ -27,6 +29,7 @@ namespace ClientForm
             InitializeComponent();
             // Retrieve the device list from the local machine
             IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
+            pRecvThread = new Thread(new ThreadStart(RecvP));
             int deviceIndex = -1;
 
             if (allDevices.Count == 0)
@@ -47,6 +50,7 @@ namespace ClientForm
                         Console.WriteLine("\n\n[!] Interface selected automatically: " + allDevices[deviceIndex - 1].Description);
                         Console.WriteLine("Press any button to continue..");
                         Console.ReadKey();
+                        Console.WriteLine(); // blank line after readkey
                         break;
                     }
                     else
@@ -68,29 +72,25 @@ namespace ClientForm
                     }
                 } while (deviceIndex == 0);
             }
-            Thread pThread = new Thread(new ThreadStart(recvP));
-
             // Take the selected adapter
-            PacketDevice selectedDevice = allDevices[deviceIndex - 1];
+            selectedDevice = allDevices[deviceIndex - 1];
 
-            // Open the device
-            using (communicator =
-            selectedDevice.Open(65536,                                  // portion of the packet to capture
-                                                                        // 65536 guarantees that the whole packet will be captured on all the link layers
-                                PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
-                                1000))                                  // read timeout
-            {
-                Console.WriteLine("Listening on " + selectedDevice.Description + "...");
-
-                // start the capture
-                pThread.Start();
-            }
-            Console.ReadKey();
+            // start the capture
+            pRecvThread.Start();
         }
 
-        private void recvP()
+        private void RecvP()
         {
-            communicator.ReceivePackets(0, PacketHandler);
+            // open the device
+            using (communicator =
+            selectedDevice.Open(65536,                         // portion of the packet to capture
+                                                                // 65536 guarantees that the whole packet will be captured on all the link layers
+                    PacketDeviceOpenAttributes.Promiscuous,  // promiscuous mode
+                    1000))                                  // read timeout
+            {
+                Console.WriteLine("[LISTENING] " + selectedDevice.Description + "...");
+                communicator.ReceivePackets(0, PacketHandler);
+            }
         }
 
         // Callback function invoked by Pcap.Net for every incoming packet
@@ -102,13 +102,15 @@ namespace ClientForm
                 MemoryStream stream = datagram.Payload.ToMemoryStream();
                 byte[] byteStream = stream.ToArray();
 
-                current_packet_id = BitConverter.ToUInt16(byteStream, 0);
-                Console.WriteLine("Got chunk number: " + current_packet_id);
+                current_packet_id = BitConverter.ToUInt16(byteStream, 0); // take first two bytes of the chunk ([ID (2 bytes)][DATA]
+                Console.WriteLine("[GOT] Chunk number: " + current_packet_id);
 
                 if (current_packet_id < last_packet_id) // new image (first chunk of the image)
                 {
-                    if (!firstImage)
+                    if (!firstChunk)
                         ShowImage(); // show image if all his chunks arrived
+                    else
+                        firstChunk = false;
 
                     data.Clear(); // clear all data from past images
                     data.AddRange(byteStream.Skip(2).Take(byteStream.Length - 2).ToList());
@@ -122,6 +124,7 @@ namespace ClientForm
 
         private void ShowImage()
         {
+            Console.WriteLine("[IMAGE BUILT SUCCESSFULLY] SHOWING IMAGE");
             using (MemoryStream ms = new MemoryStream(data.ToArray()))
             {
                 pictureBox1.Image = new Bitmap(Image.FromStream(ms));

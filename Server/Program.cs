@@ -52,6 +52,7 @@ namespace ConsoleApp4
                             Console.WriteLine("\n\n[!] Interface selected automatically: " + allDevices[deviceIndex - 1].Description);
                             Console.WriteLine("Press any button to continue..");
                             Console.ReadKey();
+                            Console.WriteLine(); // blank line after readkey
                             break;
                         }
                         else
@@ -83,14 +84,12 @@ namespace ConsoleApp4
                                                                              1000)) // read timeout
                     {
                         List<Packet> a = SplitToPackets();
-                        Console.WriteLine(a.Count);
-                        int chunk_counter = -1;
+                        int chunk_counter = 0;
 
                         foreach (Packet p in a)
                         {
                             communicator.SendPacket(p);
-                            Console.WriteLine($"Send chunk number:" +
-                                $" {++chunk_counter}");
+                            Console.WriteLine($"[SEND] Chunk number: {++chunk_counter} | Size: {p.Count}");
 
                         }
                         Console.WriteLine("--------------------\n\n\n");
@@ -141,7 +140,7 @@ namespace ConsoleApp4
                     Checksum = null, // Will be filled automatically.
                     CalculateChecksumValue = true,
                 };
-
+            Console.WriteLine("TOTAL CHUNKS: " + (stream.Count / 1000));
             for (i = 1000; (i + 1000) < stream.Count; i += 1000)
             {
                 packet_id = BitConverter.GetBytes((ushort)((i - 1000) / 1000)).ToList();
