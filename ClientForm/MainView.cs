@@ -9,6 +9,12 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
+/*
+ * PACKET STRUCTURE:
+ * // [PACKET ID (CHUNK NUMBER)]  [TOTAL CHUNKS NUMBER]  [DATA / LAST DATA] //
+ * //       [2 BYTES]                   [2 BYTES]          [>=1000 BYTES]   //
+ */
+
 namespace ClientForm
 {
     public partial class MainView : Form

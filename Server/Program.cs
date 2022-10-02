@@ -11,7 +11,13 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace ConsoleApp4
+/*
+ * PACKET STRUCTURE:
+ * // [PACKET ID (CHUNK NUMBER)]  [TOTAL CHUNKS NUMBER]  [DATA / LAST DATA] //
+ * //       [2 BYTES]                   [2 BYTES]          [>=1000 BYTES]   //
+ */
+
+namespace Server
 {
     internal class Program
     {
@@ -26,7 +32,7 @@ namespace ConsoleApp4
             public static extern int GetDeviceCaps(IntPtr hDC, int index);
         }
 
-        private static void Main(string[] args)
+        private static void Main()
         {
             while (true)
             {
@@ -147,7 +153,7 @@ namespace ConsoleApp4
             for (i = 1000; (i + 1000) < stream.Count; i += 1000) // 1000 bytes iterating
             {
                 packet_id = BitConverter.GetBytes((ushort)((i - 1000) / 1000)).ToList();
-                total_chunks_number = BitConverter.GetBytes((ushort)(stream.Count / 1000 - 1)).ToList();
+                total_chunks_number = BitConverter.GetBytes((ushort)((stream.Count / 1000) - 1)).ToList();
                 packet_data = stream.GetRange(i - 1000, 1000);
 
                 packet_id.AddRange(total_chunks_number); // [packet id - (2bytes)][chunks number - (2bytes)]
@@ -161,7 +167,7 @@ namespace ConsoleApp4
             }
 
             packet_id = BitConverter.GetBytes((ushort)((i - 1000) / 1000)).ToList();
-            total_chunks_number = BitConverter.GetBytes((ushort)(stream.Count / 1000 - 1)).ToList();
+            total_chunks_number = BitConverter.GetBytes((ushort)((stream.Count / 1000) - 1)).ToList();
             packet_data = stream.GetRange(i, stream.Count - i);
 
             packet_id.AddRange(total_chunks_number); // [packet id - (2bytes)][chunks number - (2bytes)]
