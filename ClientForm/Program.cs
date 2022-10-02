@@ -15,6 +15,5 @@ namespace ClientForm
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainView());
         }
-
     }
 }

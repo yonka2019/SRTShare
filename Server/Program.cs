@@ -46,6 +46,8 @@ namespace ConsoleApp4
                     LivePacketDevice device = allDevices[i];
                     Console.Write(i + 1 + ". " + device.Name);
                     if (device.Description != null)
+                    {
+                        Console.WriteLine(" (" + device.Description + ")");
                         if (device.Description.Contains(DEFAULT_INTERFACE_SUBSTRING))
                         {
                             deviceIndex = i + 1;
@@ -55,8 +57,7 @@ namespace ConsoleApp4
                             Console.WriteLine(); // blank line after readkey
                             break;
                         }
-                        else
-                            Console.WriteLine(" (" + device.Description + ")");
+                    }
                     else
                         Console.WriteLine(" (No description available)");
                 }
@@ -84,12 +85,13 @@ namespace ConsoleApp4
                                                                              1000)) // read timeout
                     {
                         List<Packet> a = SplitToPackets();
-                        int chunk_counter = 0;
+                        int chunk_counter = -1;
+                        int total_chunks = a.Count - 1;
 
                         foreach (Packet p in a)
                         {
                             communicator.SendPacket(p);
-                            Console.WriteLine($"[SEND] Chunk number: {++chunk_counter} | Size: {p.Count}");
+                            Console.WriteLine($"[SEND] Chunk number: {++chunk_counter}/{total_chunks} | Size: {p.Count}");
 
                         }
                         Console.WriteLine("--------------------\n\n\n");
@@ -106,7 +108,8 @@ namespace ConsoleApp4
 
             List<byte> stream = mStream.ToArray().ToList();
             List<Packet> packets = new List<Packet>();
-            List<byte> packet_id;
+            List<byte> packet_id; // packet id have same meaning as 'chunk number'
+            List<byte> total_chunks_number;
             List<byte> packet_data;
             int i;
 
@@ -140,12 +143,15 @@ namespace ConsoleApp4
                     Checksum = null, // Will be filled automatically.
                     CalculateChecksumValue = true,
                 };
-            Console.WriteLine("TOTAL CHUNKS: " + (stream.Count / 1000));
-            for (i = 1000; (i + 1000) < stream.Count; i += 1000)
+
+            for (i = 1000; (i + 1000) < stream.Count; i += 1000) // 1000 bytes iterating
             {
                 packet_id = BitConverter.GetBytes((ushort)((i - 1000) / 1000)).ToList();
+                total_chunks_number = BitConverter.GetBytes((ushort)(stream.Count / 1000 - 1)).ToList();
                 packet_data = stream.GetRange(i - 1000, 1000);
-                packet_id.AddRange(packet_data); // [packet id - (2bytes)][data]
+
+                packet_id.AddRange(total_chunks_number); // [packet id - (2bytes)][chunks number - (2bytes)]
+                packet_id.AddRange(packet_data); // [packet id - (2bytes)][chunks number - (2bytes)][data] // FINAL
 
                 PayloadLayer p1 = new PayloadLayer // [data (1000 bytes each chunk)]
                 {
@@ -155,8 +161,11 @@ namespace ConsoleApp4
             }
 
             packet_id = BitConverter.GetBytes((ushort)((i - 1000) / 1000)).ToList();
+            total_chunks_number = BitConverter.GetBytes((ushort)(stream.Count / 1000 - 1)).ToList();
             packet_data = stream.GetRange(i, stream.Count - i);
-            packet_id.AddRange(packet_data); // [packet id - (2bytes)][last data]
+
+            packet_id.AddRange(total_chunks_number); // [packet id - (2bytes)][chunks number - (2bytes)]
+            packet_id.AddRange(packet_data); // [packet id - (2bytes)][chunks number - (2bytes)][last data]
 
             PayloadLayer p2 = new PayloadLayer // [last data]
             {
