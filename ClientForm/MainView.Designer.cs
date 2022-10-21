@@ -59,7 +59,7 @@
             this.ClientSize = new System.Drawing.Size(927, 445);
             this.Controls.Add(this.panel1);
             this.Name = "MainView";
-            this.Text = "Form1";
+            this.Text = "MainView";
             this.panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
