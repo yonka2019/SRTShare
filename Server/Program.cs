@@ -11,6 +11,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 /*
  * PACKET STRUCTURE:
@@ -22,8 +23,10 @@ namespace Server
 {
     internal class Program
     {
-        private static Dictionary<int, int> connections = new Dictionary<int, int>(); // <DST.PORT : SOCKET.ID>
+        private static readonly Dictionary<int, Thread> connections = new Dictionary<int, Thread>(); // <SOCKET.ID : THREAD[ShotBuildSend(PORT)]
+        private static int userId = 0;
         private static PacketDevice selectedDevice;
+        private static PacketCommunicator communicator;
 
         private const string DEFAULT_INTERFACE_SUBSTRING = "Intel"; // default interface must contain this substring to be automatically chosen
 
@@ -38,23 +41,25 @@ namespace Server
 
         private static void Main()
         {
+            new Thread(new ThreadStart(RecvP)).Start(); // always listen for any new connections
+
             while (true)
             {
                 SetPacketDevice();
 
                 try
                 {
-                    Video(selectedDevice);
+                    Video();
                 }
                 catch (Exception ex) { Console.WriteLine("Wrong device\n--------------------\n\n" + ex + "\n\n\n"); }
             }
         }
 
-        private static void Video(PacketDevice device)
+        private static void Video()
         {
             while (true)
             {
-                ShotBuildSend(device);
+                ShotBuildSend(selectedDevice);
             }
         }
         private static void SetPacketDevice()
@@ -98,17 +103,37 @@ namespace Server
                 foreach (Packet chunk in imageChunks)
                 {
                     communicator.SendPacket(chunk);
-                    #if DEBUG
-                        Console.WriteLine($"[SEND] Chunk number: {++chunk_counter}/{total_chunks} | Size: {chunk.Count}"); // each chunk
-                    #endif
-
+#if DEBUG
+                    Console.WriteLine($"[SEND] Chunk number: {++chunk_counter}/{total_chunks} | Size: {chunk.Count}"); // each chunk
+#endif
                 }
                 Console.WriteLine("--------------------\n\n\n");
             }
         }
-        private static void ListenAndSet()
-        {
 
+        private static void RecvP()
+        {
+            // open the device
+            using (communicator =
+            selectedDevice.Open(65536,                         // portion of the packet to capture
+                                                               // 65536 guarantees that the whole packet will be captured on all the link layers
+                    PacketDeviceOpenAttributes.Promiscuous,  // promiscuous mode
+                    1000))                                  // read timeout
+            {
+                Console.WriteLine("[LISTENING] " + selectedDevice.Description + "...");
+                communicator.ReceivePackets(0, HandleClient);
+            }
+        }
+
+        private static void HandleClient(Packet packet)
+        {
+            UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
+            if (datagram != null && datagram.DestinationPort == 6969)
+            {
+                // if () // check if packet is beginning handshake [NEW CONNECTION]
+                    if (!connections.ContainsKey(datagram.SourcePort))
+                        connections.Add(++userId);
+            }
         }
 
         private static List<Packet> SplitToPackets(ushort dstPort)
