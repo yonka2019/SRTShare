@@ -6,6 +6,7 @@ using PcapDotNet.Packets.Transport;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
@@ -21,6 +22,9 @@ namespace Server
 {
     internal class Program
     {
+        private static Dictionary<int, int> connections = new Dictionary<int, int>(); // <DST.PORT : SOCKET.ID>
+        private static PacketDevice selectedDevice;
+
         private const string DEFAULT_INTERFACE_SUBSTRING = "Intel"; // default interface must contain this substring to be automatically chosen
 
         private static class Win32Native
@@ -36,53 +40,7 @@ namespace Server
         {
             while (true)
             {
-                // Retrieve the device list from the local machine
-                IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
-                int deviceIndex = -1;
-
-                if (allDevices.Count == 0)
-                {
-                    Console.WriteLine("No interfaces found! Make sure WinPcap is installed.");
-                    return;
-                }
-
-                // Print the list
-                for (int i = 0; i != allDevices.Count; ++i)
-                {
-                    LivePacketDevice device = allDevices[i];
-                    Console.Write(i + 1 + ". " + device.Name);
-                    if (device.Description != null)
-                    {
-                        Console.WriteLine(" (" + device.Description + ")");
-                        if (device.Description.Contains(DEFAULT_INTERFACE_SUBSTRING))
-                        {
-                            deviceIndex = i + 1;
-                            Console.WriteLine("\n\n[!] Interface selected automatically: " + allDevices[deviceIndex - 1].Description);
-                            Console.WriteLine("Press any button to continue..");
-                            Console.ReadKey();
-                            Console.WriteLine(); // blank line after readkey
-                            break;
-                        }
-                    }
-                    else
-                        Console.WriteLine(" (No description available)");
-                }
-                if (deviceIndex == -1)
-                {
-                    do
-                    {
-                        Console.WriteLine("Enter the interface number (1-" + allDevices.Count + "):");
-                        string deviceIndexString = Console.ReadLine();
-                        if (!int.TryParse(deviceIndexString, out deviceIndex) ||
-                            deviceIndex < 1 || deviceIndex > allDevices.Count)
-                        {
-                            deviceIndex = 0;
-                        }
-                    } while (deviceIndex == 0);
-                }
-
-                // Take the selected adapter
-                PacketDevice selectedDevice = allDevices[deviceIndex - 1];
+                SetPacketDevice();
 
                 try
                 {
@@ -99,6 +57,32 @@ namespace Server
                 ShotBuildSend(device);
             }
         }
+        private static void SetPacketDevice()
+        {
+            IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
+            int deviceIndex = -1;
+
+            if (allDevices.Count == 0)
+                return;
+
+            // Print the list
+            for (int i = 0; i != allDevices.Count; ++i)
+            {
+                LivePacketDevice device = allDevices[i];
+                if (device.Description != null)
+                {
+                    if (device.Description.Contains(DEFAULT_INTERFACE_SUBSTRING))
+                    {
+                        deviceIndex = i + 1;
+                        break;
+                    }
+                }
+            }
+
+            // Take the selected adapter
+            selectedDevice = allDevices[deviceIndex - 1];
+            Console.WriteLine($"[!] SELECTED INTERFACE: {selectedDevice.Description}");
+        }
 
         private static void ShotBuildSend(PacketDevice device)
         {
@@ -106,24 +90,28 @@ namespace Server
                                                          PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
                                                          1000)) // read timeout
             {
-                List<Packet> a = SplitToPackets();
+                List<Packet> imageChunks = SplitToPackets(10000);
                 int chunk_counter = -1;
-                int total_chunks = a.Count - 1;
+                int total_chunks = imageChunks.Count - 1;
 
                 Console.WriteLine($"[SEND] Image (Total chunks: {total_chunks})"); // each image
-                foreach (Packet p in a)
+                foreach (Packet chunk in imageChunks)
                 {
-                    communicator.SendPacket(p);
+                    communicator.SendPacket(chunk);
                     #if DEBUG
-                        Console.WriteLine($"[SEND] Chunk number: {++chunk_counter}/{total_chunks} | Size: {p.Count}"); // each chunk
+                        Console.WriteLine($"[SEND] Chunk number: {++chunk_counter}/{total_chunks} | Size: {chunk.Count}"); // each chunk
                     #endif
 
                 }
                 Console.WriteLine("--------------------\n\n\n");
             }
         }
+        private static void ListenAndSet()
+        {
 
-        private static List<Packet> SplitToPackets()
+        }
+
+        private static List<Packet> SplitToPackets(ushort dstPort)
         {
             Bitmap bmp = TakeScreenShot();
             MemoryStream mStream = GetJpegStream(bmp);
@@ -161,7 +149,7 @@ namespace Server
                 new UdpLayer
                 {
                     SourcePort = 6969,
-                    DestinationPort = 10000,
+                    DestinationPort = dstPort,
                     Checksum = null, // Will be filled automatically.
                     CalculateChecksumValue = true,
                 };

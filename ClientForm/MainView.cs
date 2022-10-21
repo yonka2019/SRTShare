@@ -28,7 +28,7 @@ namespace ClientForm
 
         private static readonly List<byte> data = new List<byte>();
         private static PacketCommunicator communicator;
-        private readonly PacketDevice selectedDevice;
+        private static PacketDevice selectedDevice;
         private readonly Thread pRecvThread;
 
         private const string DEFAULT_INTERFACE_SUBSTRING = "Intel"; // default interface must contain this substring to be automatically chosen
@@ -36,57 +36,37 @@ namespace ClientForm
         public MainView()
         {
             InitializeComponent();
-            // Retrieve the device list from the local machine
-            IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
             pRecvThread = new Thread(new ThreadStart(RecvP));
+            SetPacketDevice();
+
+            // start the capture
+            pRecvThread.Start();
+        }
+        private static void SetPacketDevice()
+        {
+            IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
             int deviceIndex = -1;
 
             if (allDevices.Count == 0)
-            {
-                Console.WriteLine("No interfaces found! Make sure WinPcap is installed.");
                 return;
-            }
 
             // Print the list
             for (int i = 0; i != allDevices.Count; ++i)
             {
                 LivePacketDevice device = allDevices[i];
-                Console.Write(i + 1 + ". " + device.Name);
                 if (device.Description != null)
                 {
-                    Console.WriteLine(" (" + device.Description + ")");
                     if (device.Description.Contains(DEFAULT_INTERFACE_SUBSTRING))
                     {
                         deviceIndex = i + 1;
-                        Console.WriteLine("\n\n[!] Interface selected automatically: " + allDevices[deviceIndex - 1].Description);
-                        Console.WriteLine("Press any button to continue..");
-                        Console.ReadKey();
-                        Console.WriteLine(); // blank line after readkey
                         break;
                     }
                 }
-                else
-                    Console.WriteLine(" (No description available)");
             }
 
-            if (deviceIndex == -1)
-            {
-                do
-                {
-                    Console.WriteLine("Enter the interface number (1-" + allDevices.Count + "):");
-                    string deviceIndexString = Console.ReadLine();
-                    if (!int.TryParse(deviceIndexString, out deviceIndex) ||
-                        deviceIndex < 1 || deviceIndex > allDevices.Count)
-                    {
-                        deviceIndex = 0;
-                    }
-                } while (deviceIndex == 0);
-            }
             // Take the selected adapter
             selectedDevice = allDevices[deviceIndex - 1];
-
-            // start the capture
-            pRecvThread.Start();
+            Console.WriteLine($"[!] SELECTED INTERFACE: {selectedDevice.Description}");
         }
 
         private void RecvP()
