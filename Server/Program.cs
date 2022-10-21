@@ -96,7 +96,7 @@ namespace Server
         {
             while (true)
             {
-                    ShotBuildSend(device);
+                ShotBuildSend(device);
             }
         }
 
@@ -114,7 +114,9 @@ namespace Server
                 foreach (Packet p in a)
                 {
                     communicator.SendPacket(p);
-                    //Console.WriteLine($"[SEND] Chunk number: {++chunk_counter}/{total_chunks} | Size: {p.Count}"); // each chunk
+                    #if DEBUG
+                        Console.WriteLine($"[SEND] Chunk number: {++chunk_counter}/{total_chunks} | Size: {p.Count}"); // each chunk
+                    #endif
 
                 }
                 Console.WriteLine("--------------------\n\n\n");

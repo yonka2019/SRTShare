@@ -11,6 +11,7 @@ namespace ClientForm
         [STAThread]
         private static void Main()
         {
+            Console.WriteLine(Environment.UserInteractive);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainView());
