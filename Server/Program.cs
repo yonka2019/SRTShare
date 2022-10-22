@@ -23,8 +23,7 @@ namespace Server
 {
     internal class Program
     {
-        private static readonly Dictionary<int, Thread> connections = new Dictionary<int, Thread>(); // <SOCKET.ID : THREAD[ShotBuildSend(PORT)]
-        private static int userId = 0;
+        private static readonly Dictionary<int, Thread> connections = new Dictionary<int, Thread>(); // <DST.PORT : THREAD[Video()]
         private static PacketDevice selectedDevice;
         private static PacketCommunicator communicator;
 
@@ -41,25 +40,16 @@ namespace Server
 
         private static void Main()
         {
+            SetPacketDevice();
+
             new Thread(new ThreadStart(RecvP)).Start(); // always listen for any new connections
-
-            while (true)
-            {
-                SetPacketDevice();
-
-                try
-                {
-                    Video();
-                }
-                catch (Exception ex) { Console.WriteLine("Wrong device\n--------------------\n\n" + ex + "\n\n\n"); }
-            }
         }
 
-        private static void Video()
+        private static void Video(object dstPort)
         {
             while (true)
             {
-                ShotBuildSend(selectedDevice);
+                ShotBuildSend(selectedDevice, (ushort)dstPort);
             }
         }
         private static void SetPacketDevice()
@@ -89,13 +79,13 @@ namespace Server
             Console.WriteLine($"[!] SELECTED INTERFACE: {selectedDevice.Description}");
         }
 
-        private static void ShotBuildSend(PacketDevice device)
+        private static void ShotBuildSend(PacketDevice device, ushort dstPort)
         {
             using (PacketCommunicator communicator = device.Open(100, // name of the device
                                                          PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
                                                          1000)) // read timeout
             {
-                List<Packet> imageChunks = SplitToPackets(10000);
+                List<Packet> imageChunks = SplitToPackets(dstPort);
                 int chunk_counter = -1;
                 int total_chunks = imageChunks.Count - 1;
 
@@ -121,18 +111,21 @@ namespace Server
                     1000))                                  // read timeout
             {
                 Console.WriteLine("[LISTENING] " + selectedDevice.Description + "...");
-                communicator.ReceivePackets(0, HandleClient);
+                communicator.ReceivePackets(0, HandlePacket);
             }
         }
 
-        private static void HandleClient(Packet packet)
-        {
+        private static void HandlePacket(Packet packet)
+        { // check by data which packet is this (control/data)
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
             if (datagram != null && datagram.DestinationPort == 6969)
             {
                 // if () // check if packet is beginning handshake [NEW CONNECTION]
                     if (!connections.ContainsKey(datagram.SourcePort))
-                        connections.Add(++userId);
+                        connections.Add(datagram.SourcePort, new Thread(new ParameterizedThreadStart(Video)));
+
+                if (connections.ContainsKey(datagram.SourcePort))
+                    connections[datagram.SourcePort].Start(datagram.SourcePort); // start video
             }
         }
 
