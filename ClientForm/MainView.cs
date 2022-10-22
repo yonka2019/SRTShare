@@ -31,42 +31,17 @@ namespace ClientForm
         private static PacketDevice selectedDevice;
         private readonly Thread pRecvThread;
 
-        private const string DEFAULT_INTERFACE_SUBSTRING = "Intel"; // default interface must contain this substring to be automatically chosen
-
         public MainView()
         {
             InitializeComponent();
+
+            selectedDevice = PcapFunc.pcapDevice;
+            Console.WriteLine($"[!] SELECTED INTERFACE: {selectedDevice.Description}");
+
             pRecvThread = new Thread(new ThreadStart(RecvP));
-            SetPacketDevice();
 
             // start the capture
             pRecvThread.Start();
-        }
-        private static void SetPacketDevice()
-        {
-            IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
-            int deviceIndex = -1;
-
-            if (allDevices.Count == 0)
-                return;
-
-            // Print the list
-            for (int i = 0; i != allDevices.Count; ++i)
-            {
-                LivePacketDevice device = allDevices[i];
-                if (device.Description != null)
-                {
-                    if (device.Description.Contains(DEFAULT_INTERFACE_SUBSTRING))
-                    {
-                        deviceIndex = i + 1;
-                        break;
-                    }
-                }
-            }
-
-            // Take the selected adapter
-            selectedDevice = allDevices[deviceIndex - 1];
-            Console.WriteLine($"[!] SELECTED INTERFACE: {selectedDevice.Description}");
         }
 
         private void RecvP()

@@ -27,8 +27,6 @@ namespace Server
         private static PacketDevice selectedDevice;
         private static PacketCommunicator communicator;
 
-        private const string DEFAULT_INTERFACE_SUBSTRING = "Intel"; // default interface must contain this substring to be automatically chosen
-
         private static class Win32Native
         {
             public const int DESKTOPVERTRES = 0x75;
@@ -40,7 +38,8 @@ namespace Server
 
         private static void Main()
         {
-            SetPacketDevice();
+            selectedDevice = PcapFunc.pcapDevice;
+            Console.WriteLine($"[!] SELECTED INTERFACE: {selectedDevice.Description}");
 
             new Thread(new ThreadStart(RecvP)).Start(); // always listen for any new connections
         }
@@ -51,32 +50,6 @@ namespace Server
             {
                 ShotBuildSend(selectedDevice, (ushort)dstPort);
             }
-        }
-        private static void SetPacketDevice()
-        {
-            IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
-            int deviceIndex = -1;
-
-            if (allDevices.Count == 0)
-                return;
-
-            // Print the list
-            for (int i = 0; i != allDevices.Count; ++i)
-            {
-                LivePacketDevice device = allDevices[i];
-                if (device.Description != null)
-                {
-                    if (device.Description.Contains(DEFAULT_INTERFACE_SUBSTRING))
-                    {
-                        deviceIndex = i + 1;
-                        break;
-                    }
-                }
-            }
-
-            // Take the selected adapter
-            selectedDevice = allDevices[deviceIndex - 1];
-            Console.WriteLine($"[!] SELECTED INTERFACE: {selectedDevice.Description}");
         }
 
         private static void ShotBuildSend(PacketDevice device, ushort dstPort)
@@ -121,8 +94,8 @@ namespace Server
             if (datagram != null && datagram.DestinationPort == 6969)
             {
                 // if () // check if packet is beginning handshake [NEW CONNECTION]
-                    if (!connections.ContainsKey(datagram.SourcePort))
-                        connections.Add(datagram.SourcePort, new Thread(new ParameterizedThreadStart(Video)));
+                if (!connections.ContainsKey(datagram.SourcePort))
+                    connections.Add(datagram.SourcePort, new Thread(new ParameterizedThreadStart(Video)));
 
                 if (connections.ContainsKey(datagram.SourcePort))
                     connections[datagram.SourcePort].Start(datagram.SourcePort); // start video
@@ -141,36 +114,11 @@ namespace Server
             List<byte> packet_data;
             int i;
 
-            EthernetLayer ethernetLayer =
-                new EthernetLayer
-                {
-                    Source = new MacAddress("7C:B0:C2:FE:0F:C5"),
-                    Destination = new MacAddress("7C:B0:C2:FE:0F:C5"),
-                    EtherType = EthernetType.None, // Will be filled automatically.
-                };
+            EthernetLayer ethernetLayer = PcapFunc.BuildEthernetLayer();
 
-            IpV4Layer ipV4Layer =
-                new IpV4Layer
-                {
-                    Source = new IpV4Address("127.0.0.1"),
-                    CurrentDestination = new IpV4Address("127.0.0.1"),
-                    Fragmentation = IpV4Fragmentation.None,
-                    HeaderChecksum = null, // Will be filled automatically.
-                    Identification = 123,
-                    Options = IpV4Options.None,
-                    Protocol = null, // Will be filled automatically.
-                    Ttl = 100,
-                    TypeOfService = 0,
-                };
+            IpV4Layer ipV4Layer = PcapFunc.BuildIpv4Layer();
 
-            UdpLayer udpLayer =
-                new UdpLayer
-                {
-                    SourcePort = 6969,
-                    DestinationPort = dstPort,
-                    Checksum = null, // Will be filled automatically.
-                    CalculateChecksumValue = true,
-                };
+            UdpLayer udpLayer = PcapFunc.BuildUdpLayer(6969, dstPort);
 
             for (i = 1000; (i + 1000) < stream.Count; i += 1000) // 1000 bytes iterating
             {
