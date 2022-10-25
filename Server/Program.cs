@@ -114,9 +114,7 @@ namespace Server
             int i;
 
             EthernetLayer ethernetLayer = PcapFunc.BuildEthernetLayer();
-
             IpV4Layer ipV4Layer = PcapFunc.BuildIpv4Layer();
-
             UdpLayer udpLayer = PcapFunc.BuildUdpLayer(PcapFunc.SERVER_PORT, dstPort);
 
             for (i = 1000; (i + 1000) < stream.Count; i += 1000) // 1000 bytes iterating
@@ -128,10 +126,7 @@ namespace Server
                 packet_id.AddRange(total_chunks_number); // [packet id - (2bytes)][chunks number - (2bytes)]
                 packet_id.AddRange(packet_data); // [packet id - (2bytes)][chunks number - (2bytes)][data] // FINAL
 
-                PayloadLayer p1 = new PayloadLayer // [data (1000 bytes each chunk)]
-                {
-                    Data = new Datagram(packet_id.ToArray())
-                };
+                PayloadLayer p1 = PcapFunc.BuildPLayer(packet_id.ToArray());
                 packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p1).Build(DateTime.Now));
             }
 
@@ -142,10 +137,7 @@ namespace Server
             packet_id.AddRange(total_chunks_number); // [packet id - (2bytes)][chunks number - (2bytes)]
             packet_id.AddRange(packet_data); // [packet id - (2bytes)][chunks number - (2bytes)][last data]
 
-            PayloadLayer p2 = new PayloadLayer // [last data]
-            {
-                Data = new Datagram(packet_id.ToArray())
-            };
+            PayloadLayer p2 = PcapFunc.BuildPLayer(packet_id.ToArray());
             packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p2).Build(DateTime.Now));
 
             return packets;
