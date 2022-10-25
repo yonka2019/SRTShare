@@ -39,7 +39,6 @@ namespace Server
         private static void Main()
         {
             selectedDevice = PcapFunc.pcapDevice;
-            Console.WriteLine($"[!] SELECTED INTERFACE: {selectedDevice.Description}");
 
             new Thread(new ThreadStart(RecvP)).Start(); // always listen for any new connections
         }
@@ -62,12 +61,12 @@ namespace Server
                 int chunk_counter = -1;
                 int total_chunks = imageChunks.Count - 1;
 
-                Console.WriteLine($"[SEND] Image (Total chunks: {total_chunks})"); // each image
+                Console.WriteLine($"[SEND : {dstPort}] Image (Total chunks: {total_chunks})"); // each image
                 foreach (Packet chunk in imageChunks)
                 {
                     communicator.SendPacket(chunk);
 #if DEBUG
-                    Console.WriteLine($"[SEND] Chunk number: {++chunk_counter}/{total_chunks} | Size: {chunk.Count}"); // each chunk
+                    Console.WriteLine($"[SEND : {dstPort}] Chunk number: {++chunk_counter}/{total_chunks} | Size: {chunk.Count}"); // each chunk
 #endif
                 }
                 Console.WriteLine("--------------------\n\n\n");
@@ -91,7 +90,7 @@ namespace Server
         private static void HandlePacket(Packet packet)
         { // check by data which packet is this (control/data)
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
-            if (datagram != null && datagram.DestinationPort == 6969)
+            if (datagram != null && datagram.DestinationPort == PcapFunc.SERVER_PORT)
             {
                 // if () // check if packet is beginning handshake [NEW CONNECTION]
                 if (!connections.ContainsKey(datagram.SourcePort))
@@ -118,7 +117,7 @@ namespace Server
 
             IpV4Layer ipV4Layer = PcapFunc.BuildIpv4Layer();
 
-            UdpLayer udpLayer = PcapFunc.BuildUdpLayer(6969, dstPort);
+            UdpLayer udpLayer = PcapFunc.BuildUdpLayer(PcapFunc.SERVER_PORT, dstPort);
 
             for (i = 1000; (i + 1000) < stream.Count; i += 1000) // 1000 bytes iterating
             {

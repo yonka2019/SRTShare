@@ -1,13 +1,16 @@
 ﻿using PcapDotNet.Core;
+using PcapDotNet.Packets;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 public static class PcapFunc
 {
     public static readonly PacketDevice pcapDevice;
+    public const int SERVER_PORT = 6969;
     private const string DEFAULT_INTERFACE_SUBSTRING = "Intel";  // default interface must contain this substring to be automatically chosen
 
     static PcapFunc()
@@ -65,7 +68,7 @@ public static class PcapFunc
         };
     }
 
-    public static UdpLayer BuildUdpLayer(ushort sourcePort = 6969, ushort dstPort = 10000)
+    public static UdpLayer BuildUdpLayer(ushort sourcePort = SERVER_PORT, ushort dstPort = 10000)
     {
         return
         new UdpLayer
@@ -74,6 +77,22 @@ public static class PcapFunc
             DestinationPort = dstPort,
             Checksum = null, // Will be filled automatically.
             CalculateChecksumValue = true,
+        };
+    }
+
+    public static PayloadLayer BuildPLayer(string data = "")
+    {
+        return new PayloadLayer
+        {
+            Data = new Datagram(Encoding.ASCII.GetBytes(data))
+        };
+    }
+
+    public static PayloadLayer BuildPLayer(byte[] data)
+    {
+        return new PayloadLayer
+        {
+            Data = new Datagram(data)
         };
     }
 }

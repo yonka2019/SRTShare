@@ -1,11 +1,14 @@
 ﻿using PcapDotNet.Core;
 using PcapDotNet.Packets;
+using PcapDotNet.Packets.Ethernet;
+using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -30,15 +33,33 @@ namespace ClientForm
         private static PacketCommunicator communicator;
         private static PacketDevice selectedDevice;
         private readonly Thread pRecvThread;
+        private Random rnd = new Random();
+        private static ushort MyPort = 0;
 
         public MainView()
         {
             InitializeComponent();
+            MyPort = (ushort)rnd.Next(1, 5000);
 
             selectedDevice = PcapFunc.pcapDevice;
-            Console.WriteLine($"[!] SELECTED INTERFACE: {selectedDevice.Description}");
 
-            pRecvThread = new Thread(new ThreadStart(RecvP));
+            EthernetLayer ethernetLayer = PcapFunc.BuildEthernetLayer();
+
+            IpV4Layer ipV4Layer = PcapFunc.BuildIpv4Layer();
+
+            UdpLayer udpLayer = PcapFunc.BuildUdpLayer(MyPort, PcapFunc.SERVER_PORT);
+
+            PayloadLayer payloadLayer = PcapFunc.BuildPLayer("Start transmission");
+
+            Packet packet = new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, payloadLayer).Build(DateTime.Now);
+
+            using (PacketCommunicator communicator = selectedDevice.Open(100, // name of the device
+                                             PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
+                                             1000)) // read timeout
+            {
+                communicator.SendPacket(packet);
+            }
+                pRecvThread = new Thread(new ThreadStart(RecvP));
 
             // start the capture
             pRecvThread.Start();
@@ -62,7 +83,7 @@ namespace ClientForm
         private void PacketHandler(Packet packet)
         {
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
-            if (datagram != null && datagram.SourcePort == 6969)
+            if (datagram != null && datagram.SourcePort == PcapFunc.SERVER_PORT && datagram.DestinationPort == MyPort)
             {
                 MemoryStream stream = datagram.Payload.ToMemoryStream();
                 byte[] byteStream = stream.ToArray();
