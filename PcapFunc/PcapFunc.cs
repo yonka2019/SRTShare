@@ -12,7 +12,7 @@ public static class PcapFunc
     public static readonly PacketDevice pcapDevice;
 
     public const int SERVER_PORT = 6969;
-    private const string DEFAULT_INTERFACE_SUBSTRING = "Oracle";  // default interface must contain this substring to be automatically chosen
+    private const string DEFAULT_INTERFACE_SUBSTRING = "Intel";  // default interface must contain this substring to be automatically chosen
 
     static PcapFunc()
     {
