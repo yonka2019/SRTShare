@@ -1,6 +1,7 @@
 ﻿using PcapDotNet.Core;
 using PcapDotNet.Packets;
 using PcapDotNet.Packets.Transport;
+using SRTManager;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -40,12 +41,12 @@ namespace ClientForm
 
             myPort = (ushort)rnd.Next(1, 5000);
 
-            selectedDevice = PcapFunc.pcapDevice;
+            selectedDevice = PacketManager.pcapDevice;
 
-            Packet packet = new PacketBuilder(PcapFunc.BuildEthernetLayer(),
-                PcapFunc.BuildIpv4Layer(),
-                PcapFunc.BuildUdpLayer(myPort, PcapFunc.SERVER_PORT),
-                PcapFunc.BuildPLayer("Start transmission")).Build(DateTime.Now);
+            Packet packet = new PacketBuilder(PacketManager.BuildEthernetLayer(),
+                PacketManager.BuildIpv4Layer(),
+                PacketManager.BuildUdpLayer(myPort, PacketManager.SERVER_PORT),
+                PacketManager.BuildPLayer("Start transmission")).Build(DateTime.Now);
 
             using (PacketCommunicator communicator = selectedDevice.Open(100, // name of the device
                                              PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
@@ -77,7 +78,7 @@ namespace ClientForm
         private void PacketHandler(Packet packet)
         {
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
-            if (datagram != null && datagram.SourcePort == PcapFunc.SERVER_PORT && datagram.DestinationPort == myPort)
+            if (datagram != null && datagram.SourcePort == PacketManager.SERVER_PORT && datagram.DestinationPort == myPort)
             {
                 MemoryStream stream = datagram.Payload.ToMemoryStream();
                 byte[] byteStream = stream.ToArray();

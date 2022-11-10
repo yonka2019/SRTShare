@@ -17,7 +17,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -66,9 +66,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PcapFunc\PcapFunc.csproj">
+    <ProjectReference Include="..\PcapFunc\SRTManager.csproj">
       <Project>{15441e3c-00e3-4644-a71b-3d949eeee2dc}</Project>
-      <Name>PcapFunc</Name>
+      <Name>SRTManager</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

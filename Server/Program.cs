@@ -3,10 +3,10 @@ using PcapDotNet.Packets;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
+using SRTManager;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
@@ -38,7 +38,7 @@ namespace Server
 
         private static void Main()
         {
-            selectedDevice = PcapFunc.pcapDevice;
+            selectedDevice = PacketManager.pcapDevice;
 
             new Thread(new ThreadStart(RecvP)).Start(); // always listen for any new connections
         }
@@ -90,7 +90,7 @@ namespace Server
         private static void HandlePacket(Packet packet)
         { // check by data which packet is this (control/data)
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
-            if (datagram != null && datagram.DestinationPort == PcapFunc.SERVER_PORT)
+            if (datagram != null && datagram.DestinationPort == PacketManager.SERVER_PORT)
             {
                 // if () // check if packet is beginning handshake [NEW CONNECTION]
                 if (!connections.ContainsKey(datagram.SourcePort))
@@ -113,9 +113,9 @@ namespace Server
             List<byte> packet_data;
             int i;
 
-            EthernetLayer ethernetLayer = PcapFunc.BuildEthernetLayer();
-            IpV4Layer ipV4Layer = PcapFunc.BuildIpv4Layer();
-            UdpLayer udpLayer = PcapFunc.BuildUdpLayer(PcapFunc.SERVER_PORT, dstPort);
+            EthernetLayer ethernetLayer = PacketManager.BuildEthernetLayer();
+            IpV4Layer ipV4Layer = PacketManager.BuildIpv4Layer();
+            UdpLayer udpLayer = PacketManager.BuildUdpLayer(PacketManager.SERVER_PORT, dstPort);
 
             for (i = 1000; (i + 1000) < stream.Count; i += 1000) // 1000 bytes iterating
             {
@@ -126,7 +126,7 @@ namespace Server
                 packet_id.AddRange(total_chunks_number); // [packet id - (2bytes)][chunks number - (2bytes)]
                 packet_id.AddRange(packet_data); // [packet id - (2bytes)][chunks number - (2bytes)][data] // FINAL
 
-                PayloadLayer p1 = PcapFunc.BuildPLayer(packet_id.ToArray());
+                PayloadLayer p1 = PacketManager.BuildPLayer(packet_id.ToArray());
                 packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p1).Build(DateTime.Now));
             }
 
@@ -137,7 +137,7 @@ namespace Server
             packet_id.AddRange(total_chunks_number); // [packet id - (2bytes)][chunks number - (2bytes)]
             packet_id.AddRange(packet_data); // [packet id - (2bytes)][chunks number - (2bytes)][last data]
 
-            PayloadLayer p2 = PcapFunc.BuildPLayer(packet_id.ToArray());
+            PayloadLayer p2 = PacketManager.BuildPLayer(packet_id.ToArray());
             packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p2).Build(DateTime.Now));
 
             return packets;

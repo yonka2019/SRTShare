@@ -7,8 +7,8 @@
     <ProjectGuid>{15441E3C-00E3-4644-A71B-3D949EEEE2DC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PcapFunc</RootNamespace>
-    <AssemblyName>PcapFunc</AssemblyName>
+    <RootNamespace>SRTManager</RootNamespace>
+    <AssemblyName>SRTManager</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -16,7 +16,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -55,8 +55,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PcapFunc.cs" />
+    <Compile Include="PacketManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ProtocolManager.cs" />
+    <Compile Include="Enum\Requests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

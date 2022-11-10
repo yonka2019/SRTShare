@@ -1,0 +1,7 @@
+﻿namespace SRTManager
+{
+    enum RequestCodes
+    {
+
+    }
+}
