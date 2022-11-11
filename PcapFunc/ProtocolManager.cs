@@ -1,5 +1,7 @@
 ﻿using PcapDotNet.Packets;
 using System;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SRTManager
 {
@@ -27,12 +29,48 @@ namespace SRTManager
             layers.CopyTo(workingLayers, 0);
         }
 
-        public Packet HandshakeRequest() // add data to working packet
+        public Packet HandshakeRequest(string ip, ushort port, DateTime current_time) // add data to working packet
         {
             PayloadLayer pLayer = PacketManager.BuildPLayer("lala");
             workingLayers[workingLayers.Length - 1] = pLayer;
 
+            string my_cookie = cookieGenerator(ip, port, current_time); // get cookie
+
+            Console.WriteLine(my_cookie);
+
             return new PacketBuilder(workingLayers).Build(DateTime.Now);
+        }
+
+        private static string cookieGenerator(string ip, ushort port, DateTime current_time)
+        {
+            string textToEncrypt = "";
+
+            textToEncrypt += ip + "&"; // add ip
+            textToEncrypt += port.ToString() + "&"; // add port
+            textToEncrypt += $"{current_time.Second.ToString()}.{current_time.Minute.ToString()}.{current_time.Hour.ToString()}.{current_time.Day.ToString()}.{current_time.Month.ToString()}.{current_time.Year.ToString()}"; // add current time
+
+            return encrypt(textToEncrypt); // return the encrypted cookie
+        }
+
+        private static string encrypt(string text)
+        {
+            MD5 md5 = new MD5CryptoServiceProvider();
+
+            //compute hash from the bytes of text  
+            md5.ComputeHash(ASCIIEncoding.ASCII.GetBytes(text));
+
+            //get hash result after compute it  
+            byte[] result = md5.Hash;
+
+            string strBuilder = "";
+            for (int i = 0; i < result.Length; i++)
+            {
+                //change it into 2 hexadecimal digits  
+                //for each byte  
+                strBuilder += (result[i].ToString("x2"));
+            }
+
+            return strBuilder;
         }
     }
 }
