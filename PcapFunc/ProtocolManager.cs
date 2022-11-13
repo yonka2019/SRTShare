@@ -15,7 +15,7 @@ namespace SRTManager
             Packet doneToSend = a.HandshakeRequest();
          */
 
-        private ILayer[] workingLayers; // layers we working with, we should add last packet data (SRT)
+        private readonly ILayer[] workingLayers; // layers we working with, we should add last packet data (SRT)
         /*
          * EthernetLayer - Exist
          * InternetLayer - Exist
@@ -47,7 +47,7 @@ namespace SRTManager
 
             textToEncrypt += ip + "&"; // add ip
             textToEncrypt += port.ToString() + "&"; // add port
-            textToEncrypt += $"{current_time.Second.ToString()}.{current_time.Minute.ToString()}.{current_time.Hour.ToString()}.{current_time.Day.ToString()}.{current_time.Month.ToString()}.{current_time.Year.ToString()}"; // add current time
+            textToEncrypt += $"{current_time.Second}.{current_time.Minute}.{current_time.Hour}.{current_time.Day}.{current_time.Month}.{current_time.Year}"; // add current time
 
             return encrypt(textToEncrypt); // return the encrypted cookie
         }
@@ -67,7 +67,7 @@ namespace SRTManager
             {
                 //change it into 2 hexadecimal digits  
                 //for each byte  
-                strBuilder += (result[i].ToString("x2"));
+                strBuilder += result[i].ToString("x2");
             }
 
             return strBuilder;
