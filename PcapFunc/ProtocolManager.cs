@@ -34,14 +34,14 @@ namespace SRTManager
             PayloadLayer pLayer = PacketManager.BuildPLayer("lala");
             workingLayers[workingLayers.Length - 1] = pLayer;
 
-            string my_cookie = cookieGenerator(ip, port, current_time); // get cookie
+            string my_cookie = GenCookie(ip, port, current_time); // get cookie
 
             Console.WriteLine(my_cookie);
 
             return new PacketBuilder(workingLayers).Build(DateTime.Now);
         }
 
-        private static string cookieGenerator(string ip, ushort port, DateTime current_time)
+        private static string GenCookie(string ip, ushort port, DateTime current_time)
         {
             string textToEncrypt = "";
 
@@ -49,10 +49,10 @@ namespace SRTManager
             textToEncrypt += port.ToString() + "&"; // add port
             textToEncrypt += $"{current_time.Second}.{current_time.Minute}.{current_time.Hour}.{current_time.Day}.{current_time.Month}.{current_time.Year}"; // add current time
 
-            return encrypt(textToEncrypt); // return the encrypted cookie
+            return Md5Encrypt(textToEncrypt); // return the encrypted cookie
         }
 
-        private static string encrypt(string text)
+        private static string Md5Encrypt(string text)
         {
             MD5 md5 = new MD5CryptoServiceProvider();
 
@@ -71,6 +71,14 @@ namespace SRTManager
             }
 
             return strBuilder;
+        }
+        public class Handshake
+        {
+            public static string Induction()
+            {
+                return "";
+            }
+
         }
     }
 }
