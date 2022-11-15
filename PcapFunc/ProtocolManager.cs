@@ -72,6 +72,7 @@ namespace SRTManager
 
             return strBuilder;
         }
+
         public class Handshake
         {
             public static string Induction()
