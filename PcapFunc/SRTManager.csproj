@@ -55,8 +55,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enum\PacketType.cs" />
     <Compile Include="PacketManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ProtocolHeaders.cs" />
     <Compile Include="ProtocolManager.cs" />
     <Compile Include="Enum\Requests.cs" />
   </ItemGroup>
