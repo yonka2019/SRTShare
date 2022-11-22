@@ -5,7 +5,7 @@
         public class Handshake
         {
             public Handshake(uint version, ushort encryption_field, ushort extension_field, uint intial_psn,
-                uint mtu, uint mfws, uint type, uint socket_id, uint syn_cookie, decimal p_ip)
+                uint mtu, uint mfws, uint type, uint socket_id, string syn_cookie, decimal p_ip)
             {
                 VERSION = version;
                 ENCRYPTION_FIELD = encryption_field;
@@ -27,9 +27,10 @@
             public uint MFWS { get; set; }
             public uint TYPE { get; set; }
             public uint SOCKET_ID { get; set; }
-            public uint SYN_COOKIE { get; set; }
+            public string SYN_COOKIE { get; set; }
             public decimal PEER_IP { get; set; }
 
+            
             public enum Extension
             {
                 HSREQ = 0x00000001,

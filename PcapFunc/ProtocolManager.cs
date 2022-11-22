@@ -75,9 +75,23 @@ namespace SRTManager
 
         public class Handshake
         {
-            public static string Induction()
+            public static void Induction(string ip, ushort port, bool first)
             {
-                ProtocolFields.Handshake handshakePacket = new ProtocolFields.Handshake(4, 0, 2, ProtocolFields.Handshake.HandshakeType.INDUCTION, )
+                DateTime now  = DateTime.Now;
+                string cookie = GenCookie(ip, port, now);
+
+                ProtocolFields.Handshake handshakePacket;
+
+                // change peer id to real one
+                if(first)
+                {
+                    handshakePacket = new ProtocolFields.Handshake(4, 0, 2, 0, 1500, 1000, (uint)ProtocolFields.Handshake.HandshakeType.INDUCTION, 0, cookie, 0);
+                }
+
+                else
+                {
+                    handshakePacket = new ProtocolFields.Handshake(4, 0, 2, 0, 1500, 1000, (uint)ProtocolFields.Handshake.HandshakeType.INDUCTION, 0, "0", 0);
+                }
             }
 
         }
