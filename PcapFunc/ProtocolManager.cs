@@ -77,7 +77,7 @@ namespace SRTManager
         {
             public static string Induction()
             {
-                return "";
+                ProtocolFields.Handshake handshakePacket = new ProtocolFields.Handshake(4, 0, 2, ProtocolFields.Handshake.HandshakeType.INDUCTION, )
             }
 
         }
