@@ -1,12 +1,18 @@
 ﻿using PcapDotNet.Packets;
 using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+
+using F_Handshake = SRTManager.ProtocolFields.Handshake;
 
 namespace SRTManager
 {
     public class ProtocolManager
     {
+        public static List<IPAddress> sockets = new List<IPAddress>();
+
         /* Usage Example:
             EthernetLayer ethernetLayer = PacketManager.BuildEthernetLayer();
             IpV4Layer ipV4Layer = PacketManager.BuildIpv4Layer();
@@ -75,22 +81,24 @@ namespace SRTManager
 
         public class Handshake
         {
-            public static void Induction(string ip, ushort port, bool first)
+            // public Handshake(uint version, ushort encryption_field, ushort extension_field, uint intial_psn,
+            // uint mtu, uint mfws, uint type, uint socket_id, string syn_cookie, decimal p_ip)
+            public static void Induction(string ip, ushort port, bool clientSide)
             {
-                DateTime now  = DateTime.Now;
+                DateTime now = DateTime.Now;
                 string cookie = GenCookie(ip, port, now);
 
-                ProtocolFields.Handshake handshakePacket;
+                F_Handshake handshakePacket;
 
-                // change peer id to real one
-                if(first)
+                if (clientSide)
                 {
-                    handshakePacket = new ProtocolFields.Handshake(4, 0, 2, 0, 1500, 1000, (uint)ProtocolFields.Handshake.HandshakeType.INDUCTION, 0, cookie, 0);
+                    // CALLER -> LISTENER (first message)
+                    handshakePacket = new F_Handshake(version: 4, 0, 0, 1000, 1000, (uint)F_Handshake.HandshakeType.INDUCTION, 0, cookie, 0);
                 }
 
                 else
-                {
-                    handshakePacket = new ProtocolFields.Handshake(4, 0, 2, 0, 1500, 1000, (uint)ProtocolFields.Handshake.HandshakeType.INDUCTION, 0, "0", 0);
+                { // LISTENER -> CALLER (first message RESPONSE)
+                    handshakePacket = new F_Handshake(version: 5, 0, 0, 1000, 1000, (uint)F_Handshake.HandshakeType.INDUCTION, (uint)sockets.Count, "0", 0);
                 }
             }
 
