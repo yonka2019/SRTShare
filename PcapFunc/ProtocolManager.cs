@@ -9,7 +9,7 @@ namespace SRTManager
 {
     public class ProtocolManager
     {
-        private static uint GenCookie(string ip, ushort port, DateTime current_time)
+        private static uint GenerateCookie(string ip, ushort port, DateTime current_time)
         {
             string textToEncrypt = "";
 
@@ -25,7 +25,7 @@ namespace SRTManager
             MD5 md5 = new MD5CryptoServiceProvider();
 
             //compute hash from the bytes of text  
-            md5.ComputeHash(ASCIIEncoding.ASCII.GetBytes(text));
+            md5.ComputeHash(Encoding.ASCII.GetBytes(text));
 
             //get hash result after compute it  
             return BitConverter.ToUInt32(md5.Hash, 0);
@@ -47,7 +47,7 @@ namespace SRTManager
             public Packet Induction(string ip, ushort port, bool clientSide, int socket_id = 0)
             {
                 DateTime now = DateTime.Now;
-                uint cookie = GenCookie(ip, port, now);
+                uint cookie = GenerateCookie(ip, port, now);
 
                 F_Handshake f_handshake;
 
@@ -67,6 +67,7 @@ namespace SRTManager
 
                 return BuildPacket();
             }
+
             public static void Conclusion()
             {
 
