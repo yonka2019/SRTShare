@@ -1,7 +1,5 @@
 ﻿using PcapDotNet.Packets;
 using System;
-using System.Collections.Generic;
-using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -11,8 +9,6 @@ namespace SRTManager
 {
     public class ProtocolManager
     {
-        public static List<IPAddress> sockets = new List<IPAddress>();
-
         /* Usage Example:
             EthernetLayer ethernetLayer = PacketManager.BuildEthernetLayer();
             IpV4Layer ipV4Layer = PacketManager.BuildIpv4Layer();
@@ -100,6 +96,10 @@ namespace SRTManager
                 { // LISTENER -> CALLER (first message RESPONSE)
                     handshakePacket = new F_Handshake(version: 5, 0, 0, 1000, 1000, (uint)F_Handshake.HandshakeType.INDUCTION, (uint)sockets.Count, "0", 0);
                 }
+            }
+            public static void Conclusion()
+            {
+
             }
 
         }
