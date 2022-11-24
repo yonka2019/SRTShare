@@ -28,8 +28,6 @@ namespace ClientForm
         private static bool imageBuilt;
 
         private static readonly List<byte> data = new List<byte>();
-        private static PacketCommunicator communicator;
-        private static PacketDevice selectedDevice;
         private readonly Thread pRecvThread;
         private readonly Random rnd = new Random();
 
@@ -41,19 +39,13 @@ namespace ClientForm
 
             myPort = (ushort)rnd.Next(1, 5000);
 
-            selectedDevice = PacketManager.pcapDevice;
-
             Packet packet = new PacketBuilder(PacketManager.BuildEthernetLayer(),
                 PacketManager.BuildIpv4Layer(),
                 PacketManager.BuildUdpLayer(myPort, PacketManager.SERVER_PORT),
                 PacketManager.BuildPLayer("Start transmission")).Build(DateTime.Now);
 
-            using (PacketCommunicator communicator = selectedDevice.Open(100, // name of the device
-                                             PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
-                                             1000)) // read timeout
-            {
-                communicator.SendPacket(packet);
-            }
+            PacketManager.SendPacket(packet);
+
             pRecvThread = new Thread(new ThreadStart(RecvP));
 
             // start the capture
@@ -62,18 +54,9 @@ namespace ClientForm
 
         private void RecvP()
         {
-            // open the device
-            using (communicator =
-            selectedDevice.Open(65536,                         // portion of the packet to capture
-                                                               // 65536 guarantees that the whole packet will be captured on all the link layers
-                    PacketDeviceOpenAttributes.Promiscuous,  // promiscuous mode
-                    1000))                                  // read timeout
-            {
-                Console.WriteLine("[LISTENING] " + selectedDevice.Description + "...");
-                communicator.ReceivePackets(0, PacketHandler);
-            }
+            PacketManager.ReceivePackets(0, PacketHandler);
         }
-
+        
         // Callback function invoked by Pcap.Net for every incoming packet
         private void PacketHandler(Packet packet)
         {
@@ -84,10 +67,10 @@ namespace ClientForm
                 byte[] byteStream = stream.ToArray();
 
                 // [0][1]
-                current_packet_id = BitConverter.ToUInt16(byteStream, 0); // take first two bytes of the chunk --> ([ID (2 bytes)] <-- [CHUNKS NUMBER (2 bytes)][DATA]
+                current_packet_id = BitConverter.ToUInt16(byteStream, 0); // take first two bytes of the chunk | --> ([ID (2 bytes)] <-- [TOTAL CHUNKS NUMBER (2 bytes)][DATA] |
 
                 // [2][3]
-                total_chunks_number = BitConverter.ToUInt16(byteStream, 2); // take second two bytes of the chunk ([ID (2 bytes)] --> [CHUNKS NUMBER (2 bytes)] <--[DATA]
+                total_chunks_number = BitConverter.ToUInt16(byteStream, 2); // take second two bytes of the chunk | ([ID (2 bytes)] --> [TOTAL CHUNKS NUMBER (2 bytes)] <-- [DATA] |
 
                 //Console.WriteLine($"[GOT] Chunk number: {current_packet_id}/{total_chunks_number} | Size: {byteStream.Length}"); // each chunk print
 

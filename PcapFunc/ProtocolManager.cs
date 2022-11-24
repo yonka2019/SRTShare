@@ -9,41 +9,7 @@ namespace SRTManager
 {
     public class ProtocolManager
     {
-        /* Usage Example:
-            EthernetLayer ethernetLayer = PacketManager.BuildEthernetLayer();
-            IpV4Layer ipV4Layer = PacketManager.BuildIpv4Layer();
-            UdpLayer udpLayer = PacketManager.BuildUdpLayer(PacketManager.SERVER_PORT, 123);
-            var a = new ProtocolManager(ethernetLayer, ipV4Layer, udpLayer);
-            Packet doneToSend = a.HandshakeRequest();
-         */
-
-        private readonly ILayer[] workingLayers; // layers we working with, we should add last packet data (SRT)
-        /*
-         * EthernetLayer - Exist
-         * InternetLayer - Exist
-         * UDPLayer - Exist
-         * PayloadLayer (SRT Data) - Should be added
-         */
-
-        public ProtocolManager(params ILayer[] layers)
-        {
-            workingLayers = new ILayer[layers.Length + 1]; // add payload layer after
-            layers.CopyTo(workingLayers, 0);
-        }
-
-        public Packet HandshakeRequest(string ip, ushort port, DateTime current_time) // add data to working packet
-        {
-            PayloadLayer pLayer = PacketManager.BuildPLayer("lala");
-            workingLayers[workingLayers.Length - 1] = pLayer;
-
-            string my_cookie = GenCookie(ip, port, current_time); // get cookie
-
-            Console.WriteLine(my_cookie);
-
-            return new PacketBuilder(workingLayers).Build(DateTime.Now);
-        }
-
-        private static string GenCookie(string ip, ushort port, DateTime current_time)
+        private static uint GenCookie(string ip, ushort port, DateTime current_time)
         {
             string textToEncrypt = "";
 
@@ -54,7 +20,7 @@ namespace SRTManager
             return Md5Encrypt(textToEncrypt); // return the encrypted cookie
         }
 
-        private static string Md5Encrypt(string text)
+        private static uint Md5Encrypt(string text)
         {
             MD5 md5 = new MD5CryptoServiceProvider();
 
@@ -62,40 +28,44 @@ namespace SRTManager
             md5.ComputeHash(ASCIIEncoding.ASCII.GetBytes(text));
 
             //get hash result after compute it  
-            byte[] result = md5.Hash;
-
-            string strBuilder = "";
-            for (int i = 0; i < result.Length; i++)
-            {
-                //change it into 2 hexadecimal digits  
-                //for each byte  
-                strBuilder += result[i].ToString("x2");
-            }
-
-            return strBuilder;
+            return BitConverter.ToUInt32(md5.Hash, 0);
         }
 
-        public class Handshake
+        public class HandshakeRequest : UdpPacket
         {
-            // public Handshake(uint version, ushort encryption_field, ushort extension_field, uint intial_psn,
-            // uint mtu, uint mfws, uint type, uint socket_id, string syn_cookie, decimal p_ip)
-            public static void Induction(string ip, ushort port, bool clientSide)
+            /*
+             *  Usage Example:
+                        var handshakeRequest = new SRTManager.ProtocolManager.Handshake(PacketManager.BuildEthernetLayer(),
+                        PacketManager.BuildIpv4Layer(),
+                        PacketManager.BuildUdpLayer(600, PacketManager.SERVER_PORT));
+                        Packet readyToSent = a.Induction("a", 1, false);
+            */
+
+            public HandshakeRequest(params ILayer[] layers) : base(layers) { }
+
+            // public F_Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint socket_id, uint syn_cookie, decimal p_ip)
+            public Packet Induction(string ip, ushort port, bool clientSide, int socket_id = 0)
             {
                 DateTime now = DateTime.Now;
-                string cookie = GenCookie(ip, port, now);
+                uint cookie = GenCookie(ip, port, now);
 
-                F_Handshake handshakePacket;
+                F_Handshake f_handshake;
 
                 if (clientSide)
                 {
                     // CALLER -> LISTENER (first message)
-                    handshakePacket = new F_Handshake(version: 4, 0, 0, 1000, 1000, (uint)F_Handshake.HandshakeType.INDUCTION, 0, cookie, 0);
+                    f_handshake = new F_Handshake(version: 4, 0, 0, (uint)F_Handshake.HandshakeType.INDUCTION, (uint)socket_id, 0, 0);
                 }
 
                 else
-                { // LISTENER -> CALLER (first message RESPONSE)
-                    handshakePacket = new F_Handshake(version: 5, 0, 0, 1000, 1000, (uint)F_Handshake.HandshakeType.INDUCTION, (uint)sockets.Count, "0", 0);
+                {
+                    // LISTENER -> CALLER (first message RESPONSE)
+                    f_handshake = new F_Handshake(version: 5, 0, 0, (uint)F_Handshake.HandshakeType.INDUCTION, (uint)socket_id, cookie, 0);
                 }
+
+                GetPayloadLayer() = PacketManager.BuildPLayer(f_handshake.GetByted()); // set last payload layer as our srt packet
+
+                return BuildPacket();
             }
             public static void Conclusion()
             {

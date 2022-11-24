@@ -24,8 +24,6 @@ namespace Server
     internal class Program
     {
         private static readonly Dictionary<int, Thread> connections = new Dictionary<int, Thread>(); // <DST.PORT : THREAD[Video()]
-        private static PacketDevice selectedDevice;
-        private static PacketCommunicator communicator;
 
         private static class Win32Native
         {
@@ -38,8 +36,6 @@ namespace Server
 
         private static void Main()
         {
-            selectedDevice = PacketManager.pcapDevice;
-
             new Thread(new ThreadStart(RecvP)).Start(); // always listen for any new connections
         }
 
@@ -47,44 +43,26 @@ namespace Server
         {
             while (true)
             {
-                ShotBuildSend(selectedDevice, (ushort)dstPort);
+                ShotBuildSend(PacketManager.pcapDevice, (ushort)dstPort);
             }
         }
 
         private static void ShotBuildSend(PacketDevice device, ushort dstPort)
         {
-            using (PacketCommunicator communicator = device.Open(100, // name of the device
-                                                         PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
-                                                         1000)) // read timeout
-            {
-                List<Packet> imageChunks = SplitToPackets(dstPort);
-                int chunk_counter = -1;
-                int total_chunks = imageChunks.Count - 1;
+            List<Packet> imageChunks = SplitToPackets(dstPort);
+            int total_chunks = imageChunks.Count - 1;
 
-                Console.WriteLine($"[SEND : {dstPort}] Image (Total chunks: {total_chunks})"); // each image
-                foreach (Packet chunk in imageChunks)
-                {
-                    communicator.SendPacket(chunk);
-#if DEBUG
-                    Console.WriteLine($"[SEND : {dstPort}] Chunk number: {++chunk_counter}/{total_chunks} | Size: {chunk.Count}"); // each chunk
-#endif
-                }
-                Console.WriteLine("--------------------\n\n\n");
+            Console.WriteLine($"[SEND : {dstPort}] Image (Total chunks: {total_chunks})"); // each image
+            foreach (Packet chunk in imageChunks)
+            {
+                PacketManager.SendPacket(chunk);
             }
+            Console.WriteLine("--------------------\n\n\n");
         }
 
         private static void RecvP()
         {
-            // open the device
-            using (communicator =
-            selectedDevice.Open(65536,                         // portion of the packet to capture
-                                                               // 65536 guarantees that the whole packet will be captured on all the link layers
-                    PacketDeviceOpenAttributes.Promiscuous,  // promiscuous mode
-                    1000))                                  // read timeout
-            {
-                Console.WriteLine("[LISTENING] " + selectedDevice.Description + "...");
-                communicator.ReceivePackets(0, HandlePacket);
-            }
+            PacketManager.ReceivePackets(0, HandlePacket);
         }
 
         private static void HandlePacket(Packet packet)
