@@ -44,7 +44,7 @@ namespace SRTManager
             public HandshakeRequest(params ILayer[] layers) : base(layers) { }
 
             // public F_Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint socket_id, uint syn_cookie, decimal p_ip)
-            public Packet Induction(string ip, ushort port, uint init_spn, decimal p_ip, bool clientSide, int socket_id = 0)
+            public Packet Induction(string ip, ushort port, uint init_spn, double p_ip, bool clientSide, int socket_id = 0)
             {
                 DateTime now = DateTime.Now;
                 uint cookie = GenerateCookie(ip, port, now);
@@ -69,7 +69,7 @@ namespace SRTManager
             }
 
 
-            public Packet Conclusion(uint cookie, uint init_spn, decimal p_ip, bool clientSide, int socket_id = 0)
+            public Packet Conclusion(uint cookie, uint init_spn, double p_ip, bool clientSide, int socket_id = 0)
             {
                 F_Handshake f_handshake;
 
