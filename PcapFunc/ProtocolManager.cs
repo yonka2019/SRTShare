@@ -53,13 +53,13 @@ namespace SRTManager
 
                 if (clientSide)
                 {
-                    // CALLER -> LISTENER (first message REQUEST)
+                    // CALLER -> LISTENER (first message REQUEST) [CLIENT -> SERVER]
                     f_handshake = new F_Handshake(version: 4, 0, init_spn, (uint)F_Handshake.HandshakeType.INDUCTION, (uint)socket_id, 0, p_ip);
                 }
 
                 else
                 {
-                    // LISTENER -> CALLER (first message RESPONSE)
+                    // LISTENER -> CALLER (first message RESPONSE) [SERVER -> CLIENT]
                     f_handshake = new F_Handshake(version: 5, 0, init_spn, (uint)F_Handshake.HandshakeType.INDUCTION, (uint)socket_id, cookie, p_ip);
                 }
 
@@ -75,13 +75,13 @@ namespace SRTManager
 
                 if (clientSide)
                 {
-                    // CALLER -> LISTENER (second message)
+                    // CALLER -> LISTENER (second message) [CLIENT -> SERVER]
                     f_handshake = new F_Handshake(version: 5, 0, init_spn, (uint)F_Handshake.HandshakeType.CONCLUSION, (uint)socket_id, cookie, p_ip);
                 }
 
                 else
                 {
-                    // LISTENER -> CALLER (second message RESPONSE)
+                    // LISTENER -> CALLER (second message RESPONSE) [SERVER -> CLIENT]
                     f_handshake = new F_Handshake(version: 5, 0, init_spn, (uint)F_Handshake.HandshakeType.CONCLUSION, (uint)socket_id, 0, p_ip);
                 }
 
