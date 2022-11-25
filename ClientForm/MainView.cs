@@ -43,7 +43,9 @@ namespace ClientForm
                 PacketManager.BuildIpv4Layer(),
                 PacketManager.BuildUdpLayer(myPort, PacketManager.SERVER_PORT));
 
-            Packet handshake_packet = handshake.Induction("127.0.0.1", myPort, 0, 0, true, 0); // *** need to change peer id***
+            DateTime now = DateTime.Now;
+
+            Packet handshake_packet = handshake.Induction(SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, now), 0, 0, true, 0); // *** need to change peer id***
 
             /*Packet packet = new PacketBuilder(PacketManager.BuildEthernetLayer(),
                 PacketManager.BuildIpv4Layer(),
