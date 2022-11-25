@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using F_Handshake = SRTManager.ProtocolFields.Handshake;
 
 /*
  * PACKET STRUCTURE:
@@ -72,39 +73,71 @@ namespace ClientForm
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
             if (datagram != null && datagram.SourcePort == PacketManager.SERVER_PORT && datagram.DestinationPort == myPort)
             {
-                MemoryStream stream = datagram.Payload.ToMemoryStream();
-                byte[] byteStream = stream.ToArray();
+                F_Handshake handshake_request = null;
+                bool is_handshake = true;
 
-                // [0][1]
-                current_packet_id = BitConverter.ToUInt16(byteStream, 0); // take first two bytes of the chunk | --> ([ID (2 bytes)] <-- [TOTAL CHUNKS NUMBER (2 bytes)][DATA] |
-
-                // [2][3]
-                total_chunks_number = BitConverter.ToUInt16(byteStream, 2); // take second two bytes of the chunk | ([ID (2 bytes)] --> [TOTAL CHUNKS NUMBER (2 bytes)] <-- [DATA] |
-
-                //Console.WriteLine($"[GOT] Chunk number: {current_packet_id}/{total_chunks_number} | Size: {byteStream.Length}"); // each chunk print
-
-                if (current_packet_id == total_chunks_number) // last chunk of image received
+                try
                 {
-                    imageBuilt = true;
-                    data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
-                    ShowImage(true);
-                    data.Clear(); // prepare to next chunk
+                    handshake_request = new F_Handshake(datagram.Payload.ToArray());
                 }
-                // new image chunks started (IDs: [OLD IMAGE] 1 2 3 4 [NEW IMAGE (~show old image~)] 1 2 . . .
-                else if (current_packet_id < last_packet_id && !imageBuilt) // if the above condition didn't done (packet loss) and the image was changed, show the image
+
+                catch (Exception ex)
                 {
-                    if (!firstChunk)
-                        ShowImage(false); // show image if all his chunks arrived
-                    else
-                        firstChunk = false;
-
-                    data.Clear(); // clear all data from past images
-                    data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
+                    is_handshake = false;
                 }
-                else // next packets (same chunk continues)
-                    data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
 
-                last_packet_id = current_packet_id;
+                if (is_handshake)
+                {
+                    if (handshake_request.TYPE == (uint)(F_Handshake.HandshakeType.INDUCTION)) // server -> client (induction)
+                    {
+                        //check if cookies are the same
+
+                        ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
+                           PacketManager.BuildIpv4Layer(),
+                           PacketManager.BuildUdpLayer(myPort, PacketManager.SERVER_PORT));
+
+                        Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: true, cookie:handshake_request.SYN_COOKIE); // ***need to change peer id***
+                        PacketManager.SendPacket(handshake_packet);
+                    }
+                }
+
+                else
+                {
+                    MemoryStream stream = datagram.Payload.ToMemoryStream();
+                    byte[] byteStream = stream.ToArray();
+
+                    // [0][1]
+                    current_packet_id = BitConverter.ToUInt16(byteStream, 0); // take first two bytes of the chunk | --> ([ID (2 bytes)] <-- [TOTAL CHUNKS NUMBER (2 bytes)][DATA] |
+
+                    // [2][3]
+                    total_chunks_number = BitConverter.ToUInt16(byteStream, 2); // take second two bytes of the chunk | ([ID (2 bytes)] --> [TOTAL CHUNKS NUMBER (2 bytes)] <-- [DATA] |
+
+                    //Console.WriteLine($"[GOT] Chunk number: {current_packet_id}/{total_chunks_number} | Size: {byteStream.Length}"); // each chunk print
+
+                    if (current_packet_id == total_chunks_number) // last chunk of image received
+                    {
+                        imageBuilt = true;
+                        data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
+                        ShowImage(true);
+                        data.Clear(); // prepare to next chunk
+                    }
+                    // new image chunks started (IDs: [OLD IMAGE] 1 2 3 4 [NEW IMAGE (~show old image~)] 1 2 . . .
+                    else if (current_packet_id < last_packet_id && !imageBuilt) // if the above condition didn't done (packet loss) and the image was changed, show the image
+                    {
+                        if (!firstChunk)
+                            ShowImage(false); // show image if all his chunks arrived
+                        else
+                            firstChunk = false;
+
+                        data.Clear(); // clear all data from past images
+                        data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
+                    }
+                    else // next packets (same chunk continues)
+                        data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
+
+                    last_packet_id = current_packet_id;
+                }
+                
             }
         }
 

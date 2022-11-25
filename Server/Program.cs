@@ -83,10 +83,9 @@ namespace Server
                     is_handshake = false;
                 }
 
-                // if () // check if packet is beginning handshake [NEW CONNECTION]
                 if(is_handshake)
                 {
-                    if (handshake_request.TYPE == (uint)F_Handshake.HandshakeType.INDUCTION)
+                    if (handshake_request.TYPE == (uint)F_Handshake.HandshakeType.INDUCTION) // client -> server (induction)
                     {
                         ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
                             PacketManager.BuildIpv4Layer(),
@@ -95,20 +94,21 @@ namespace Server
                         DateTime now = DateTime.Now;
                         uint cookie = SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", datagram.SourcePort, now); // need to save cookie somewhere
 
-
-                        Packet handshake_packet = handshake_response.Induction(cookie, 0, 0, false, 0); // ***need to change peer id***
+                        Packet handshake_packet = handshake_response.Induction(cookie, init_psn:0, p_ip:0, clientSide:false); // ***need to change peer id***
                         PacketManager.SendPacket(handshake_packet);
+
+                        
                     }
 
 
-                    else if(handshake_request.TYPE == (uint)(F_Handshake.HandshakeType.CONCLUSION))
+                    else if(handshake_request.TYPE == (uint)(F_Handshake.HandshakeType.CONCLUSION)) // client -> server (conclusion)
                     {
                         ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
                            PacketManager.BuildIpv4Layer(),
                            PacketManager.BuildUdpLayer(PacketManager.SERVER_PORT, datagram.SourcePort));
 
-                        //Packet handshake_packet = handshake_response.Conclusion("127.0.0.1", datagram.SourcePort, 0, 0, false, 0); // ***need to change peer id***
-                        //PacketManager.SendPacket(handshake_packet);
+                        Packet handshake_packet = handshake_response.Conclusion(init_psn:0, p_ip:0, clientSide:false); // ***need to change peer id***
+                        PacketManager.SendPacket(handshake_packet);
 
                         if (!connections.ContainsKey(datagram.SourcePort))
                             connections.Add(datagram.SourcePort, new Thread(new ParameterizedThreadStart(Video)));
