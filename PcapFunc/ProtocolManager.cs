@@ -44,7 +44,7 @@ namespace SRTManager
             public HandshakeRequest(params ILayer[] layers) : base(layers) { }
 
             // public F_Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint socket_id, uint syn_cookie, decimal p_ip)
-            public Packet Induction(string ip, ushort port, bool clientSide, int socket_id = 0)
+            public Packet Induction(string ip, ushort port, uint init_spn, decimal p_ip, bool clientSide, int socket_id = 0)
             {
                 DateTime now = DateTime.Now;
                 uint cookie = GenerateCookie(ip, port, now);
@@ -53,14 +53,14 @@ namespace SRTManager
 
                 if (clientSide)
                 {
-                    // CALLER -> LISTENER (first message)
-                    f_handshake = new F_Handshake(version: 4, 0, 0, (uint)F_Handshake.HandshakeType.INDUCTION, (uint)socket_id, 0, 0);
+                    // CALLER -> LISTENER (first message REQUEST)
+                    f_handshake = new F_Handshake(version: 4, 0, init_spn, (uint)F_Handshake.HandshakeType.INDUCTION, (uint)socket_id, 0, p_ip);
                 }
 
                 else
                 {
                     // LISTENER -> CALLER (first message RESPONSE)
-                    f_handshake = new F_Handshake(version: 5, 0, 0, (uint)F_Handshake.HandshakeType.INDUCTION, (uint)socket_id, cookie, 0);
+                    f_handshake = new F_Handshake(version: 5, 0, init_spn, (uint)F_Handshake.HandshakeType.INDUCTION, (uint)socket_id, cookie, p_ip);
                 }
 
                 GetPayloadLayer() = PacketManager.BuildPLayer(f_handshake.GetByted()); // set last payload layer as our srt packet
@@ -68,9 +68,26 @@ namespace SRTManager
                 return BuildPacket();
             }
 
-            public static void Conclusion()
-            {
 
+            public Packet Conclusion(uint cookie, uint init_spn, decimal p_ip, bool clientSide, int socket_id = 0)
+            {
+                F_Handshake f_handshake;
+
+                if (clientSide)
+                {
+                    // CALLER -> LISTENER (second message)
+                    f_handshake = new F_Handshake(version: 5, 0, init_spn, (uint)F_Handshake.HandshakeType.CONCLUSION, (uint)socket_id, cookie, p_ip);
+                }
+
+                else
+                {
+                    // LISTENER -> CALLER (second message RESPONSE)
+                    f_handshake = new F_Handshake(version: 5, 0, init_spn, (uint)F_Handshake.HandshakeType.CONCLUSION, (uint)socket_id, 0, p_ip);
+                }
+
+                GetPayloadLayer() = PacketManager.BuildPLayer(f_handshake.GetByted()); // set last payload layer as our srt packet
+
+                return BuildPacket();
             }
 
         }
