@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using F_Handshake = SRTManager.ProtocolFields.Handshake;
 
 /*
  * PACKET STRUCTURE:
@@ -66,7 +67,7 @@ namespace Server
         }
 
         private static void HandlePacket(Packet packet)
-        { // check by data which packet is this (control/data)
+        { // check by data which packet is this (control/data): 'The type initializer for 'SRTManager.PacketManager' threw
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
             if (datagram != null && datagram.DestinationPort == PacketManager.SERVER_PORT)
             {

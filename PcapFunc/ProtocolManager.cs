@@ -75,7 +75,7 @@ namespace SRTManager
 
                 if (clientSide)
                 {
-                    // CALLER -> LISTENER (second message) [CLIENT -> SERVER]
+                    // CALLER -> LISTENER (second message REQUEST) [CLIENT -> SERVER]
                     f_handshake = new F_Handshake(version: 5, 0, init_spn, (uint)F_Handshake.HandshakeType.CONCLUSION, (uint)socket_id, cookie, p_ip);
                 }
 
