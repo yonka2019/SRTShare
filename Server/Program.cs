@@ -71,12 +71,54 @@ namespace Server
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
             if (datagram != null && datagram.DestinationPort == PacketManager.SERVER_PORT)
             {
-                // if () // check if packet is beginning handshake [NEW CONNECTION]
-                if (!connections.ContainsKey(datagram.SourcePort))
-                    connections.Add(datagram.SourcePort, new Thread(new ParameterizedThreadStart(Video)));
+                F_Handshake handshake_request = null;
+                bool is_handshake = true;
+                try
+                {
+                    handshake_request = new F_Handshake(datagram.Payload.ToArray());
+                }
 
-                if (connections.ContainsKey(datagram.SourcePort))
-                    connections[datagram.SourcePort].Start(datagram.SourcePort); // start video
+                catch (Exception ex)
+                {
+                    is_handshake = false;
+                }
+
+                // if () // check if packet is beginning handshake [NEW CONNECTION]
+                if(is_handshake)
+                {
+                    if (handshake_request.TYPE == (uint)F_Handshake.HandshakeType.INDUCTION)
+                    {
+                        ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
+                            PacketManager.BuildIpv4Layer(),
+                            PacketManager.BuildUdpLayer(PacketManager.SERVER_PORT, datagram.SourcePort));
+
+                        DateTime now = DateTime.Now;
+                        uint cookie = SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", datagram.SourcePort, now); // need to save cookie somewhere
+
+
+                        Packet handshake_packet = handshake_response.Induction(cookie, 0, 0, false, 0); // ***need to change peer id***
+                        PacketManager.SendPacket(handshake_packet);
+                    }
+
+
+                    else if(handshake_request.TYPE == (uint)(F_Handshake.HandshakeType.CONCLUSION))
+                    {
+                        ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
+                           PacketManager.BuildIpv4Layer(),
+                           PacketManager.BuildUdpLayer(PacketManager.SERVER_PORT, datagram.SourcePort));
+
+                        //Packet handshake_packet = handshake_response.Conclusion("127.0.0.1", datagram.SourcePort, 0, 0, false, 0); // ***need to change peer id***
+                        //PacketManager.SendPacket(handshake_packet);
+
+                        if (!connections.ContainsKey(datagram.SourcePort))
+                            connections.Add(datagram.SourcePort, new Thread(new ParameterizedThreadStart(Video)));
+
+                        if (connections.ContainsKey(datagram.SourcePort))
+                            connections[datagram.SourcePort].Start(datagram.SourcePort); // start video
+                    }
+                }
+                
+                
             }
         }
 
