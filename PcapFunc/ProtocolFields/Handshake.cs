@@ -2,7 +2,7 @@
 
 namespace SRTManager.ProtocolFields
 {
-    public class Handshake : Header
+    public class Handshake : SRTHeader
     {
         /// <summary>
         /// Fields -> List<Byte[]> (To send)

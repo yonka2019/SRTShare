@@ -2,9 +2,15 @@
 
 namespace SRTManager.ProtocolFields
 {
-    public abstract class Header
+    public class SRTHeader
     {
         protected readonly List<byte[]> byteFields = new List<byte[]>();
         public List<byte[]> GetByted() { return byteFields; }
+
+
+        public SRTHeader()
+        {
+
+        }
     }
 }
