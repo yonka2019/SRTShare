@@ -73,31 +73,30 @@ namespace ClientForm
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
             if (datagram != null && datagram.SourcePort == PacketManager.SERVER_PORT && datagram.DestinationPort == myPort)
             {
-                F_Handshake handshake_request = null;
-                bool is_handshake = true;
-
-                try
-                {
-                    handshake_request = new F_Handshake(datagram.Payload.ToArray());
-                }
-
-                catch (Exception ex)
-                {
-                    is_handshake = false;
-                }
-
+                bool is_handshake = (datagram.Payload.Length == 38); // change to -> checking by control header
+            
                 if (is_handshake)
                 {
+                    F_Handshake handshake_request = new F_Handshake(datagram.Payload.ToArray());
+
                     if (handshake_request.TYPE == (uint)(F_Handshake.HandshakeType.INDUCTION)) // server -> client (induction)
                     {
-                        //check if cookies are the same
+                        if (handshake_request.SYN_COOKIE == SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, DateTime.Now))
+                        {
+                            ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
+                                PacketManager.BuildIpv4Layer(),
+                                PacketManager.BuildUdpLayer(myPort, PacketManager.SERVER_PORT));
 
-                        ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
-                           PacketManager.BuildIpv4Layer(),
-                           PacketManager.BuildUdpLayer(myPort, PacketManager.SERVER_PORT));
+                            // client -> server (conclusion)
+                            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: true, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
+                            PacketManager.SendPacket(handshake_packet);
+                        }
 
-                        Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: true, cookie:handshake_request.SYN_COOKIE); // ***need to change peer id***
-                        PacketManager.SendPacket(handshake_packet);
+                        else
+                        {
+                            MessageBox.Show("Problem with cookie transmission...");
+                        }
+
                     }
                 }
 

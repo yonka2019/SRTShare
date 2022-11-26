@@ -15,7 +15,7 @@ namespace SRTManager
 
             textToEncrypt += ip + "&"; // add ip
             textToEncrypt += port.ToString() + "&"; // add port
-            textToEncrypt += $"{current_time.Second}.{current_time.Minute}.{current_time.Hour}.{current_time.Day}.{current_time.Month}.{current_time.Year}"; // add current time
+            textToEncrypt += $"{current_time.Minute}.{current_time.Hour}.{current_time.Day}.{current_time.Month}.{current_time.Year}"; // add current time
 
             return Md5Encrypt(textToEncrypt); // return the encrypted cookie
         }

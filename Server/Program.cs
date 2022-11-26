@@ -71,45 +71,36 @@ namespace Server
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
             if (datagram != null && datagram.DestinationPort == PacketManager.SERVER_PORT)
             {
-                F_Handshake handshake_request = null;
-                bool is_handshake = true;
-                try
-                {
-                    handshake_request = new F_Handshake(datagram.Payload.ToArray());
-                }
+                bool is_handshake = (datagram.Payload.Length == 38); // change to -> checking by control header
 
-                catch (Exception ex)
+                if (is_handshake)
                 {
-                    is_handshake = false;
-                }
+                    F_Handshake handshake_request = new F_Handshake(datagram.Payload.ToArray());
 
-                if(is_handshake)
-                {
+
                     if (handshake_request.TYPE == (uint)F_Handshake.HandshakeType.INDUCTION) // client -> server (induction)
                     {
                         ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
                             PacketManager.BuildIpv4Layer(),
                             PacketManager.BuildUdpLayer(PacketManager.SERVER_PORT, datagram.SourcePort));
 
-                        DateTime now = DateTime.Now;
-                        uint cookie = SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", datagram.SourcePort, now); // need to save cookie somewhere
+                        uint cookie = SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
 
-                        Packet handshake_packet = handshake_response.Induction(cookie, init_psn:0, p_ip:0, clientSide:false); // ***need to change peer id***
+                        Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: 0, clientSide: false); // ***need to change peer id***
                         PacketManager.SendPacket(handshake_packet);
-
-                        
                     }
 
 
-                    else if(handshake_request.TYPE == (uint)(F_Handshake.HandshakeType.CONCLUSION)) // client -> server (conclusion)
+                    else if (handshake_request.TYPE == (uint)(F_Handshake.HandshakeType.CONCLUSION)) // client -> server (conclusion)
                     {
                         ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
-                           PacketManager.BuildIpv4Layer(),
-                           PacketManager.BuildUdpLayer(PacketManager.SERVER_PORT, datagram.SourcePort));
+                            PacketManager.BuildIpv4Layer(),
+                            PacketManager.BuildUdpLayer(PacketManager.SERVER_PORT, datagram.SourcePort));
 
-                        Packet handshake_packet = handshake_response.Conclusion(init_psn:0, p_ip:0, clientSide:false); // ***need to change peer id***
+                        Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: false); // ***need to change peer id***
                         PacketManager.SendPacket(handshake_packet);
 
+                        // after sent last conclusion -> start sending the screen share
                         if (!connections.ContainsKey(datagram.SourcePort))
                             connections.Add(datagram.SourcePort, new Thread(new ParameterizedThreadStart(Video)));
 
