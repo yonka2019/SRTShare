@@ -20,17 +20,6 @@ namespace SRTManager.ProtocolFields
             PEER_IP = p_ip; byteFields.Add(BitConverter.GetBytes(Convert.ToDouble(PEER_IP)));
         }
 
-     
-        //public ushort CONTROL_TYPE { get; set; }
-
-
-        //public ushort SUB_TYPE { get; set; }
-
- 
-        //public uint TYPE_SPECIFIC_INFO;  // Change later (no use in HandShake)
-
-
-        //public uint DEST_SOCKET_ID { get; set; }
 
         public Handshake(byte[] data) : base(PacketType.HANDSHAKE, BitConverter.ToUInt32(data,8))
         {
@@ -40,15 +29,15 @@ namespace SRTManager.ProtocolFields
             DEST_SOCKET_ID = BitConverter.ToUInt32(data, 8);
 
 
-            VERSION = BitConverter.ToUInt32(data, 12);  // [0 1 2 3] (4 bytes)
-            ENCRYPTION_FIELD = BitConverter.ToUInt16(data, 16);  // [4 5] (2 bytes)
-            INTIAL_PSN = BitConverter.ToUInt32(data, 18);  // [6 7 8 9] (4 bytes)
-            // MTU = [10 11 12 13] (4 bytes)
-            // MFW = [14 15 16 17] (4 bytes)
-            TYPE = BitConverter.ToUInt32(data, 30);  // [18 19 20 21] (4 bytes)
-            SOCKET_ID = BitConverter.ToUInt32(data, 34);  // [22 23 24 25] (4 bytes)
-            SYN_COOKIE = BitConverter.ToUInt32(data, 38);  // [26 27 28 29] (4 bytes)
-            PEER_IP = BitConverter.ToUInt64(data, 42);  // [30 31 32 33 34 35 36 38] (8 bytes)
+            VERSION = BitConverter.ToUInt32(data, 12);  // [12 13 14 15] (4 bytes)
+            ENCRYPTION_FIELD = BitConverter.ToUInt16(data, 16);  // [16 17] (2 bytes)
+            INTIAL_PSN = BitConverter.ToUInt32(data, 18);  // [18 19 20 21] (4 bytes)
+            // MTU = [22 23 24 25] (4 bytes)
+            // MFW = [26 27 28 29] (4 bytes)
+            TYPE = BitConverter.ToUInt32(data, 30);  // [30 31 32 33] (4 bytes)
+            SOCKET_ID = BitConverter.ToUInt32(data, 34);  // [34 35 36 37] (4 bytes)
+            SYN_COOKIE = BitConverter.ToUInt32(data, 38);  // [38 39 40 41] (4 bytes)
+            PEER_IP = BitConverter.ToUInt64(data, 42);  // [42 43 44 45 46 47 48 49] (8 bytes)
         }
 
         /// <summary>
