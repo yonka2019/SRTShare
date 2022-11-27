@@ -23,7 +23,7 @@ namespace SRTManager.ProtocolFields.Control
 
         public Handshake(byte[] data) : base(true, ControlType.HANDSHAKE, BitConverter.ToUInt32(data, 8))
         {
-            VERSION = BitConverter.ToUInt32(data, 12);  // [12 13 14 15] (4 bytes)
+            VERSION = BitConverter.ToUInt32(data, 12);  // [12 13 14 15] (4 bytes) // NEED TO BE FIXED
             ENCRYPTION_FIELD = BitConverter.ToUInt16(data, 16);  // [16 17] (2 bytes)
             INTIAL_PSN = BitConverter.ToUInt32(data, 18);  // [18 19 20 21] (4 bytes)
             // MTU = [22 23 24 25] (4 bytes)

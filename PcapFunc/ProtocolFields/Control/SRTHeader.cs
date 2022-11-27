@@ -18,7 +18,7 @@ namespace SRTManager.ProtocolFields.Control
         }
 
         /// <summary>
-        /// 1 bit (=o bytes). The control packet has this flag set to
+        /// 1 bit (1 bytes). The control packet has this flag set to
         /// "1". The data packet has this flag set to "0".
         /// </summary>
         public bool IS_CONTROL_PACKET { get; set; } // true (1) -> control packet | false (0) -> data packet
