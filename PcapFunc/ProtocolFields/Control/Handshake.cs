@@ -1,13 +1,13 @@
 ﻿using System;
 
-namespace SRTManager.ProtocolFields
+namespace SRTManager.ProtocolFields.Control
 {
     public class Handshake : SRTHeader
     {
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, double p_ip) : base(PacketType.HANDSHAKE, dest_socket_id)
+        public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, double p_ip) : base(true, ControlType.HANDSHAKE, dest_socket_id)
         {
             VERSION = version; byteFields.Add(BitConverter.GetBytes(VERSION));
             ENCRYPTION_FIELD = encryption_field; byteFields.Add(BitConverter.GetBytes(ENCRYPTION_FIELD));
@@ -21,14 +21,8 @@ namespace SRTManager.ProtocolFields
         }
 
 
-        public Handshake(byte[] data) : base(PacketType.HANDSHAKE, BitConverter.ToUInt32(data,8))
+        public Handshake(byte[] data) : base(true, ControlType.HANDSHAKE, BitConverter.ToUInt32(data, 8))
         {
-            CONTROL_TYPE = BitConverter.ToUInt16(data, 0);
-            SUB_TYPE = BitConverter.ToUInt16(data, 2);
-            TYPE_SPECIFIC_INFO = BitConverter.ToUInt32(data, 4);
-            DEST_SOCKET_ID = BitConverter.ToUInt32(data, 8);
-
-
             VERSION = BitConverter.ToUInt32(data, 12);  // [12 13 14 15] (4 bytes)
             ENCRYPTION_FIELD = BitConverter.ToUInt16(data, 16);  // [16 17] (2 bytes)
             INTIAL_PSN = BitConverter.ToUInt32(data, 18);  // [18 19 20 21] (4 bytes)

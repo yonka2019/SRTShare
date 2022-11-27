@@ -3,7 +3,7 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 
-using F_Handshake = SRTManager.ProtocolFields.Handshake;
+using F_Handshake = SRTManager.ProtocolFields.Control.Handshake;
 
 namespace SRTManager
 {
@@ -46,7 +46,7 @@ namespace SRTManager
             // public F_Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint socket_id, uint syn_cookie, decimal p_ip)
             public Packet Induction(uint cookie, uint init_psn, double p_ip, bool clientSide, int socket_id = 0)
             {
-               
+
                 F_Handshake f_handshake;
 
                 if (clientSide)

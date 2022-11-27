@@ -1,6 +1,6 @@
-﻿namespace SRTManager.ProtocolFields
+﻿namespace SRTManager.ProtocolFields.Control
 {
-    public enum PacketType : ushort
+    public enum ControlType : ushort
     {
         HANDSHAKE = 0x0000,
         KEEPALIVE = 0x0001,

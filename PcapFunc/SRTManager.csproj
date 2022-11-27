@@ -57,9 +57,9 @@
   <ItemGroup>
     <Compile Include="PacketManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ProtocolFields\Handshake.cs" />
-    <Compile Include="ProtocolFields\Header.cs" />
-    <Compile Include="ProtocolFields\PacketType.cs" />
+    <Compile Include="ProtocolFields\Control\Handshake.cs" />
+    <Compile Include="ProtocolFields\Control\SRTHeader.cs" />
+    <Compile Include="ProtocolFields\Control\ControlType.cs" />
     <Compile Include="ProtocolManager.cs" />
     <Compile Include="UdpPacket.cs" />
   </ItemGroup>

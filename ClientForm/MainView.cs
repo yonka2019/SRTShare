@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
-using F_Handshake = SRTManager.ProtocolFields.Handshake;
+using F_Handshake = SRTManager.ProtocolFields.Control.Handshake;
 
 /*
  * PACKET STRUCTURE:
