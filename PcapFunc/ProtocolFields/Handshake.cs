@@ -7,7 +7,7 @@ namespace SRTManager.ProtocolFields
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint socket_id, uint syn_cookie, double p_ip)
+        public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, double p_ip) : base(PacketType.HANDSHAKE, dest_socket_id)
         {
             VERSION = version; byteFields.Add(BitConverter.GetBytes(VERSION));
             ENCRYPTION_FIELD = encryption_field; byteFields.Add(BitConverter.GetBytes(ENCRYPTION_FIELD));
@@ -15,25 +15,40 @@ namespace SRTManager.ProtocolFields
             byteFields.Add(BitConverter.GetBytes(MTU));
             byteFields.Add(BitConverter.GetBytes(MFW));
             TYPE = type; byteFields.Add(BitConverter.GetBytes(TYPE));
-            SOCKET_ID = socket_id; byteFields.Add(BitConverter.GetBytes(SOCKET_ID));
+            SOCKET_ID = source_socket_id; byteFields.Add(BitConverter.GetBytes(SOCKET_ID));
             SYN_COOKIE = syn_cookie; byteFields.Add(BitConverter.GetBytes(SYN_COOKIE));
             PEER_IP = p_ip; byteFields.Add(BitConverter.GetBytes(Convert.ToDouble(PEER_IP)));
         }
 
-        /// <summary>
-        /// Byte[] -> Fields (Received, to extract)
-        /// </summary>
-        public Handshake(byte[] data)
+     
+        //public ushort CONTROL_TYPE { get; set; }
+
+
+        //public ushort SUB_TYPE { get; set; }
+
+ 
+        //public uint TYPE_SPECIFIC_INFO;  // Change later (no use in HandShake)
+
+
+        //public uint DEST_SOCKET_ID { get; set; }
+
+        public Handshake(byte[] data) : base(PacketType.HANDSHAKE, BitConverter.ToUInt32(data,8))
         {
-            VERSION = BitConverter.ToUInt32(data, 0);  // [0 1 2 3] (4 bytes)
-            ENCRYPTION_FIELD = BitConverter.ToUInt16(data, 4);  // [4 5] (2 bytes)
-            INTIAL_PSN = BitConverter.ToUInt32(data, 6);  // [6 7 8 9] (4 bytes)
+            CONTROL_TYPE = BitConverter.ToUInt16(data, 0);
+            SUB_TYPE = BitConverter.ToUInt16(data, 2);
+            TYPE_SPECIFIC_INFO = BitConverter.ToUInt32(data, 4);
+            DEST_SOCKET_ID = BitConverter.ToUInt32(data, 8);
+
+
+            VERSION = BitConverter.ToUInt32(data, 12);  // [0 1 2 3] (4 bytes)
+            ENCRYPTION_FIELD = BitConverter.ToUInt16(data, 16);  // [4 5] (2 bytes)
+            INTIAL_PSN = BitConverter.ToUInt32(data, 18);  // [6 7 8 9] (4 bytes)
             // MTU = [10 11 12 13] (4 bytes)
             // MFW = [14 15 16 17] (4 bytes)
-            TYPE = BitConverter.ToUInt32(data, 18);  // [18 19 20 21] (4 bytes)
-            SOCKET_ID = BitConverter.ToUInt32(data, 22);  // [22 23 24 25] (4 bytes)
-            SYN_COOKIE = BitConverter.ToUInt32(data, 26);  // [26 27 28 29] (4 bytes)
-            PEER_IP = BitConverter.ToUInt64(data, 30);  // [30 31 32 33 34 35 36 38] (8 bytes)
+            TYPE = BitConverter.ToUInt32(data, 30);  // [18 19 20 21] (4 bytes)
+            SOCKET_ID = BitConverter.ToUInt32(data, 34);  // [22 23 24 25] (4 bytes)
+            SYN_COOKIE = BitConverter.ToUInt32(data, 38);  // [26 27 28 29] (4 bytes)
+            PEER_IP = BitConverter.ToUInt64(data, 42);  // [30 31 32 33 34 35 36 38] (8 bytes)
         }
 
         /// <summary>
