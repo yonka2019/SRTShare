@@ -17,8 +17,23 @@ namespace SRTManager.ProtocolFields.Control
             DEST_SOCKET_ID = dest_socket_id; byteFields.Add(BitConverter.GetBytes(DEST_SOCKET_ID));
         }
 
+        public SRTHeader(byte[] data)
+        {
+            IS_CONTROL_PACKET = BitConverter.ToBoolean(data, 0); // [0]
+            CONTROL_TYPE = BitConverter.ToUInt16(data, 1); // [1 2]
+            SUB_TYPE = BitConverter.ToUInt16(data, 3); // [3 4]
+            TYPE_SPECIFIC_INFO = BitConverter.ToUInt32(data, 5); // [5 6 7 8]
+            DEST_SOCKET_ID = BitConverter.ToUInt32(data, 9); // [9 10 11 12]
+        }
+
+        public static bool isControl(byte[] data)
+        {
+            return BitConverter.ToBoolean(data, 0);
+        }
+
+        
         /// <summary>
-        /// 1 bit (1 bytes). The control packet has this flag set to
+        /// 8 bit (1 bytes). The control packet has this flag set to
         /// "1". The data packet has this flag set to "0".
         /// </summary>
         public bool IS_CONTROL_PACKET { get; set; } // true (1) -> control packet | false (0) -> data packet

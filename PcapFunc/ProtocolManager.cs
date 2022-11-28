@@ -44,7 +44,7 @@ namespace SRTManager
             public HandshakeRequest(params ILayer[] layers) : base(layers) { }
 
             // public F_Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint socket_id, uint syn_cookie, decimal p_ip)
-            public Packet Induction(uint cookie, uint init_psn, double p_ip, bool clientSide, int socket_id = 0)
+            public Packet Induction(uint cookie, uint init_psn, double p_ip, bool clientSide, uint source_socket_id = 0, uint dest_socket_id = 0)
             {
 
                 F_Handshake f_handshake;
@@ -52,13 +52,13 @@ namespace SRTManager
                 if (clientSide)
                 {
                     // CALLER -> LISTENER (first message REQUEST) [CLIENT -> SERVER]
-                    f_handshake = new F_Handshake(version: 4, 0, init_psn, (uint)F_Handshake.HandshakeType.INDUCTION, (uint)socket_id, 0, p_ip);
+                    f_handshake = new F_Handshake(version: 4, encryption_field: 0, init_psn, type: (uint)F_Handshake.HandshakeType.INDUCTION, source_socket_id, dest_socket_id, 0, p_ip);
                 }
 
                 else
                 {
                     // LISTENER -> CALLER (first message RESPONSE) [SERVER -> CLIENT]
-                    f_handshake = new F_Handshake(version: 5, 0, init_psn, (uint)F_Handshake.HandshakeType.INDUCTION, (uint)socket_id, cookie, p_ip);
+                    f_handshake = new F_Handshake(version: 5, encryption_field: 0, init_psn, type: (uint)F_Handshake.HandshakeType.INDUCTION, source_socket_id, dest_socket_id, cookie, p_ip);
                 }
 
                 GetPayloadLayer() = PacketManager.BuildPLayer(f_handshake.GetByted()); // set last payload layer as our srt packet
@@ -67,20 +67,20 @@ namespace SRTManager
             }
 
 
-            public Packet Conclusion(uint init_psn, double p_ip, bool clientSide, int socket_id = 0, uint cookie = 0)
+            public Packet Conclusion(uint init_psn, double p_ip, bool clientSide, uint source_socket_id = 0, uint dest_socket_id = 0, uint cookie = 0)
             {
                 F_Handshake f_handshake;
 
                 if (clientSide)
                 {
                     // CALLER -> LISTENER (second message REQUEST) [CLIENT -> SERVER]
-                    f_handshake = new F_Handshake(version: 5, 0, init_psn, (uint)F_Handshake.HandshakeType.CONCLUSION, (uint)socket_id, cookie, p_ip);
+                    f_handshake = new F_Handshake(version: 5, encryption_field: 0, init_psn, type: (uint)F_Handshake.HandshakeType.CONCLUSION, source_socket_id, dest_socket_id, cookie, p_ip);
                 }
 
                 else
                 {
                     // LISTENER -> CALLER (second message RESPONSE) [SERVER -> CLIENT]
-                    f_handshake = new F_Handshake(version: 5, 0, init_psn, (uint)F_Handshake.HandshakeType.CONCLUSION, (uint)socket_id, 0, p_ip);
+                    f_handshake = new F_Handshake(version: 5, encryption_field: 0, init_psn, type: (uint)F_Handshake.HandshakeType.CONCLUSION, source_socket_id, dest_socket_id, 0, p_ip);
                 }
 
                 GetPayloadLayer() = PacketManager.BuildPLayer(f_handshake.GetByted()); // set last payload layer as our srt packet

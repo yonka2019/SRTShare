@@ -21,18 +21,26 @@ namespace SRTManager.ProtocolFields.Control
         }
 
 
-        public Handshake(byte[] data) : base(true, ControlType.HANDSHAKE, BitConverter.ToUInt32(data, 8))
+        public Handshake(byte[] data) : base(data) // initialize the general control fields
         {
-            VERSION = BitConverter.ToUInt32(data, 12);  // [12 13 14 15] (4 bytes) // NEED TO BE FIXED
-            ENCRYPTION_FIELD = BitConverter.ToUInt16(data, 16);  // [16 17] (2 bytes)
-            INTIAL_PSN = BitConverter.ToUInt32(data, 18);  // [18 19 20 21] (4 bytes)
-            // MTU = [22 23 24 25] (4 bytes)
-            // MFW = [26 27 28 29] (4 bytes)
-            TYPE = BitConverter.ToUInt32(data, 30);  // [30 31 32 33] (4 bytes)
-            SOCKET_ID = BitConverter.ToUInt32(data, 34);  // [34 35 36 37] (4 bytes)
-            SYN_COOKIE = BitConverter.ToUInt32(data, 38);  // [38 39 40 41] (4 bytes)
-            PEER_IP = BitConverter.ToUInt64(data, 42);  // [42 43 44 45 46 47 48 49] (8 bytes)
+            // initialize the specific handshake fields
+
+            VERSION = BitConverter.ToUInt32(data, 13);  // [13 14 15 16] (4 bytes)
+            ENCRYPTION_FIELD = BitConverter.ToUInt16(data, 17);  // [17 18] (2 bytes)
+            INTIAL_PSN = BitConverter.ToUInt32(data, 19);  // [19 20 21 22] (4 bytes)
+            // MTU = [23 24 25 26] (4 bytes)
+            // MFW = [27 28 29 30] (4 bytes)
+            TYPE = BitConverter.ToUInt32(data, 31);  // [31 32 33 34] (4 bytes)
+            SOCKET_ID = BitConverter.ToUInt32(data, 35);  // [35 36 37 38] (4 bytes)
+            SYN_COOKIE = BitConverter.ToUInt32(data, 39);  // [39 40 41 42] (4 bytes)
+            PEER_IP = BitConverter.ToUInt64(data, 43);  // [43 44 45 46 47 48 49 50] (8 bytes)
         }
+
+        public static bool isHandshake(byte[] data)
+        {
+            return BitConverter.ToUInt16(data, 1) == (ushort)ControlType.HANDSHAKE;
+        }
+
 
         /// <summary>
         /// 32 bits (4 bytes). A base protocol version number. Currently used
@@ -82,7 +90,7 @@ namespace SRTManager.ProtocolFields.Control
         public uint SOCKET_ID { get; set; }
 
         /// <summary>
-        /// 32 bits (4 bytes). Randomized value for processing a handshake.
+        /// 32 bits (4 bytes). Randomized value for processing a 
         /// The value of this field is specified by the handshake message
         /// type.
         /// </summary>

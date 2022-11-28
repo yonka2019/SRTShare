@@ -141,5 +141,14 @@ namespace SRTManager
                 Data = new Datagram(data)
             };
         }
+
+        public static ProtocolManager.HandshakeRequest buildBasePacket(ushort source_port, ushort dest_port)
+        {
+            ProtocolManager.HandshakeRequest packet_base = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
+                               PacketManager.BuildIpv4Layer(),
+                               PacketManager.BuildUdpLayer(source_port, dest_port));
+
+            return packet_base;
+        }
     }
 }

@@ -9,6 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+
+using Control = SRTManager.ProtocolFields.Control;
 using F_Handshake = SRTManager.ProtocolFields.Control.Handshake;
 
 /*
@@ -40,13 +42,11 @@ namespace ClientForm
 
             myPort = (ushort)rnd.Next(1, 5000);
 
-            ProtocolManager.HandshakeRequest handshake = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(), 
-                PacketManager.BuildIpv4Layer(),
-                PacketManager.BuildUdpLayer(myPort, PacketManager.SERVER_PORT));
+            ProtocolManager.HandshakeRequest handshake = PacketManager.buildBasePacket(myPort, PacketManager.SERVER_PORT);
 
             DateTime now = DateTime.Now;
 
-            Packet handshake_packet = handshake.Induction(SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, now), 0, 0, true, 0); // *** need to change peer id***
+            Packet handshake_packet = handshake.Induction(cookie: SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, now), init_psn: 0, p_ip: 0, clientSide: true); // *** need to change peer id***
 
             /*Packet packet = new PacketBuilder(PacketManager.BuildEthernetLayer(),
                 PacketManager.BuildIpv4Layer(),
@@ -73,33 +73,36 @@ namespace ClientForm
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
             if (datagram != null && datagram.SourcePort == PacketManager.SERVER_PORT && datagram.DestinationPort == myPort)
             {
-                bool is_handshake = (datagram.Payload.Length == 38); // change to -> checking by control header
-            
-                if (is_handshake)
+                byte[] payload = datagram.Payload.ToArray();
+
+                if (Control.SRTHeader.isControl(payload)) // check if control
                 {
-                    F_Handshake handshake_request = new F_Handshake(datagram.Payload.ToArray());
-
-                    if (handshake_request.TYPE == (uint)(F_Handshake.HandshakeType.INDUCTION)) // server -> client (induction)
+                    if(F_Handshake.isHandshake(payload)) // check if handshake
                     {
-                        if (handshake_request.SYN_COOKIE == SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, DateTime.Now))
+                        F_Handshake handshake_request = new F_Handshake(payload);
+
+                        if (handshake_request.TYPE == (uint)(F_Handshake.HandshakeType.INDUCTION)) // server -> client (induction)
                         {
-                            ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
-                                PacketManager.BuildIpv4Layer(),
-                                PacketManager.BuildUdpLayer(myPort, PacketManager.SERVER_PORT));
+                            if (handshake_request.SYN_COOKIE == SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, DateTime.Now))
+                            {
+                                ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
+                                    PacketManager.BuildIpv4Layer(),
+                                    PacketManager.BuildUdpLayer(myPort, PacketManager.SERVER_PORT));
 
-                            // client -> server (conclusion)
-                            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: true, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
-                            PacketManager.SendPacket(handshake_packet);
+                                // client -> server (conclusion)
+                                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: true, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
+                                PacketManager.SendPacket(handshake_packet);
+                            }
+
+                            else
+                            {
+                                MessageBox.Show("Problem with cookie transmission...");
+                            }
+
                         }
-
-                        else
-                        {
-                            MessageBox.Show("Problem with cookie transmission...");
-                        }
-
                     }
                 }
-
+                
                 else
                 {
                     MemoryStream stream = datagram.Payload.ToMemoryStream();
