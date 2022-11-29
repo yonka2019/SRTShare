@@ -21,9 +21,9 @@ namespace SRTManager.ProtocolFields.Control
         }
 
 
-        public Handshake(byte[] data) : base(data) // initialize the general control fields
+        public Handshake(byte[] data) : base(data) // initialize SRT Control header fields
         {
-            // initialize the specific handshake fields
+            // initialize SRT Control Handshake header fields
 
             VERSION = BitConverter.ToUInt32(data, 13);  // [13 14 15 16] (4 bytes)
             ENCRYPTION_FIELD = BitConverter.ToUInt16(data, 17);  // [17 18] (2 bytes)
@@ -36,7 +36,7 @@ namespace SRTManager.ProtocolFields.Control
             PEER_IP = BitConverter.ToUInt64(data, 43);  // [43 44 45 46 47 48 49 50] (8 bytes)
         }
 
-        public static bool isHandshake(byte[] data)
+        public static bool IsHandshake(byte[] data)
         {
             return BitConverter.ToUInt16(data, 1) == (ushort)ControlType.HANDSHAKE;
         }

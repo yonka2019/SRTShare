@@ -12,8 +12,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using F_Handshake = SRTManager.ProtocolFields.Control.Handshake;
-using Control = SRTManager.ProtocolFields.Control;
+using C_STRHeader = SRTManager.ProtocolFields.Control.SRTHeader;
+using Handshake = SRTManager.ProtocolFields.Control.Handshake;
 
 /*
  * PACKET STRUCTURE:
@@ -74,25 +74,25 @@ namespace Server
             {
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (Control.SRTHeader.isControl(payload)) // check if control
+                if (C_STRHeader.IsControl(payload)) // check if control
                 {
-                    if (F_Handshake.isHandshake(payload)) // check if handshake
+                    if (Handshake.IsHandshake(payload)) // check if handshake
                     {
-                        F_Handshake handshake_request = new F_Handshake(payload);
+                        Handshake handshake_request = new Handshake(payload);
 
 
-                        if (handshake_request.TYPE == (uint)F_Handshake.HandshakeType.INDUCTION) // client -> server (induction)
+                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION) // client -> server (induction)
                         {
                             ProtocolManager.HandshakeRequest handshake_response = PacketManager.buildBasePacket(PacketManager.SERVER_PORT, datagram.SourcePort);
 
-                            uint cookie = SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
+                            uint cookie = ProtocolManager.GenerateCookie("127.0.0.1", datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
 
                             Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: 0, clientSide: false); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
                         }
 
 
-                        else if (handshake_request.TYPE == (uint)(F_Handshake.HandshakeType.CONCLUSION)) // client -> server (conclusion)
+                        else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION) // client -> server (conclusion)
                         {
                             ProtocolManager.HandshakeRequest handshake_response = PacketManager.buildBasePacket(PacketManager.SERVER_PORT, datagram.SourcePort);
 
@@ -111,7 +111,7 @@ namespace Server
             }
         }
 
-        
+
         private static List<Packet> SplitToPackets(ushort dstPort)
         {
             Bitmap bmp = TakeScreenShot();

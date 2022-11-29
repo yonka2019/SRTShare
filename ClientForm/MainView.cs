@@ -10,8 +10,8 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
-using Control = SRTManager.ProtocolFields.Control;
-using F_Handshake = SRTManager.ProtocolFields.Control.Handshake;
+using C_SRTHeader = SRTManager.ProtocolFields.Control.SRTHeader;
+using Handshake = SRTManager.ProtocolFields.Control.Handshake;
 
 /*
  * PACKET STRUCTURE:
@@ -75,13 +75,13 @@ namespace ClientForm
             {
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (Control.SRTHeader.isControl(payload)) // check if control
+                if (C_SRTHeader.IsControl(payload)) // check if control
                 {
-                    if(F_Handshake.isHandshake(payload)) // check if handshake
+                    if(Handshake.IsHandshake(payload)) // check if handshake
                     {
-                        F_Handshake handshake_request = new F_Handshake(payload);
+                        Handshake handshake_request = new Handshake(payload);
 
-                        if (handshake_request.TYPE == (uint)(F_Handshake.HandshakeType.INDUCTION)) // server -> client (induction)
+                        if (handshake_request.TYPE == (uint)(Handshake.HandshakeType.INDUCTION)) // server -> client (induction)
                         {
                             if (handshake_request.SYN_COOKIE == SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, DateTime.Now))
                             {
@@ -96,7 +96,7 @@ namespace ClientForm
 
                             else
                             {
-                                MessageBox.Show("Problem with cookie transmission...");
+                                MessageBox.Show("Wrong cookie", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
 
                         }

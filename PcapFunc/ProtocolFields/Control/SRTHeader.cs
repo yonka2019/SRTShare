@@ -26,12 +26,12 @@ namespace SRTManager.ProtocolFields.Control
             DEST_SOCKET_ID = BitConverter.ToUInt32(data, 9); // [9 10 11 12]
         }
 
-        public static bool isControl(byte[] data)
+        public static bool IsControl(byte[] data)
         {
             return BitConverter.ToBoolean(data, 0);
         }
 
-        
+
         /// <summary>
         /// 8 bit (1 bytes). The control packet has this flag set to
         /// "1". The data packet has this flag set to "0".
