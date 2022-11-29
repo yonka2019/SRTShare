@@ -10,8 +10,10 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
+
 using C_STRHeader = SRTManager.ProtocolFields.Control.SRTHeader;
 using Handshake = SRTManager.ProtocolFields.Control.Handshake;
 
@@ -25,7 +27,10 @@ namespace Server
 {
     internal class Program
     {
-        private static readonly Dictionary<int, Thread> connections = new Dictionary<int, Thread>(); // <DST.PORT : THREAD[Video()]
+        private static Dictionary<uint, IPAddress> SRTSockets = new Dictionary<uint, IPAddress>();
+        // SRTSockets: (example)
+        // [0] : IPAddress
+        // [SOCKET_ID] : IPAddress
 
         private static class Win32Native
         {
@@ -83,7 +88,8 @@ namespace Server
 
                         if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION) // client -> server (induction)
                         {
-                            ProtocolManager.HandshakeRequest handshake_response = PacketManager.buildBasePacket(PacketManager.SERVER_PORT, datagram.SourcePort);
+                            ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest
+                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
 
                             uint cookie = ProtocolManager.GenerateCookie("127.0.0.1", datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
 
@@ -94,18 +100,56 @@ namespace Server
 
                         else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION) // client -> server (conclusion)
                         {
-                            ProtocolManager.HandshakeRequest handshake_response = PacketManager.buildBasePacket(PacketManager.SERVER_PORT, datagram.SourcePort);
+                            ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest
+                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
 
                             Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: false); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
 
-                            // START VIDEO HERE
+                            // ADD NEW SOCKET TO LIST 
+                            SRTSockets.Add((uint)(SRTSockets.Count + 1), new IPAddress(handshake_request.PEER_IP));
+                            // SRTSockets: (example)
+                            // [0] : ip1
+                            // [1]: ip2
+                            // ADDED:
+                            // [2]: ip3
+
+
+                            // START VIDEO HERE!!
+
+
+                            // START KEEP-ALIVE EACH 1 SECOND TO CLIENT TO REAFFRIM CONNECTION :
+
+                            /* KEEP-ALIVE GOOD TRANSMISSION PREVIEW: 
+                             * [SERVER] -> [CLIENT] (keep-alive check request)
+                             * [CLIENT -> [SERVER] (keep-alive check confirm)
+                             * --------------------
+                             * [!] EACH SECOND [!]
+                             */
+
+                            /* KEEP-ALIVE BAD TRANSMISSION PREVIEW: 
+                             * [SERVER] -> [CLIENT] (keep-alive check request)
+                             * . . . (5 seconds passed, no check confirm)
+                             * [SERVER] CLOSE [client] SOCKET, DISPOSE RESOURCES
+                             */
+
+                            ParameterizedThreadStart kac = new ParameterizedThreadStart(KeepAliveChecker);
+
                         }
                     }
                 }
             }
         }
 
+        private static void KeepAliveChecker(object dest_socket_id)
+        {
+            uint u_dest_socket_id = (uint)dest_socket_id;
+
+            while (SRTSockets.ContainsKey(u_dest_socket_id))  // if socket still exist, continue check keep-alive
+            {
+
+            }
+        }
 
         private static List<Packet> SplitToPackets(ushort dstPort)
         {

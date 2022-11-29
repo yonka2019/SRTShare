@@ -1,5 +1,6 @@
 ﻿using PcapDotNet.Core;
 using PcapDotNet.Packets;
+using PcapDotNet.Packets.Ip;
 using PcapDotNet.Packets.Transport;
 using SRTManager;
 using System;
@@ -42,8 +43,9 @@ namespace ClientForm
 
             myPort = (ushort)rnd.Next(1, 5000);
 
-            ProtocolManager.HandshakeRequest handshake = PacketManager.buildBasePacket(myPort, PacketManager.SERVER_PORT);
-
+            ProtocolManager.HandshakeRequest handshake = new ProtocolManager.HandshakeRequest
+                (PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
+    
             DateTime now = DateTime.Now;
 
             Packet handshake_packet = handshake.Induction(cookie: SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, now), init_psn: 0, p_ip: 0, clientSide: true); // *** need to change peer id***

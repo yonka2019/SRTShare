@@ -44,7 +44,7 @@ namespace SRTManager
             public HandshakeRequest(params ILayer[] layers) : base(layers) { }
 
             // public F_Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint socket_id, uint syn_cookie, decimal p_ip)
-            public Packet Induction(uint cookie, uint init_psn, double p_ip, bool clientSide, uint source_socket_id = 0, uint dest_socket_id = 0)
+            public Packet Induction(uint cookie, uint init_psn, long p_ip, bool clientSide, uint source_socket_id = 0, uint dest_socket_id = 0)
             {
 
                 F_Handshake f_handshake;
@@ -67,7 +67,7 @@ namespace SRTManager
             }
 
 
-            public Packet Conclusion(uint init_psn, double p_ip, bool clientSide, uint source_socket_id = 0, uint dest_socket_id = 0, uint cookie = 0)
+            public Packet Conclusion(uint init_psn, long p_ip, bool clientSide, uint source_socket_id = 0, uint dest_socket_id = 0, uint cookie = 0)
             {
                 F_Handshake f_handshake;
 
