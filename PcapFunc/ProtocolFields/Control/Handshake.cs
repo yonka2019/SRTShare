@@ -17,7 +17,7 @@ namespace SRTManager.ProtocolFields.Control
             PEER_IP = p_ip; byteFields.Add(BitConverter.GetBytes(Convert.ToDouble(PEER_IP)));
         }
 
-        public Handshake(byte[] data) : base(data) // initialize SRT Control header fields
+        public Handshake(byte[] data) : base(data)  // initialize SRT Control header fields
         {
             // initialize SRT Control Handshake header fields
 
@@ -36,7 +36,6 @@ namespace SRTManager.ProtocolFields.Control
         {
             return BitConverter.ToUInt16(data, 1) == (ushort)ControlType.HANDSHAKE;
         }
-
 
         /// <summary>
         /// 32 bits (4 bytes). A base protocol version number. Currently used

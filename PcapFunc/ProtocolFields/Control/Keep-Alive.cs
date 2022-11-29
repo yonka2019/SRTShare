@@ -8,7 +8,7 @@ namespace SRTManager.ProtocolFields.Control
         {
         }
 
-        public KeepAlive(byte[] data) : base(data) // initialize SRT Control header fields
+        public KeepAlive(byte[] data) : base(data)  // initialize SRT Control header fields
         {
         }
 

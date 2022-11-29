@@ -98,13 +98,6 @@ namespace Server
 
                             Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: false); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
-
-                            // after sent last conclusion -> start sending the screen share
-                            if (!connections.ContainsKey(datagram.SourcePort))
-                                connections.Add(datagram.SourcePort, new Thread(new ParameterizedThreadStart(Video)));
-
-                            if (connections.ContainsKey(datagram.SourcePort))
-                                connections[datagram.SourcePort].Start(datagram.SourcePort); // start video
                         }
                     }
                 }
