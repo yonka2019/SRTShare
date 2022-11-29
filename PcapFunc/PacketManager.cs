@@ -5,6 +5,7 @@ using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace SRTManager
@@ -14,7 +15,7 @@ namespace SRTManager
         public static readonly PacketDevice pcapDevice;
 
         public const int SERVER_PORT = 6969;
-        private const string DEFAULT_INTERFACE_SUBSTRING = "Intel";  // default interface must contain this substring to be automatically chosen
+        private const string DEFAULT_INTERFACE_SUBSTRING = "Oracle";  // default interface must contain this substring to be automatically chosen
 
         static PacketManager()
         {
@@ -41,6 +42,29 @@ namespace SRTManager
             // Take the selected adapter
             pcapDevice = allDevices[deviceIndex - 1];
             Console.WriteLine($"[!] SELECTED INTERFACE: {pcapDevice.Description}");
+        }
+        public static void SendPacket(Packet packetToSend)
+        {
+            using (PacketCommunicator communicator = pcapDevice.Open(100, // name of the device
+                                 PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
+                                 1000)) // read timeout
+            {
+                communicator.SendPacket(packetToSend);
+            }
+        }
+        public static void ReceivePackets(int count, HandlePacket callback)
+        {
+            using (PacketCommunicator communicator =
+            pcapDevice.Open(65536,                         // portion of the packet to capture
+                                                           // 65536 guarantees that the whole packet will be captured on all the link layers
+                    PacketDeviceOpenAttributes.Promiscuous,  // promiscuous mode
+                    1000))                                  // read timeout
+            {
+#if DEBUG
+                Console.WriteLine("[LISTENING] " + pcapDevice.Description + "...");
+#endif
+                communicator.ReceivePackets(0, callback);
+            }
         }
 
         public static EthernetLayer BuildEthernetLayer(string sourceMac = "7C:B0:C2:FE:0F:C5", string dstMac = "7C:B0:C2:FE:0F:C5")
@@ -91,12 +115,40 @@ namespace SRTManager
             };
         }
 
+        public static PayloadLayer BuildPLayer(List<byte[]> data)
+        {
+            #region https://stackoverflow.com/questions/4875968/concatenating-a-c-sharp-list-of-byte
+            byte[] output = new byte[data.Sum(arr => arr.Length)];
+            int writeIdx = 0;
+
+            foreach (byte[] byteArr in data)
+            {
+                byteArr.CopyTo(output, writeIdx);
+                writeIdx += byteArr.Length;
+            }
+            #endregion
+
+            return new PayloadLayer
+            {
+                Data = new Datagram(output)
+            };
+        }
+
         public static PayloadLayer BuildPLayer(byte[] data)
         {
             return new PayloadLayer
             {
                 Data = new Datagram(data)
             };
+        }
+
+        public static ProtocolManager.HandshakeRequest buildBasePacket(ushort source_port, ushort dest_port)
+        {
+            ProtocolManager.HandshakeRequest packet_base = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
+                               PacketManager.BuildIpv4Layer(),
+                               PacketManager.BuildUdpLayer(source_port, dest_port));
+
+            return packet_base;
         }
     }
 }

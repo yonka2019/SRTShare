@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SRTManager.Enum
+﻿namespace SRTManager.ProtocolFields.Control
 {
-    public enum PacketType
+    public enum ControlType : ushort
     {
         HANDSHAKE = 0x0000,
         KEEPALIVE = 0x0001,

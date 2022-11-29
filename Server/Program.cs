@@ -12,6 +12,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using C_STRHeader = SRTManager.ProtocolFields.Control.SRTHeader;
+using Handshake = SRTManager.ProtocolFields.Control.Handshake;
 
 /*
  * PACKET STRUCTURE:
@@ -24,8 +26,6 @@ namespace Server
     internal class Program
     {
         private static readonly Dictionary<int, Thread> connections = new Dictionary<int, Thread>(); // <DST.PORT : THREAD[Video()]
-        private static PacketDevice selectedDevice;
-        private static PacketCommunicator communicator;
 
         private static class Win32Native
         {
@@ -38,8 +38,6 @@ namespace Server
 
         private static void Main()
         {
-            selectedDevice = PacketManager.pcapDevice;
-
             new Thread(new ThreadStart(RecvP)).Start(); // always listen for any new connections
         }
 
@@ -47,59 +45,72 @@ namespace Server
         {
             while (true)
             {
-                ShotBuildSend(selectedDevice, (ushort)dstPort);
+                ShotBuildSend(PacketManager.pcapDevice, (ushort)dstPort);
             }
         }
 
         private static void ShotBuildSend(PacketDevice device, ushort dstPort)
         {
-            using (PacketCommunicator communicator = device.Open(100, // name of the device
-                                                         PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
-                                                         1000)) // read timeout
-            {
-                List<Packet> imageChunks = SplitToPackets(dstPort);
-                int chunk_counter = -1;
-                int total_chunks = imageChunks.Count - 1;
+            List<Packet> imageChunks = SplitToPackets(dstPort);
+            int total_chunks = imageChunks.Count - 1;
 
-                Console.WriteLine($"[SEND : {dstPort}] Image (Total chunks: {total_chunks})"); // each image
-                foreach (Packet chunk in imageChunks)
-                {
-                    communicator.SendPacket(chunk);
-#if DEBUG
-                    Console.WriteLine($"[SEND : {dstPort}] Chunk number: {++chunk_counter}/{total_chunks} | Size: {chunk.Count}"); // each chunk
-#endif
-                }
-                Console.WriteLine("--------------------\n\n\n");
+            Console.WriteLine($"[SEND : {dstPort}] Image (Total chunks: {total_chunks})"); // each image
+            foreach (Packet chunk in imageChunks)
+            {
+                PacketManager.SendPacket(chunk);
             }
+            Console.WriteLine("--------------------\n\n\n");
         }
 
         private static void RecvP()
         {
-            // open the device
-            using (communicator =
-            selectedDevice.Open(65536,                         // portion of the packet to capture
-                                                               // 65536 guarantees that the whole packet will be captured on all the link layers
-                    PacketDeviceOpenAttributes.Promiscuous,  // promiscuous mode
-                    1000))                                  // read timeout
-            {
-                Console.WriteLine("[LISTENING] " + selectedDevice.Description + "...");
-                communicator.ReceivePackets(0, HandlePacket);
-            }
+            PacketManager.ReceivePackets(0, HandlePacket);
         }
 
         private static void HandlePacket(Packet packet)
-        { // check by data which packet is this (control/data)
+        { // check by data which packet is this (control/data): 'The type initializer for 'SRTManager.PacketManager' threw
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
             if (datagram != null && datagram.DestinationPort == PacketManager.SERVER_PORT)
             {
-                // if () // check if packet is beginning handshake [NEW CONNECTION]
-                if (!connections.ContainsKey(datagram.SourcePort))
-                    connections.Add(datagram.SourcePort, new Thread(new ParameterizedThreadStart(Video)));
+                byte[] payload = datagram.Payload.ToArray();
 
-                if (connections.ContainsKey(datagram.SourcePort))
-                    connections[datagram.SourcePort].Start(datagram.SourcePort); // start video
+                if (C_STRHeader.IsControl(payload)) // check if control
+                {
+                    if (Handshake.IsHandshake(payload)) // check if handshake
+                    {
+                        Handshake handshake_request = new Handshake(payload);
+
+
+                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION) // client -> server (induction)
+                        {
+                            ProtocolManager.HandshakeRequest handshake_response = PacketManager.buildBasePacket(PacketManager.SERVER_PORT, datagram.SourcePort);
+
+                            uint cookie = ProtocolManager.GenerateCookie("127.0.0.1", datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
+
+                            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: 0, clientSide: false); // ***need to change peer id***
+                            PacketManager.SendPacket(handshake_packet);
+                        }
+
+
+                        else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION) // client -> server (conclusion)
+                        {
+                            ProtocolManager.HandshakeRequest handshake_response = PacketManager.buildBasePacket(PacketManager.SERVER_PORT, datagram.SourcePort);
+
+                            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: false); // ***need to change peer id***
+                            PacketManager.SendPacket(handshake_packet);
+
+                            // after sent last conclusion -> start sending the screen share
+                            if (!connections.ContainsKey(datagram.SourcePort))
+                                connections.Add(datagram.SourcePort, new Thread(new ParameterizedThreadStart(Video)));
+
+                            if (connections.ContainsKey(datagram.SourcePort))
+                                connections[datagram.SourcePort].Start(datagram.SourcePort); // start video
+                        }
+                    }
+                }
             }
         }
+
 
         private static List<Packet> SplitToPackets(ushort dstPort)
         {
