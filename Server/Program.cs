@@ -98,6 +98,8 @@ namespace Server
 
                             Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: false); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
+
+                            // START VIDEO HERE
                         }
                     }
                 }
