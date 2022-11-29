@@ -58,6 +58,8 @@
     <Compile Include="PacketManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProtocolFields\Control\Handshake.cs" />
+    <Compile Include="ProtocolFields\Control\Keep-Alive.cs" />
+    <Compile Include="ProtocolFields\Control\Shutdown.cs" />
     <Compile Include="ProtocolFields\Control\SRTHeader.cs" />
     <Compile Include="ProtocolFields\Control\ControlType.cs" />
     <Compile Include="ProtocolManager.cs" />

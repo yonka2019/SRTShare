@@ -4,10 +4,7 @@ namespace SRTManager.ProtocolFields.Control
 {
     public class Handshake : SRTHeader
     {
-        /// <summary>
-        /// Fields -> List<Byte[]> (To send)
-        /// </summary>
-        public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, double p_ip) : base(true, ControlType.HANDSHAKE, dest_socket_id)
+        public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, double p_ip) : base(ControlType.HANDSHAKE, dest_socket_id)
         {
             VERSION = version; byteFields.Add(BitConverter.GetBytes(VERSION));
             ENCRYPTION_FIELD = encryption_field; byteFields.Add(BitConverter.GetBytes(ENCRYPTION_FIELD));
@@ -19,7 +16,6 @@ namespace SRTManager.ProtocolFields.Control
             SYN_COOKIE = syn_cookie; byteFields.Add(BitConverter.GetBytes(SYN_COOKIE));
             PEER_IP = p_ip; byteFields.Add(BitConverter.GetBytes(Convert.ToDouble(PEER_IP)));
         }
-
 
         public Handshake(byte[] data) : base(data) // initialize SRT Control header fields
         {
