@@ -28,7 +28,7 @@ namespace Server
 {
     internal class Program
     {
-        private static Dictionary<uint, IPEndPoint> SRTSockets = new Dictionary<uint, IPEndPoint>();
+        private static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
         // SRTSockets: (example)
         // [0] : IPAddress
         // [SOCKET_ID] : IPAddress
@@ -108,7 +108,9 @@ namespace Server
                             PacketManager.SendPacket(handshake_packet);
 
                             // ADD NEW SOCKET TO LIST 
-                            SRTSockets.Add((uint)(SRTSockets.Count + 1), new IPEndPoint(new IPAddress(handshake_request.PEER_IP), datagram.SourcePort));
+                            uint new_socket_id = (uint)(SRTSockets.Count + 1);
+                            SRTSockets.Add(new_socket_id, new SRTSocket(new IPEndPoint(new IPAddress(handshake_request.PEER_IP), datagram.SourcePort), 
+                                new KeepAliveManager(new_socket_id, datagram.SourcePort)));
                             // SRTSockets: (example)
                             // [0] : ip1
                             // [1]: ip2
@@ -120,6 +122,8 @@ namespace Server
 
 
                             // START KEEP-ALIVE EACH 1 SECOND TO CLIENT TO REAFFRIM CONNECTION :
+
+                            SRTSockets[(uint)SRTSockets.Count].KeepAlive.StartCheck();
 
                             /* KEEP-ALIVE GOOD TRANSMISSION PREVIEW: 
                              * [SERVER] -> [CLIENT] (keep-alive check request)
@@ -133,9 +137,6 @@ namespace Server
                              * . . . (5 seconds passed, no check confirm)
                              * [SERVER] CLOSE [client] SOCKET, DISPOSE RESOURCES
                              */
-
-                            Thread kac = new Thread(new ParameterizedThreadStart(KeepAliveChecker));
-                            kac.Start(SRTSockets.Count); // Last added socket is the socket id which we wish to get checked
                             
 
                         }
@@ -143,6 +144,8 @@ namespace Server
                 }
             }
         }
+
+
 
         private static void KeepAliveChecker(object dest_socket_id)
         {
