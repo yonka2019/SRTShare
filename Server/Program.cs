@@ -154,7 +154,7 @@ namespace Server
             while (SRTSockets.ContainsKey(u_dest_socket_id))  // if socket still exist, continue check keep-alive
             {
                 SRTRequest.KeepAliveRequest keepAlive_request = new SRTRequest.KeepAliveRequest
-                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, (ushort)SRTSockets[u_dest_socket_id].Port));
+                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, (ushort)SRTSockets[u_dest_socket_id].IPEP.Port));
 
                 Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
                 PacketManager.SendPacket(keepAlive_packet);
