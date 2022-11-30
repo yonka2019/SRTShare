@@ -155,7 +155,7 @@ namespace Server
 
                 Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
                 PacketManager.SendPacket(keepAlive_packet);
-                // need tobe continued ; Server/KeepAliveManager [count sent/confirmed]
+                // need tobe continued ; Server/KeepAliveManager [count sent/confirmed, if not equal more than 5 sec - break connection]
             }
         }
 
