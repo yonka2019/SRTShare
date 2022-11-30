@@ -1,6 +1,4 @@
-﻿using PcapDotNet.Core;
-using PcapDotNet.Packets;
-using PcapDotNet.Packets.Ip;
+﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.Transport;
 using SRTManager;
 using System;
@@ -11,8 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
-using C_SRTHeader = SRTManager.ProtocolFields.Control.SRTHeader;
-using Handshake = SRTManager.ProtocolFields.Control.Handshake;
+using SRTControl = SRTManager.ProtocolFields.Control;
+using SRTRequest = SRTManager.RequestsFactory;
 
 /*
  * PACKET STRUCTURE:
@@ -43,9 +41,9 @@ namespace ClientForm
 
             myPort = (ushort)rnd.Next(1, 5000);
 
-            ProtocolManager.HandshakeRequest handshake = new ProtocolManager.HandshakeRequest
+            SRTRequest.HandshakeRequest handshake = new SRTRequest.HandshakeRequest
                 (PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
-    
+
             DateTime now = DateTime.Now;
 
             Packet handshake_packet = handshake.Induction(cookie: SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, now), init_psn: 0, p_ip: 0, clientSide: true); // *** need to change peer id***
@@ -68,7 +66,7 @@ namespace ClientForm
         {
             PacketManager.ReceivePackets(0, PacketHandler);
         }
-        
+
         // Callback function invoked by Pcap.Net for every incoming packet
         private void PacketHandler(Packet packet)
         {
@@ -77,17 +75,17 @@ namespace ClientForm
             {
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (C_SRTHeader.IsControl(payload)) // check if control
+                if (SRTControl.SRTHeader.IsControl(payload)) // check if control
                 {
-                    if(Handshake.IsHandshake(payload)) // check if handshake
+                    if (SRTControl.Handshake.IsHandshake(payload)) // check if handshake
                     {
-                        Handshake handshake_request = new Handshake(payload);
+                        SRTControl.Handshake handshake_request = new SRTControl.Handshake(payload);
 
-                        if (handshake_request.TYPE == (uint)(Handshake.HandshakeType.INDUCTION)) // server -> client (induction)
+                        if (handshake_request.TYPE == (uint)SRTControl.Handshake.HandshakeType.INDUCTION) // server -> client (induction)
                         {
                             if (handshake_request.SYN_COOKIE == SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, DateTime.Now))
                             {
-                                ProtocolManager.HandshakeRequest handshake_response = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
+                                SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildEthernetLayer(),
                                     PacketManager.BuildIpv4Layer(),
                                     PacketManager.BuildUdpLayer(myPort, PacketManager.SERVER_PORT));
 
@@ -104,7 +102,7 @@ namespace ClientForm
                         }
                     }
                 }
-                
+
                 else
                 {
                     MemoryStream stream = datagram.Payload.ToMemoryStream();
@@ -141,7 +139,7 @@ namespace ClientForm
 
                     last_packet_id = current_packet_id;
                 }
-                
+
             }
         }
 
