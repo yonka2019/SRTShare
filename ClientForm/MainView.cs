@@ -46,7 +46,7 @@ namespace ClientForm
 
             DateTime now = DateTime.Now;
 
-            Packet handshake_packet = handshake.Induction(cookie: SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, now), init_psn: 0, p_ip: 0, clientSide: true); // *** need to change peer id***
+            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie("127.0.0.1", myPort, now), init_psn: 0, p_ip: 0, clientSide: true); // *** need to change peer id***
 
             /*Packet packet = new PacketBuilder(PacketManager.BuildEthernetLayer(),
                 PacketManager.BuildIpv4Layer(),

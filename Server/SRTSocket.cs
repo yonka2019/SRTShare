@@ -11,6 +11,6 @@ namespace Server
         }
 
         public KeepAliveManager KeepAlive { get; }
-        public IPEndPoint IPEP { get; }
+        public IPEndPoint IPEP { get; }  // address & port
     }
 }
