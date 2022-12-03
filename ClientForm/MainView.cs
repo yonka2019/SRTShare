@@ -83,7 +83,7 @@ namespace ClientForm
 
                         if (handshake_request.TYPE == (uint)SRTControl.Handshake.HandshakeType.INDUCTION) // server -> client (induction)
                         {
-                            if (handshake_request.SYN_COOKIE == SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, DateTime.Now))
+                            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie("127.0.0.1", myPort, DateTime.Now))
                             {
                                 SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildEthernetLayer(),
                                     PacketManager.BuildIpv4Layer(),
