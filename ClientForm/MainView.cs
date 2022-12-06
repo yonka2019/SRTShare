@@ -35,6 +35,8 @@ namespace ClientForm
 
         private static ushort myPort = 0;
 
+        
+
         public MainView()
         {
             InitializeComponent();
@@ -46,7 +48,7 @@ namespace ClientForm
 
             DateTime now = DateTime.Now;
 
-            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie("127.0.0.1", myPort, now), init_psn: 0, p_ip: 0, clientSide: true); // *** need to change peer id***
+            Packet handshake_packet = handshake.Induction(cookie: SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, now), init_psn: 0, p_ip: 0, clientSide: true); // *** need to change peer id***
 
             /*Packet packet = new PacketBuilder(PacketManager.BuildEthernetLayer(),
                 PacketManager.BuildIpv4Layer(),
@@ -83,11 +85,9 @@ namespace ClientForm
 
                         if (handshake_request.TYPE == (uint)SRTControl.Handshake.HandshakeType.INDUCTION) // server -> client (induction)
                         {
-                            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie("127.0.0.1", myPort, DateTime.Now))
+                            if (handshake_request.SYN_COOKIE == SRTManager.ProtocolManager.GenerateCookie("127.0.0.1", myPort, DateTime.Now))
                             {
-                                SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildEthernetLayer(),
-                                    PacketManager.BuildIpv4Layer(),
-                                    PacketManager.BuildUdpLayer(myPort, PacketManager.SERVER_PORT));
+                                SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
 
                                 // client -> server (conclusion)
                                 Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: true, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
@@ -96,7 +96,12 @@ namespace ClientForm
 
                             else
                             {
-                                MessageBox.Show("Wrong cookie", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                // Exit the prgram and send a shutdwon request
+                                SRTRequest.ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
+                                Packet shutdown_packet = shutdown_response.Exit();
+                                PacketManager.SendPacket(shutdown_packet);
+
+                                MessageBox.Show("Wrong cookie - Exiting...", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
 
                         }
@@ -142,6 +147,17 @@ namespace ClientForm
 
             }
         }
+        protected override void OnClosed(EventArgs e)
+        {
+            SRTRequest.ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
+            Packet shutdown_packet = shutdown_response.Exit();
+            PacketManager.SendPacket(shutdown_packet);
+
+            MessageBox.Show("Sent a ShutDown request!",
+                "Bye Bye", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            base.OnClosed(e);
+        }
+
 
         private void ShowImage(bool allChunksReceived)
         {

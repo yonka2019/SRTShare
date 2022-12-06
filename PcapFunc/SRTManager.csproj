@@ -65,6 +65,7 @@
     <Compile Include="ProtocolManager.cs" />
     <Compile Include="RequestsFactory\HandshakeRequest.cs" />
     <Compile Include="RequestsFactory\KeepAliveRequest.cs" />
+    <Compile Include="RequestsFactory\ShutDownRequest.cs" />
     <Compile Include="RequestsFactory\UdpPacket.cs" />
   </ItemGroup>
   <ItemGroup>
