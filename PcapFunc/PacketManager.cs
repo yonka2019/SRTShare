@@ -142,13 +142,15 @@ namespace SRTManager
             };
         }
 
-        public static ProtocolManager.HandshakeRequest buildBasePacket(ushort source_port, ushort dest_port)
+        public static ILayer[] BuildBaseLayers(ushort source_port, ushort destination_port)
         {
-            ProtocolManager.HandshakeRequest packet_base = new ProtocolManager.HandshakeRequest(PacketManager.BuildEthernetLayer(),
-                               PacketManager.BuildIpv4Layer(),
-                               PacketManager.BuildUdpLayer(source_port, dest_port));
+            ILayer[] baseLayers = new ILayer[3];
 
-            return packet_base;
+            baseLayers[0] = BuildEthernetLayer();
+            baseLayers[1] = BuildIpv4Layer();
+            baseLayers[2] = BuildUdpLayer(source_port, destination_port);
+
+            return baseLayers;
         }
     }
 }

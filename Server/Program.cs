@@ -1,6 +1,7 @@
 ﻿using PcapDotNet.Core;
 using PcapDotNet.Packets;
 using PcapDotNet.Packets.Ethernet;
+using PcapDotNet.Packets.Ip;
 using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
 using SRTManager;
@@ -10,10 +11,12 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
-using C_STRHeader = SRTManager.ProtocolFields.Control.SRTHeader;
-using Handshake = SRTManager.ProtocolFields.Control.Handshake;
+
+using SRTControl = SRTManager.ProtocolFields.Control;
+using SRTRequest = SRTManager.RequestsFactory;
 
 /*
  * PACKET STRUCTURE:
@@ -25,7 +28,10 @@ namespace Server
 {
     internal class Program
     {
-        private static readonly Dictionary<int, Thread> connections = new Dictionary<int, Thread>(); // <DST.PORT : THREAD[Video()]
+        private static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
+        // SRTSockets: (example)
+        // [0] : IPAddress
+        // [SOCKET_ID] : IPAddress
 
         private static class Win32Native
         {
@@ -74,16 +80,17 @@ namespace Server
             {
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (C_STRHeader.IsControl(payload)) // check if control
+                if (SRTControl.SRTHeader.IsControl(payload)) // check if control
                 {
-                    if (Handshake.IsHandshake(payload)) // check if handshake
+                    if (SRTControl.Handshake.IsHandshake(payload)) // check if handshake
                     {
-                        Handshake handshake_request = new Handshake(payload);
+                        SRTControl.Handshake handshake_request = new SRTControl.Handshake(payload);
 
 
-                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION) // client -> server (induction)
+                        if (handshake_request.TYPE == (uint)SRTControl.Handshake.HandshakeType.INDUCTION) // client -> server (induction)
                         {
-                            ProtocolManager.HandshakeRequest handshake_response = PacketManager.buildBasePacket(PacketManager.SERVER_PORT, datagram.SourcePort);
+                            SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
+                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
 
                             uint cookie = ProtocolManager.GenerateCookie("127.0.0.1", datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
 
@@ -92,25 +99,68 @@ namespace Server
                         }
 
 
-                        else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION) // client -> server (conclusion)
+                        else if (handshake_request.TYPE == (uint)SRTControl.Handshake.HandshakeType.CONCLUSION) // client -> server (conclusion)
                         {
-                            ProtocolManager.HandshakeRequest handshake_response = PacketManager.buildBasePacket(PacketManager.SERVER_PORT, datagram.SourcePort);
+                            SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
+                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
 
                             Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: false); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
 
-                            // after sent last conclusion -> start sending the screen share
-                            if (!connections.ContainsKey(datagram.SourcePort))
-                                connections.Add(datagram.SourcePort, new Thread(new ParameterizedThreadStart(Video)));
+                            // ADD NEW SOCKET TO LIST 
+                            uint new_socket_id = (uint)(SRTSockets.Count + 1);
+                            SRTSockets.Add(new_socket_id, new SRTSocket(new IPEndPoint(new IPAddress(handshake_request.PEER_IP), datagram.SourcePort), 
+                                new KeepAliveManager(new_socket_id, datagram.SourcePort)));
+                            // SRTSockets: (example)
+                            // [0] : ip1
+                            // [1]: ip2
+                            // ADDED:
+                            // [2]: ip3
 
-                            if (connections.ContainsKey(datagram.SourcePort))
-                                connections[datagram.SourcePort].Start(datagram.SourcePort); // start video
+
+                            // START VIDEO HERE!!
+
+
+                            // START KEEP-ALIVE EACH 1 SECOND TO CLIENT TO REAFFRIM CONNECTION :
+
+                            SRTSockets[(uint)SRTSockets.Count].KeepAlive.StartCheck();
+
+                            /* KEEP-ALIVE GOOD TRANSMISSION PREVIEW: 
+                             * [SERVER] -> [CLIENT] (keep-alive check request)
+                             * [CLIENT -> [SERVER] (keep-alive check confirm)
+                             * --------------------
+                             * [!] EACH SECOND [!]
+                             */
+
+                            /* KEEP-ALIVE BAD TRANSMISSION PREVIEW: 
+                             * [SERVER] -> [CLIENT] (keep-alive check request)
+                             * . . . (5 seconds passed, no check confirm)
+                             * [SERVER] CLOSE [client] SOCKET, DISPOSE RESOURCES
+                             */
+                            
+
                         }
                     }
                 }
             }
         }
 
+
+
+        private static void KeepAliveChecker(object dest_socket_id)
+        {
+            uint u_dest_socket_id = (uint)dest_socket_id;
+
+            while (SRTSockets.ContainsKey(u_dest_socket_id))  // if socket still exist, continue check keep-alive
+            {
+                SRTRequest.KeepAliveRequest keepAlive_request = new SRTRequest.KeepAliveRequest
+                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, (ushort)SRTSockets[u_dest_socket_id].IPEP.Port));
+
+                Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
+                PacketManager.SendPacket(keepAlive_packet);
+                // need tobe continued ; Server/KeepAliveManager [count sent/confirmed, if not equal more than 5 sec - break connection]
+            }
+        }
 
         private static List<Packet> SplitToPackets(ushort dstPort)
         {

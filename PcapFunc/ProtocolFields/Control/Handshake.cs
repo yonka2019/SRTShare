@@ -4,10 +4,7 @@ namespace SRTManager.ProtocolFields.Control
 {
     public class Handshake : SRTHeader
     {
-        /// <summary>
-        /// Fields -> List<Byte[]> (To send)
-        /// </summary>
-        public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, double p_ip) : base(true, ControlType.HANDSHAKE, dest_socket_id)
+        public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, long p_ip) : base(ControlType.HANDSHAKE, dest_socket_id)
         {
             VERSION = version; byteFields.Add(BitConverter.GetBytes(VERSION));
             ENCRYPTION_FIELD = encryption_field; byteFields.Add(BitConverter.GetBytes(ENCRYPTION_FIELD));
@@ -17,11 +14,10 @@ namespace SRTManager.ProtocolFields.Control
             TYPE = type; byteFields.Add(BitConverter.GetBytes(TYPE));
             SOCKET_ID = source_socket_id; byteFields.Add(BitConverter.GetBytes(SOCKET_ID));
             SYN_COOKIE = syn_cookie; byteFields.Add(BitConverter.GetBytes(SYN_COOKIE));
-            PEER_IP = p_ip; byteFields.Add(BitConverter.GetBytes(Convert.ToDouble(PEER_IP)));
+            PEER_IP = p_ip; byteFields.Add(BitConverter.GetBytes(Convert.ToInt64(PEER_IP)));
         }
 
-
-        public Handshake(byte[] data) : base(data) // initialize SRT Control header fields
+        public Handshake(byte[] data) : base(data)  // initialize SRT Control header fields
         {
             // initialize SRT Control Handshake header fields
 
@@ -33,14 +29,13 @@ namespace SRTManager.ProtocolFields.Control
             TYPE = BitConverter.ToUInt32(data, 31);  // [31 32 33 34] (4 bytes)
             SOCKET_ID = BitConverter.ToUInt32(data, 35);  // [35 36 37 38] (4 bytes)
             SYN_COOKIE = BitConverter.ToUInt32(data, 39);  // [39 40 41 42] (4 bytes)
-            PEER_IP = BitConverter.ToUInt64(data, 43);  // [43 44 45 46 47 48 49 50] (8 bytes)
+            PEER_IP = BitConverter.ToInt64(data, 43);  // [43 44 45 46 47 48 49 50] (8 bytes)
         }
 
         public static bool IsHandshake(byte[] data)
         {
             return BitConverter.ToUInt16(data, 1) == (ushort)ControlType.HANDSHAKE;
         }
-
 
         /// <summary>
         /// 32 bits (4 bytes). A base protocol version number. Currently used
@@ -101,7 +96,7 @@ namespace SRTManager.ProtocolFields.Control
         /// sender.The value consists of four 32-bit fields.In the case of
         /// IPv4 addresses, fields 2, 3 and 4 are filled with zeroes.
         /// </summary>
-        public double PEER_IP { get; set; }
+        public long PEER_IP { get; set; }
 
 
         public enum Extension // Extension Field

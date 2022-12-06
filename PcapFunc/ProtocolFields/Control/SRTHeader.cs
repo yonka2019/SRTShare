@@ -8,15 +8,21 @@ namespace SRTManager.ProtocolFields.Control
         protected readonly List<byte[]> byteFields = new List<byte[]>();
         public List<byte[]> GetByted() { return byteFields; }
 
-        public SRTHeader(bool isData, ControlType packet_type, uint dest_socket_id, uint type_specific_info = 0)
+        /// <summary>
+        /// Fields -> List<Byte[]> (To send)
+        /// </summary>
+        public SRTHeader(ControlType packet_type, uint dest_socket_id, uint type_specific_info = 0)
         {
-            IS_CONTROL_PACKET = isData; byteFields.Add(BitConverter.GetBytes(IS_CONTROL_PACKET));
+            IS_CONTROL_PACKET = true; byteFields.Add(BitConverter.GetBytes(IS_CONTROL_PACKET));
             CONTROL_TYPE = (ushort)packet_type; byteFields.Add(BitConverter.GetBytes(CONTROL_TYPE));
             SUB_TYPE = 0x0; byteFields.Add(BitConverter.GetBytes(SUB_TYPE));
             TYPE_SPECIFIC_INFO = type_specific_info; byteFields.Add(BitConverter.GetBytes(TYPE_SPECIFIC_INFO));
             DEST_SOCKET_ID = dest_socket_id; byteFields.Add(BitConverter.GetBytes(DEST_SOCKET_ID));
         }
 
+        /// <summary>
+        /// Byte[] -> Fields (To extract)
+        /// </summary>
         public SRTHeader(byte[] data)
         {
             IS_CONTROL_PACKET = BitConverter.ToBoolean(data, 0); // [0]
@@ -30,7 +36,6 @@ namespace SRTManager.ProtocolFields.Control
         {
             return BitConverter.ToBoolean(data, 0);
         }
-
 
         /// <summary>
         /// 8 bit (1 bytes). The control packet has this flag set to

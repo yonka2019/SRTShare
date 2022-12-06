@@ -1,9 +1,6 @@
-﻿using PcapDotNet.Packets;
-using System;
+﻿using System;
 using System.Security.Cryptography;
 using System.Text;
-
-using F_Handshake = SRTManager.ProtocolFields.Control.Handshake;
 
 namespace SRTManager
 {
@@ -29,65 +26,6 @@ namespace SRTManager
 
             //get hash result after compute it  
             return BitConverter.ToUInt32(md5.Hash, 0);
-        }
-
-        public class HandshakeRequest : UdpPacket
-        {
-            /*
-             *  Usage Example:
-                        var handshakeRequest = new SRTManager.ProtocolManager.Handshake(PacketManager.BuildEthernetLayer(),
-                        PacketManager.BuildIpv4Layer(),
-                        PacketManager.BuildUdpLayer(600, PacketManager.SERVER_PORT));
-                        Packet readyToSent = a.Induction("a", 1, false);
-            */
-
-            public HandshakeRequest(params ILayer[] layers) : base(layers) { }
-
-            // public F_Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint socket_id, uint syn_cookie, decimal p_ip)
-            public Packet Induction(uint cookie, uint init_psn, double p_ip, bool clientSide, uint source_socket_id = 0, uint dest_socket_id = 0)
-            {
-
-                F_Handshake f_handshake;
-
-                if (clientSide)
-                {
-                    // CALLER -> LISTENER (first message REQUEST) [CLIENT -> SERVER]
-                    f_handshake = new F_Handshake(version: 4, encryption_field: 0, init_psn, type: (uint)F_Handshake.HandshakeType.INDUCTION, source_socket_id, dest_socket_id, 0, p_ip);
-                }
-
-                else
-                {
-                    // LISTENER -> CALLER (first message RESPONSE) [SERVER -> CLIENT]
-                    f_handshake = new F_Handshake(version: 5, encryption_field: 0, init_psn, type: (uint)F_Handshake.HandshakeType.INDUCTION, source_socket_id, dest_socket_id, cookie, p_ip);
-                }
-
-                GetPayloadLayer() = PacketManager.BuildPLayer(f_handshake.GetByted()); // set last payload layer as our srt packet
-
-                return BuildPacket();
-            }
-
-
-            public Packet Conclusion(uint init_psn, double p_ip, bool clientSide, uint source_socket_id = 0, uint dest_socket_id = 0, uint cookie = 0)
-            {
-                F_Handshake f_handshake;
-
-                if (clientSide)
-                {
-                    // CALLER -> LISTENER (second message REQUEST) [CLIENT -> SERVER]
-                    f_handshake = new F_Handshake(version: 5, encryption_field: 0, init_psn, type: (uint)F_Handshake.HandshakeType.CONCLUSION, source_socket_id, dest_socket_id, cookie, p_ip);
-                }
-
-                else
-                {
-                    // LISTENER -> CALLER (second message RESPONSE) [SERVER -> CLIENT]
-                    f_handshake = new F_Handshake(version: 5, encryption_field: 0, init_psn, type: (uint)F_Handshake.HandshakeType.CONCLUSION, source_socket_id, dest_socket_id, 0, p_ip);
-                }
-
-                GetPayloadLayer() = PacketManager.BuildPLayer(f_handshake.GetByted()); // set last payload layer as our srt packet
-
-                return BuildPacket();
-            }
-
         }
     }
 }
