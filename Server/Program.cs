@@ -82,6 +82,14 @@ namespace Server
 
                 if (SRTControl.SRTHeader.IsControl(payload)) // check if control
                 {
+                    if(SRTControl.Shutdown.IsShutdown(payload))
+                    {
+                        uint req_socket_id = SRTSockets.FirstOrDefault(x => x.Value.IPEP == 
+                        new IPEndPoint(new IPAddress(packet.Ethernet.IpV4.Source.ToValue()), datagram.SourcePort)).Key;
+
+                        Console.WriteLine(req_socket_id);
+                    }
+
                     if (SRTControl.Handshake.IsHandshake(payload)) // check if handshake
                     {
                         SRTControl.Handshake handshake_request = new SRTControl.Handshake(payload);
