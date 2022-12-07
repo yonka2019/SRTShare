@@ -28,6 +28,7 @@ namespace Server
 {
     internal class Program
     {
+        private static uint SERVER_SOCKET_ID = 123;
         private static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
         // SRTSockets: (example)
         // [0] : IPAddress
@@ -82,13 +83,7 @@ namespace Server
 
                 if (SRTControl.SRTHeader.IsControl(payload)) // check if control
                 {
-                    if(SRTControl.Shutdown.IsShutdown(payload))
-                    {
-                        uint req_socket_id = SRTSockets.FirstOrDefault(x => x.Value.IPEP == 
-                        new IPEndPoint(new IPAddress(packet.Ethernet.IpV4.Source.ToValue()), datagram.SourcePort)).Key;
-
-                        Console.WriteLine(req_socket_id);
-                    }
+                    
 
                     if (SRTControl.Handshake.IsHandshake(payload)) // check if handshake
                     {
@@ -100,9 +95,9 @@ namespace Server
                             SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
 
-                            uint cookie = ProtocolManager.GenerateCookie("127.0.0.1", datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
+                            uint cookie = ProtocolManager.GenerateCookie(SRTManager.PacketManager.LOOP_BACK_IP, datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
 
-                            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: 0, clientSide: false); // ***need to change peer id***
+                            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: 0, clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
                         }
 
@@ -112,7 +107,7 @@ namespace Server
                             SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
 
-                            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: false); // ***need to change peer id***
+                            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
 
                             // ADD NEW SOCKET TO LIST 
@@ -148,6 +143,19 @@ namespace Server
                             
 
                         }
+                    }
+
+                    if (SRTControl.Shutdown.IsShutdown(payload))
+                    {
+                        Console.WriteLine($"Got a Shutdown Request from: {datagram.SourcePort}");
+                        //uint req_socket_id = SRTSockets.FirstOrDefault(x => x.Value.IPEP == 
+                        //new IPEndPoint(new IPAddress(packet.Ethernet.IpV4.Source.ToValue()), datagram.SourcePort)).Key;
+                        //Console.WriteLine(packet.Ethernet.IpV4.Source.ToString());
+                        //foreach (var a in SRTSockets)
+                        //{
+                        //    Console.WriteLine(a.Key + ": " + a.Value.IPEP.ToString());
+                        //}
+                        //Console.WriteLine("the id: " + req_socket_id);
                     }
                 }
             }

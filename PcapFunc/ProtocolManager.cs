@@ -17,6 +17,15 @@ namespace SRTManager
             return Md5Encrypt(textToEncrypt); // return the encrypted cookie
         }
 
+        public static uint GenerateSocketId(string ip, ushort port)
+        {
+            string textToEncrypt = "";
+            textToEncrypt += ip + "&"; // add ip
+            textToEncrypt += port.ToString() + "&"; // add port
+
+            return Md5Encrypt(textToEncrypt); // return the encrypted cookie
+        }
+
         private static uint Md5Encrypt(string text)
         {
             MD5 md5 = new MD5CryptoServiceProvider();
@@ -27,5 +36,7 @@ namespace SRTManager
             //get hash result after compute it  
             return BitConverter.ToUInt32(md5.Hash, 0);
         }
+
+
     }
 }

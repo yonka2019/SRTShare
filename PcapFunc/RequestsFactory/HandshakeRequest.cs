@@ -17,7 +17,7 @@ namespace SRTManager.RequestsFactory
         public HandshakeRequest(params ILayer[] layers) : base(layers) { }
 
         // public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint socket_id, uint syn_cookie, decimal p_ip)
-        public Packet Induction(uint cookie, uint init_psn, long p_ip, bool clientSide, uint source_socket_id = 0, uint dest_socket_id = 0)
+        public Packet Induction(uint cookie, uint init_psn, long p_ip, bool clientSide, uint source_socket_id, uint dest_socket_id)
         {
             SRTControl.Handshake F_Handshake;
 
@@ -39,7 +39,7 @@ namespace SRTManager.RequestsFactory
         }
 
 
-        public Packet Conclusion(uint init_psn, long p_ip, bool clientSide, uint source_socket_id = 0, uint dest_socket_id = 0, uint cookie = 0)
+        public Packet Conclusion(uint init_psn, long p_ip, bool clientSide, uint source_socket_id, uint dest_socket_id, uint cookie = 0)
         {
             SRTControl.Handshake F_Handshake;
 
