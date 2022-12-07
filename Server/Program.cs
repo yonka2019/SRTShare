@@ -99,6 +99,9 @@ namespace Server
 
                             Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: 0, clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
+
+                            Console.WriteLine("Induction [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
+
                         }
 
 
@@ -109,6 +112,8 @@ namespace Server
 
                             Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
+
+                            Console.WriteLine("Conclusion [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
 
                             // ADD NEW SOCKET TO LIST 
                             uint new_socket_id = (uint)(SRTSockets.Count + 1);

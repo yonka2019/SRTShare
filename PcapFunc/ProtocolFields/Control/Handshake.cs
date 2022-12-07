@@ -122,5 +122,17 @@ namespace SRTManager.ProtocolFields.Control
             AES192 = 3,
             AES256 = 4
         }
+
+        public override string ToString()
+        {
+            string handshake = "";
+
+            handshake += "Source id: " + this.SOCKET_ID + "\n";
+            handshake += "Dest id: " + this.DEST_SOCKET_ID + "\n";
+            handshake += "Cookie: " + this.SYN_COOKIE + "\n";
+            handshake += "Handshake type: " + this.TYPE + "\n";
+
+            return handshake;
+        }
     }
 }
