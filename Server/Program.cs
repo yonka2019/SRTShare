@@ -167,15 +167,21 @@ namespace Server
 
                     if (SRTControl.Shutdown.IsShutdown(payload))
                     {
-                        Console.WriteLine($"Got a Shutdown Request from: {datagram.SourcePort}");
-                        //uint req_socket_id = SRTSockets.FirstOrDefault(x => x.Value.IPEP == 
-                        //new IPEndPoint(new IPAddress(packet.Ethernet.IpV4.Source.ToValue()), datagram.SourcePort)).Key;
-                        //Console.WriteLine(packet.Ethernet.IpV4.Source.ToString());
-                        //foreach (var a in SRTSockets)
-                        //{
-                        //    Console.WriteLine(a.Key + ": " + a.Value.IPEP.ToString());
-                        //}
-                        //Console.WriteLine("the id: " + req_socket_id);
+                        uint client_id = SRTManager.ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString(), datagram.SourcePort);
+
+                        Console.WriteLine($"Got a Shutdown Request from: {client_id}.");
+
+                        if(SRTSockets.ContainsKey(client_id))
+                        {
+                            SRTSockets.Remove(client_id);
+                            Console.WriteLine($"Client [{client_id}] was removed.");
+                        }
+
+                        else
+                        {
+                            Console.WriteLine($"Client [{client_id}] wasn't found.");
+                        }
+                        
                     }
                 }
             }
