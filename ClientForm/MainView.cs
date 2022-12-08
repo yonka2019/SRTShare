@@ -50,7 +50,7 @@ namespace ClientForm
             DateTime now = DateTime.Now;
 
             client_socket_id = SRTManager.ProtocolManager.GenerateSocketId(SRTManager.PacketManager.LOOP_BACK_IP, myPort);
-            Packet handshake_packet = handshake.Induction(cookie: SRTManager.ProtocolManager.GenerateCookie(SRTManager.PacketManager.LOOP_BACK_IP, myPort, now), init_psn: 0, p_ip: new byte[16], clientSide: true, client_socket_id, 0); // *** need to change peer id***
+            Packet handshake_packet = handshake.Induction(cookie: SRTManager.ProtocolManager.GenerateCookie(SRTManager.PacketManager.LOOP_BACK_IP, myPort, now), init_psn: 0, p_ip: 0, clientSide: true, client_socket_id, 0); // *** need to change peer id***
 
             /*Packet packet = new PacketBuilder(PacketManager.BuildEthernetLayer(),
                 PacketManager.BuildIpv4Layer(),
@@ -99,7 +99,7 @@ namespace ClientForm
                                 SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
 
                                 // client -> server (conclusion)
-                                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: new byte[16], clientSide: true, client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
+                                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: true, client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
                                 PacketManager.SendPacket(handshake_packet);
                             }
 
