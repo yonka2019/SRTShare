@@ -55,6 +55,12 @@ namespace SRTManager
             return BitConverter.ToUInt32(md5.Hash, 0);
         }
 
-
+    }
+}
+public static class UINT_Ext
+{
+    public static uint GetUInt32(this string str)
+    {
+        return BitConverter.ToUInt32(Encoding.ASCII.GetBytes(str), 0);
     }
 }

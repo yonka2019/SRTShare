@@ -15,7 +15,7 @@ namespace SRTManager
         public static readonly PacketDevice pcapDevice;
 
         public const int SERVER_PORT = 6969;
-        public const string LOOP_BACK_IP = "127.0.0.1";
+        public const string LOOPBACK_IP = "127.0.0.1";
         private const string DEFAULT_INTERFACE_SUBSTRING = "Intel";  // default interface must contain this substring to be automatically chosen
 
         static PacketManager()
@@ -102,7 +102,7 @@ namespace SRTManager
         /// <param name="sourceIp">Source ip</param>
         /// <param name="dstIp">Destination ip</param>
         /// <returns>Ip layer object</returns>
-        public static IpV4Layer BuildIpv4Layer(string sourceIp = LOOP_BACK_IP, string dstIp = LOOP_BACK_IP)
+        public static IpV4Layer BuildIpv4Layer(string sourceIp = LOOPBACK_IP, string dstIp = LOOPBACK_IP)
         {
             return
             new IpV4Layer
