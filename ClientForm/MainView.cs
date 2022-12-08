@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -48,8 +50,8 @@ namespace ClientForm
 
             DateTime now = DateTime.Now;
 
-            client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.LOOPBACK_IP, myPort);
-            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.LOOPBACK_IP, myPort, now), init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.GetUInt32(), clientSide: true, client_socket_id, 0); // *** need to change peer id***
+            client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.LOOPBACK_STR_IP, myPort);
+            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.LOOPBACK_STR_IP, myPort, now), init_psn: 0, p_ip: PacketManager.LOOPBACK_STR_IP.GetUInt32(), clientSide: true, client_socket_id, 0); // *** need to change peer id***
 
             /*Packet packet = new PacketBuilder(PacketManager.BuildEthernetLayer(),
                 PacketManager.BuildIpv4Layer(),
@@ -93,7 +95,7 @@ namespace ClientForm
 
                         if (handshake_request.TYPE == (uint)SRTControl.Handshake.HandshakeType.INDUCTION) // server -> client (induction)
                         {
-                            if (handshake_request.SYN_COOKIE == SRTManager.ProtocolManager.GenerateCookie(SRTManager.PacketManager.LOOPBACK_IP, myPort, DateTime.Now))
+                            if (handshake_request.SYN_COOKIE == SRTManager.ProtocolManager.GenerateCookie(SRTManager.PacketManager.LOOPBACK_STR_IP, myPort, DateTime.Now))
                             {
                                 SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
 

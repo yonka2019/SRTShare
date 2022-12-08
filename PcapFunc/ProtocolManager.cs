@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -57,10 +58,15 @@ namespace SRTManager
 
     }
 }
-public static class UINT_Ext
+
+public static class MethodExt
 {
     public static uint GetUInt32(this string str)
     {
         return BitConverter.ToUInt32(Encoding.ASCII.GetBytes(str), 0);
+    }
+    public static uint GetUInt32(this IPAddress ipAddress)
+    {
+        return BitConverter.ToUInt32(ipAddress.GetAddressBytes(), 0);
     }
 }
