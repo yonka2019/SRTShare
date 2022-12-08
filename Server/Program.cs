@@ -167,7 +167,7 @@ namespace Server
 
                     if (SRTControl.Shutdown.IsShutdown(payload))
                     {
-                        uint client_id = SRTManager.ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString(), datagram.SourcePort);
+                        uint client_id = SRTManager.ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString(), datagram.SourcePort); 
 
                         Console.WriteLine($"Got a Shutdown Request from: {client_id}.");
 
