@@ -66,12 +66,19 @@ namespace ClientForm
             pRecvThread.Start();
         }
 
+        /// <summary>
+        /// The function starts receiving the packets
+        /// </summary>
         private void RecvP()
         {
             PacketManager.ReceivePackets(0, PacketHandler);
         }
 
-        // Callback function invoked by Pcap.Net for every incoming packet
+        
+        /// <summary>
+        /// Callback function invoked by Pcap.Net for every incoming packet
+        /// </summary>
+        /// <param name="packet">New given packet</param>
         private void PacketHandler(Packet packet)
         {
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
@@ -149,8 +156,14 @@ namespace ClientForm
 
             }
         }
+
+        /// <summary>
+        /// The function accurs when the form is closed
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnClosed(EventArgs e)
         {
+            // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
             SRTRequest.ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
             Packet shutdown_packet = shutdown_response.Exit();
             PacketManager.SendPacket(shutdown_packet);
@@ -161,6 +174,10 @@ namespace ClientForm
         }
 
 
+        /// <summary>
+        /// The function shows the server's screen if all the chunks arrived
+        /// </summary>
+        /// <param name="allChunksReceived">True if all chunks were received, false if not</param>
         private void ShowImage(bool allChunksReceived)
         {
             Console.WriteLine($"[GOT : {myPort}] Image (Total chunks: {total_chunks_number})"); // each image

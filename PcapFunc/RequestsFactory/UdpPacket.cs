@@ -27,11 +27,19 @@ namespace SRTManager.RequestsFactory
             layers.CopyTo(workingLayers, 0);
         }
 
+        /// <summary>
+        /// The function returns the payload layer
+        /// </summary>
+        /// <returns>The reference to the payload layer</returns>
         protected ref ILayer GetPayloadLayer()
         {
             return ref workingLayers[workingLayers.Length - 1];
         }
 
+        /// <summary>
+        /// The function builds and returns a packet based on the existing layers
+        /// </summary>
+        /// <returns>Pacekt object</returns>
         protected Packet BuildPacket()
         {
             return new PacketBuilder(workingLayers).Build(DateTime.Now);

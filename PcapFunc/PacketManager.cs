@@ -44,6 +44,11 @@ namespace SRTManager
             pcapDevice = allDevices[deviceIndex - 1];
             Console.WriteLine($"[!] SELECTED INTERFACE: {pcapDevice.Description}");
         }
+
+        /// <summary>
+        /// The function sends the given packet
+        /// </summary>
+        /// <param name="packetToSend">The packet to send</param>
         public static void SendPacket(Packet packetToSend)
         {
             using (PacketCommunicator communicator = pcapDevice.Open(100, // name of the device
@@ -53,6 +58,12 @@ namespace SRTManager
                 communicator.SendPacket(packetToSend);
             }
         }
+
+        /// <summary>
+        /// The fucntion handles the packets recieves by a handle to a function that it gets
+        /// </summary>
+        /// <param name="count"></param>
+        /// <param name="callback">Handle to a function</param>
         public static void ReceivePackets(int count, HandlePacket callback)
         {
             using (PacketCommunicator communicator =
@@ -68,6 +79,12 @@ namespace SRTManager
             }
         }
 
+        /// <summary>
+        /// The function builds the ethernet layer
+        /// </summary>
+        /// <param name="sourceMac">Source mac</param>
+        /// <param name="dstMac">Destination mac</param>
+        /// <returns>Ethernet layer object</returns>
         public static EthernetLayer BuildEthernetLayer(string sourceMac = "7C:B0:C2:FE:0F:C5", string dstMac = "7C:B0:C2:FE:0F:C5")
         {
             return
@@ -79,6 +96,12 @@ namespace SRTManager
             };
         }
 
+        /// <summary>
+        /// The function builds the ip layer
+        /// </summary>
+        /// <param name="sourceIp">Source ip</param>
+        /// <param name="dstIp">Destination ip</param>
+        /// <returns>Ip layer object</returns>
         public static IpV4Layer BuildIpv4Layer(string sourceIp = LOOP_BACK_IP, string dstIp = LOOP_BACK_IP)
         {
             return
@@ -96,6 +119,12 @@ namespace SRTManager
             };
         }
 
+        /// <summary>
+        /// The function builds the transport layer
+        /// </summary>
+        /// <param name="sourcePort">Source port</param>
+        /// <param name="dstPort">Destination port</param>
+        /// <returns>Transport layer object (udp)</returns>
         public static UdpLayer BuildUdpLayer(ushort sourcePort = SERVER_PORT, ushort dstPort = 10000)
         {
             return
@@ -116,6 +145,11 @@ namespace SRTManager
             };
         }
 
+        /// <summary>
+        /// The function converts a byte list into a payload layer
+        /// </summary>
+        /// <param name="data">Data to convert</param>
+        /// <returns>Payload layer object</returns>
         public static PayloadLayer BuildPLayer(List<byte[]> data)
         {
             #region https://stackoverflow.com/questions/4875968/concatenating-a-c-sharp-list-of-byte
@@ -135,6 +169,11 @@ namespace SRTManager
             };
         }
 
+        /// <summary>
+        /// The function converts a byte array into a payload layer
+        /// </summary>
+        /// <param name="data">Data to convert</param>
+        /// <returns>Payload layer object</returns>
         public static PayloadLayer BuildPLayer(byte[] data)
         {
             return new PayloadLayer
@@ -143,6 +182,12 @@ namespace SRTManager
             };
         }
 
+        /// <summary>
+        /// The function builds all of the base layers (ehternet, ip, transport)
+        /// </summary>
+        /// <param name="source_port">Source port</param>
+        /// <param name="destination_port">Destination port</param>
+        /// <returns>List of the base layers</returns>
         public static ILayer[] BuildBaseLayers(ushort source_port, ushort destination_port)
         {
             ILayer[] baseLayers = new ILayer[3];

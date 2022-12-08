@@ -48,6 +48,10 @@ namespace Server
             new Thread(new ThreadStart(RecvP)).Start(); // always listen for any new connections
         }
 
+       /// <summary>
+       /// The function starts the ScreenShare
+       /// </summary>
+       /// <param name="dstPort">Destination port to send to</param>
         private static void Video(object dstPort)
         {
             while (true)
@@ -56,6 +60,11 @@ namespace Server
             }
         }
 
+        /// <summary>
+        /// The function takes a screen shot, builds it into small packets, and sends them
+        /// </summary>
+        /// <param name="device">The chosen packet device</param>
+        /// <param name="dstPort">Destination port ot send to</param>
         private static void ShotBuildSend(PacketDevice device, ushort dstPort)
         {
             List<Packet> imageChunks = SplitToPackets(dstPort);
@@ -69,11 +78,18 @@ namespace Server
             Console.WriteLine("--------------------\n\n\n");
         }
 
+        /// <summary>
+        /// The function starts receiving the packets
+        /// </summary>
         private static void RecvP()
         {
             PacketManager.ReceivePackets(0, HandlePacket);
         }
 
+        /// <summary>
+        /// Callback function invoked by Pcap.Net for every incoming packet
+        /// </summary>
+        /// <param name="packet">New given packet</param>
         private static void HandlePacket(Packet packet)
         { // check by data which packet is this (control/data): 'The type initializer for 'SRTManager.PacketManager' threw
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
@@ -116,9 +132,8 @@ namespace Server
                             Console.WriteLine("Conclusion [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
 
                             // ADD NEW SOCKET TO LIST 
-                            uint new_socket_id = (uint)(SRTSockets.Count + 1);
-                            SRTSockets.Add(new_socket_id, new SRTSocket(new IPEndPoint(new IPAddress(handshake_request.PEER_IP), datagram.SourcePort), 
-                                new KeepAliveManager(new_socket_id, datagram.SourcePort)));
+                            SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(new IPEndPoint(new IPAddress(handshake_request.PEER_IP), datagram.SourcePort), 
+                                new KeepAliveManager(handshake_request.SOCKET_ID, datagram.SourcePort)));
                             // SRTSockets: (example)
                             // [0] : ip1
                             // [1]: ip2
@@ -131,7 +146,7 @@ namespace Server
 
                             // START KEEP-ALIVE EACH 1 SECOND TO CLIENT TO REAFFRIM CONNECTION :
 
-                            SRTSockets[(uint)SRTSockets.Count].KeepAlive.StartCheck();
+                            SRTSockets[handshake_request.SOCKET_ID].KeepAlive.StartCheck();
 
                             /* KEEP-ALIVE GOOD TRANSMISSION PREVIEW: 
                              * [SERVER] -> [CLIENT] (keep-alive check request)
@@ -183,6 +198,12 @@ namespace Server
             }
         }
 
+
+        /// <summary>
+        /// The function takes a screenshot and splits it into many small chunks
+        /// </summary>
+        /// <param name="dstPort">Destination port to send to</param>
+        /// <returns>List of many small packet chunks</returns>
         private static List<Packet> SplitToPackets(ushort dstPort)
         {
             Bitmap bmp = TakeScreenShot();
@@ -225,6 +246,10 @@ namespace Server
             return packets;
         }
 
+        /// <summary>
+        /// The function takes a screen shot 
+        /// </summary>
+        /// <returns>Bitmap obejct with the screenshot</returns>
         private static Bitmap TakeScreenShot()
         {
             int width, height;
@@ -246,6 +271,11 @@ namespace Server
             }
         }
 
+        /// <summary>
+        /// The function converts a bitmap obejct into a memory stream (easier to send)
+        /// </summary>
+        /// <param name="bmp">Bitmap object to convert</param>
+        /// <returns>Memory stream of the screenShot</returns>
         public static MemoryStream GetJpegStream(Bitmap bmp)
         {
             MemoryStream stream = new MemoryStream();
@@ -263,6 +293,11 @@ namespace Server
             return stream;
         }
 
+        /// <summary>
+        /// The function creates an encoder to convert the Bitmap object
+        /// </summary>
+        /// <param name="format">A format to convert to (jpeg in this case)</param>
+        /// <returns>ImageCodecInfo object</returns>
         private static ImageCodecInfo GetEncoder(ImageFormat format)
         {
             ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();

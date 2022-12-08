@@ -6,6 +6,13 @@ namespace SRTManager
 {
     public class ProtocolManager
     {
+        /// <summary>
+        /// The function generates a syn cookie for the handshake
+        /// </summary>
+        /// <param name="ip">Client's ip</param>
+        /// <param name="port">Client's port</param>
+        /// <param name="current_time">Current time</param>
+        /// <returns></returns>
         public static uint GenerateCookie(string ip, ushort port, DateTime current_time)
         {
             string textToEncrypt = "";
@@ -17,6 +24,12 @@ namespace SRTManager
             return Md5Encrypt(textToEncrypt); // return the encrypted cookie
         }
 
+        /// <summary>
+        /// The function gtenerates a socket id for the handshake
+        /// </summary>
+        /// <param name="ip">Client's ip</param>
+        /// <param name="port">Client's port</param>
+        /// <returns></returns>
         public static uint GenerateSocketId(string ip, ushort port)
         {
             string textToEncrypt = "";
@@ -26,6 +39,11 @@ namespace SRTManager
             return Md5Encrypt(textToEncrypt); // return the encrypted cookie
         }
 
+        /// <summary>
+        /// The function encrypts the given text
+        /// </summary>
+        /// <param name="text">Text to encrypt</param>
+        /// <returns>Encrypted text in bytes</returns>
         private static uint Md5Encrypt(string text)
         {
             MD5 md5 = new MD5CryptoServiceProvider();

@@ -37,6 +37,11 @@ namespace SRTManager.ProtocolFields.Control
             }
         }
 
+        /// <summary>
+        /// Checks if it's a handshake packet
+        /// </summary>
+        /// <param name="data">Byte array to check</param>
+        /// <returns>True if handshake, false if not</returns>
         public static bool IsHandshake(byte[] data)
         {
             return BitConverter.ToUInt16(data, 1) == (ushort)ControlType.HANDSHAKE;

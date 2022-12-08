@@ -17,6 +17,17 @@ namespace SRTManager.RequestsFactory
         public HandshakeRequest(params ILayer[] layers) : base(layers) { }
 
         // public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint socket_id, uint syn_cookie, decimal p_ip)
+
+        /// <summary>
+        /// The function creates an induction packet (Handshake)
+        /// </summary>
+        /// <param name="cookie">Cookie</param>
+        /// <param name="init_psn">Init psn</param>
+        /// <param name="p_ip">Peer ip</param>
+        /// <param name="clientSide">Whether it's the client side or not</param>
+        /// <param name="source_socket_id">Source socket id</param>
+        /// <param name="dest_socket_id">Destination socket id</param>
+        /// <returns>Induction packet</returns>
         public Packet Induction(uint cookie, uint init_psn, byte[] p_ip, bool clientSide, uint source_socket_id, uint dest_socket_id)
         {
             SRTControl.Handshake F_Handshake;
@@ -38,7 +49,16 @@ namespace SRTManager.RequestsFactory
             return BuildPacket();
         }
 
-
+        /// <summary>
+        /// The function creates a conclusion packet (Handshake)
+        /// </summary>
+        /// <param name="init_psn">Init psn</param>
+        /// <param name="p_ip">Peer ip</param>
+        /// <param name="clientSide">Whether it's the client side or not</param>
+        /// <param name="source_socket_id">Source socket id</param>
+        /// <param name="dest_socket_id">Destination socket id</param>
+        /// <param name="cookie">Cookie</param>
+        /// <returns>Conclusion packet</returns>
         public Packet Conclusion(uint init_psn, byte[] p_ip, bool clientSide, uint source_socket_id, uint dest_socket_id, uint cookie = 0)
         {
             SRTControl.Handshake F_Handshake;

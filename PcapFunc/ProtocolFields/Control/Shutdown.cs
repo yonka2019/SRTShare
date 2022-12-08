@@ -12,6 +12,11 @@ namespace SRTManager.ProtocolFields.Control
         {
         }
 
+        /// <summary>
+        /// Checks if it's a shutdown packet
+        /// </summary>
+        /// <param name="data">Byte array to check</param>
+        /// <returns>True if shutdown, false if not</returns>
         public static bool IsShutdown(byte[] data)
         {
             return BitConverter.ToUInt16(data, 1) == (ushort)ControlType.SHUTDOWN;
