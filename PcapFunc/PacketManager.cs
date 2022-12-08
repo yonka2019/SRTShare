@@ -16,7 +16,7 @@ namespace SRTManager
 
         public const int SERVER_PORT = 6969;
         public const string LOOP_BACK_IP = "127.0.0.1";
-        private const string DEFAULT_INTERFACE_SUBSTRING = "Oracle";  // default interface must contain this substring to be automatically chosen
+        private const string DEFAULT_INTERFACE_SUBSTRING = "Intel";  // default interface must contain this substring to be automatically chosen
 
         static PacketManager()
         {

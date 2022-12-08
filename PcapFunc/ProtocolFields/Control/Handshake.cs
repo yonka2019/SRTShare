@@ -1,10 +1,12 @@
-﻿using System;
+﻿using PcapDotNet.Base;
+using System;
+using System.Numerics;
 
 namespace SRTManager.ProtocolFields.Control
 {
     public class Handshake : SRTHeader
     {
-        public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, long p_ip) : base(ControlType.HANDSHAKE, dest_socket_id)
+        public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, uint p_ip) : base(ControlType.HANDSHAKE, dest_socket_id)
         {
             VERSION = version; byteFields.Add(BitConverter.GetBytes(VERSION));
             ENCRYPTION_FIELD = encryption_field; byteFields.Add(BitConverter.GetBytes(ENCRYPTION_FIELD));
@@ -14,7 +16,7 @@ namespace SRTManager.ProtocolFields.Control
             TYPE = type; byteFields.Add(BitConverter.GetBytes(TYPE));
             SOCKET_ID = source_socket_id; byteFields.Add(BitConverter.GetBytes(SOCKET_ID));
             SYN_COOKIE = syn_cookie; byteFields.Add(BitConverter.GetBytes(SYN_COOKIE));
-            PEER_IP = p_ip; byteFields.Add(BitConverter.GetBytes(Convert.ToInt64(PEER_IP)));
+            PEER_IP = p_ip; byteFields.Add(BitConverter.GetBytes(PEER_IP));
         }
 
         public Handshake(byte[] data) : base(data)  // initialize SRT Control header fields
@@ -29,12 +31,7 @@ namespace SRTManager.ProtocolFields.Control
             TYPE = BitConverter.ToUInt32(data, 31);  // [31 32 33 34] (4 bytes)
             SOCKET_ID = BitConverter.ToUInt32(data, 35);  // [35 36 37 38] (4 bytes)
             SYN_COOKIE = BitConverter.ToUInt32(data, 39);  // [39 40 41 42] (4 bytes)
-
-            PEER_IP = BitConverter.ToInt64(data, 43); // [43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58] (16 bytes)
-            //for (int i = 43; i <= 58; i++)
-            //{
-            //    PEER_IP[i - 43] = data[i];
-            //}
+            PEER_IP = BitConverter.ToUInt32(data, 43); // [43 44 45 46] (4 bytes)
         }
 
         /// <summary>
@@ -106,7 +103,7 @@ namespace SRTManager.ProtocolFields.Control
         /// sender.The value consists of four 32-bit fields.In the case of
         /// IPv4 addresses, fields 2, 3 and 4 are filled with zeroes.
         /// </summary>
-        public long PEER_IP { get; set; }
+        public uint PEER_IP { get; set; }
 
 
         public enum Extension // Extension Field
@@ -137,10 +134,10 @@ namespace SRTManager.ProtocolFields.Control
         {
             string handshake = "";
 
-            handshake += "Source id: " + this.SOCKET_ID + "\n";
-            handshake += "Dest id: " + this.DEST_SOCKET_ID + "\n";
-            handshake += "Cookie: " + this.SYN_COOKIE + "\n";
-            handshake += "Handshake type: " + this.TYPE + "\n";
+            handshake += "Source id: " + SOCKET_ID + "\n";
+            handshake += "Dest id: " + DEST_SOCKET_ID + "\n";
+            handshake += "Cookie: " + SYN_COOKIE + "\n";
+            handshake += "Handshake type: " + TYPE + "\n";
 
             return handshake;
         }
