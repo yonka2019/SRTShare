@@ -25,7 +25,11 @@ namespace SRTManager
             int deviceIndex = -1;
 
             if (allDevices.Count == 0)
-                return;
+            {
+                Console.WriteLine("[ERROR] NO INTERFACES FOUND");
+                Console.ReadKey();
+                Environment.Exit(0);
+            }
 
             // iterate interfaces list
             for (int i = 0; i != allDevices.Count; ++i)
@@ -39,6 +43,13 @@ namespace SRTManager
                         break;
                     }
                 }
+            }
+
+            if (deviceIndex == -1)
+            {
+                Console.WriteLine($"[ERROR] NO INTERFACE WITH SUBSTRING OF '{DEFAULT_INTERFACE_SUBSTRING}'");
+                Console.ReadKey();
+                Environment.Exit(0);
             }
 
             // Take the selected adapter
