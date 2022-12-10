@@ -5,9 +5,9 @@ VisualStudioVersion = 17.3.32922.545
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{5D2E2935-30CE-4EA0-BE77-10DA530AD4C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "ClientForm\Client.csproj", "{EDB0A67A-C1B8-4EC2-A71B-017654DB4CD2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{EDB0A67A-C1B8-4EC2-A71B-017654DB4CD2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SRTManager", "PcapFunc\SRTManager.csproj", "{15441E3C-00E3-4644-A71B-3D949EEEE2DC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SRTManager", "SRTManager\SRTManager.csproj", "{15441E3C-00E3-4644-A71B-3D949EEEE2DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
