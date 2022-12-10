@@ -16,8 +16,7 @@ namespace SRTManager
         public static readonly PacketDevice pcapDevice;
 
         public const int SERVER_PORT = 6969;
-        public const string LOOPBACK_STR_IP = "127.0.0.1";
-      //  public static readonly IPAddress LOOPBACK_IP = new IPAddress(Encoding.ASCII.GetBytes("127.0.0.1"));
+        public static readonly SAddress LOOPBACK_IP = new SAddress("127.0.0.1");
         private const string DEFAULT_INTERFACE_SUBSTRING = "Oracle";  // default interface must contain this substring to be automatically chosen
 
         static PacketManager()
@@ -104,7 +103,7 @@ namespace SRTManager
         /// <param name="sourceIp">Source ip</param>
         /// <param name="dstIp">Destination ip</param>
         /// <returns>Ip layer object</returns>
-        public static IpV4Layer BuildIpv4Layer(string sourceIp = LOOPBACK_STR_IP, string dstIp = LOOPBACK_STR_IP)
+        public static IpV4Layer BuildIpv4Layer(string sourceIp = "127.0.0.1", string dstIp = "127.0.0.1")
         {
             return
             new IpV4Layer

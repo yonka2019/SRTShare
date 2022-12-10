@@ -111,9 +111,9 @@ namespace Server
                             SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
 
-                            uint cookie = ProtocolManager.GenerateCookie(SRTManager.PacketManager.LOOPBACK_STR_IP, datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
+                            uint cookie = ProtocolManager.GenerateCookie(SRTManager.PacketManager.LOOPBACK_IP.IPAddress, datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
 
-                            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: PacketManager.LOOPBACK_STR_IP.GetUInt32(), clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
+                            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
 
                             Console.WriteLine("Induction [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
@@ -126,13 +126,13 @@ namespace Server
                             SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
 
-                            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: PacketManager.LOOPBACK_STR_IP.GetUInt32(), clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
+                            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
 
                             Console.WriteLine("Conclusion [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
 
                             // ADD NEW SOCKET TO LIST 
-                            SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(new IPEndPoint(new IPAddress(handshake_request.PEER_IP), datagram.SourcePort), 
+                            SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(new SAddress(handshake_request.PEER_IP, datagram.SourcePort), 
                                 new KeepAliveManager(handshake_request.SOCKET_ID, datagram.SourcePort)));
                             // SRTSockets: (example)
                             // [0] : ip1
@@ -196,7 +196,7 @@ namespace Server
             while (SRTSockets.ContainsKey(u_dest_socket_id))  // if socket still exist, continue check keep-alive
             {
                 SRTRequest.KeepAliveRequest keepAlive_request = new SRTRequest.KeepAliveRequest
-                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, (ushort)SRTSockets[u_dest_socket_id].IPEP.Port));
+                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, (ushort)SRTSockets[u_dest_socket_id].SocketAddress.Port));
 
                 Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
                 PacketManager.SendPacket(keepAlive_packet);

@@ -68,6 +68,7 @@
     <Compile Include="RequestsFactory\KeepAliveRequest.cs" />
     <Compile Include="RequestsFactory\ShutDownRequest.cs" />
     <Compile Include="RequestsFactory\UdpPacket.cs" />
+    <Compile Include="SAddress.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
