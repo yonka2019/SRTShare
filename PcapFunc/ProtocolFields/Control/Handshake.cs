@@ -138,7 +138,7 @@ namespace SRTManager.ProtocolFields.Control
             handshake += "Dest id: " + DEST_SOCKET_ID + "\n";
             handshake += "Cookie: " + SYN_COOKIE + "\n";
             handshake += "Peer ip: " + PEER_IP + "\n";
-            handshake += "Handshake type: " + TYPE + "\n";
+            handshake += "Handshake type: " + TYPE.ToString("X") + "\n";
             
 
             return handshake;

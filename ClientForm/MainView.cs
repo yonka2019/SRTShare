@@ -100,7 +100,7 @@ namespace ClientForm
                                 SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
 
                                 // client -> server (conclusion)
-                                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: true, client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
+                                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: PacketManager.LOOPBACK_STR_IP.GetUInt32(), clientSide: true, client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
                                 PacketManager.SendPacket(handshake_packet);
                             }
 

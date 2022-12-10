@@ -113,7 +113,7 @@ namespace Server
 
                             uint cookie = ProtocolManager.GenerateCookie(SRTManager.PacketManager.LOOPBACK_STR_IP, datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
 
-                            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: 0, clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
+                            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: PacketManager.LOOPBACK_STR_IP.GetUInt32(), clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
 
                             Console.WriteLine("Induction [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
@@ -126,7 +126,7 @@ namespace Server
                             SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
 
-                            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
+                            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: PacketManager.LOOPBACK_STR_IP.GetUInt32(), clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
 
                             Console.WriteLine("Conclusion [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");

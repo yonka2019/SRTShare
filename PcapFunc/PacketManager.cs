@@ -17,8 +17,8 @@ namespace SRTManager
 
         public const int SERVER_PORT = 6969;
         public const string LOOPBACK_STR_IP = "127.0.0.1";
-        public static readonly IPAddress LOOPBACK_IP = new IPAddress(Encoding.ASCII.GetBytes("127.0.0.1"));
-        private const string DEFAULT_INTERFACE_SUBSTRING = "Intel";  // default interface must contain this substring to be automatically chosen
+      //  public static readonly IPAddress LOOPBACK_IP = new IPAddress(Encoding.ASCII.GetBytes("127.0.0.1"));
+        private const string DEFAULT_INTERFACE_SUBSTRING = "Oracle";  // default interface must contain this substring to be automatically chosen
 
         static PacketManager()
         {
