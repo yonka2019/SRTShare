@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -34,19 +36,22 @@ namespace ClientForm
         private readonly Random rnd = new Random();
 
         private static ushort myPort = 0;
+        private static uint client_socket_id = 0;
+
 
         public MainView()
         {
             InitializeComponent();
 
-            myPort = (ushort)rnd.Next(1, 5000);
+            myPort = (ushort)rnd.Next(1, 50000);
 
             SRTRequest.HandshakeRequest handshake = new SRTRequest.HandshakeRequest
                 (PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
 
             DateTime now = DateTime.Now;
 
-            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie("127.0.0.1", myPort, now), init_psn: 0, p_ip: 0, clientSide: true); // *** need to change peer id***
+            client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.LOOPBACK_IP.IPAddress, myPort);
+            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.LOOPBACK_IP.IPAddress, myPort, now), init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: true, client_socket_id, 0); // *** need to change peer id***
 
             /*Packet packet = new PacketBuilder(PacketManager.BuildEthernetLayer(),
                 PacketManager.BuildIpv4Layer(),
@@ -62,12 +67,19 @@ namespace ClientForm
             pRecvThread.Start();
         }
 
+        /// <summary>
+        /// The function starts receiving the packets
+        /// </summary>
         private void RecvP()
         {
             PacketManager.ReceivePackets(0, PacketHandler);
         }
 
-        // Callback function invoked by Pcap.Net for every incoming packet
+
+        /// <summary>
+        /// Callback function invoked by Pcap.Net for every incoming packet
+        /// </summary>
+        /// <param name="packet">New given packet</param>
         private void PacketHandler(Packet packet)
         {
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
@@ -83,20 +95,23 @@ namespace ClientForm
 
                         if (handshake_request.TYPE == (uint)SRTControl.Handshake.HandshakeType.INDUCTION) // server -> client (induction)
                         {
-                            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie("127.0.0.1", myPort, DateTime.Now))
+                            if (handshake_request.SYN_COOKIE == SRTManager.ProtocolManager.GenerateCookie(SRTManager.PacketManager.LOOPBACK_IP.IPAddress, myPort, DateTime.Now))
                             {
-                                SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildEthernetLayer(),
-                                    PacketManager.BuildIpv4Layer(),
-                                    PacketManager.BuildUdpLayer(myPort, PacketManager.SERVER_PORT));
+                                SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
 
                                 // client -> server (conclusion)
-                                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: 0, clientSide: true, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
+                                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: true, client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
                                 PacketManager.SendPacket(handshake_packet);
                             }
 
                             else
                             {
-                                MessageBox.Show("Wrong cookie", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                // Exit the prgram and send a shutdwon request
+                                SRTRequest.ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
+                                Packet shutdown_packet = shutdown_response.Exit();
+                                PacketManager.SendPacket(shutdown_packet);
+
+                                MessageBox.Show("Wrong cookie - Exiting...", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
 
                         }
@@ -143,6 +158,27 @@ namespace ClientForm
             }
         }
 
+        /// <summary>
+        /// The function accurs when the form is closed
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnClosed(EventArgs e)
+        {
+            // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
+            SRTRequest.ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
+            Packet shutdown_packet = shutdown_response.Exit();
+            PacketManager.SendPacket(shutdown_packet);
+
+            MessageBox.Show("Sent a ShutDown request!",
+                "Bye Bye", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            base.OnClosed(e);
+        }
+
+
+        /// <summary>
+        /// The function shows the server's screen if all the chunks arrived
+        /// </summary>
+        /// <param name="allChunksReceived">True if all chunks were received, false if not</param>
         private void ShowImage(bool allChunksReceived)
         {
             Console.WriteLine($"[GOT : {myPort}] Image (Total chunks: {total_chunks_number})"); // each image

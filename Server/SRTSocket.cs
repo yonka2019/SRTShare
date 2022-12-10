@@ -1,16 +1,17 @@
-﻿using System.Net;
+﻿using SRTManager;
+using System.Net;
 
 namespace Server
 {
     public class SRTSocket
     {
-        public SRTSocket(IPEndPoint ipEP, KeepAliveManager kaManager)
+        public KeepAliveManager KeepAlive { get; }
+        public SAddress SocketAddress { get; } // address & port
+
+        public SRTSocket(SAddress socketAddress, KeepAliveManager kaManager)
         {
-            IPEP = ipEP;
+            SocketAddress = socketAddress;
             KeepAlive = kaManager;
         }
-
-        public KeepAliveManager KeepAlive { get; }
-        public IPEndPoint IPEP { get; }  // address & port
     }
 }

@@ -68,7 +68,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PcapFunc\SRTManager.csproj">
+    <ProjectReference Include="..\SRTManager\SRTManager.csproj">
       <Project>{15441e3c-00e3-4644-a71b-3d949eeee2dc}</Project>
       <Name>SRTManager</Name>
     </ProjectReference>
