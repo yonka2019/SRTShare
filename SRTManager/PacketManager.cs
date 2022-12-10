@@ -6,7 +6,6 @@ using PcapDotNet.Packets.Transport;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text;
 
 namespace SRTManager
@@ -17,8 +16,6 @@ namespace SRTManager
 
         public const int SERVER_PORT = 6969;
         public static readonly SAddress LOOPBACK_IP = new SAddress("127.0.0.1");
-        private const string DEFAULT_INTERFACE_SUBSTRING = "Oracle";  // default interface must contain this substring to be automatically chosen
-
         static PacketManager()
         {
             IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
@@ -31,13 +28,13 @@ namespace SRTManager
                 Environment.Exit(0);
             }
 
-            // iterate interfaces list
+            // iterate interfaces list and found the right one
             for (int i = 0; i != allDevices.Count; ++i)
             {
                 LivePacketDevice device = allDevices[i];
                 if (device.Description != null)
                 {
-                    if (device.Description.Contains(DEFAULT_INTERFACE_SUBSTRING))  // select the interface according the substring
+                    if (!device.Description.ToUpper().Contains("VIRTUAL") && !device.Description.ToUpper().Contains("LOOPBACK"))  // not virtual & not loopback
                     {
                         deviceIndex = i + 1;
                         break;
@@ -47,7 +44,7 @@ namespace SRTManager
 
             if (deviceIndex == -1)
             {
-                Console.WriteLine($"[ERROR] NO INTERFACE WITH SUBSTRING OF '{DEFAULT_INTERFACE_SUBSTRING}'");
+                Console.WriteLine($"[ERROR] THERE IS NO INTERFACE WHICH MET THE REQUIREMENTS");
                 Console.ReadKey();
                 Environment.Exit(0);
             }
