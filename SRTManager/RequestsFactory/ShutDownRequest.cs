@@ -18,6 +18,5 @@ namespace SRTManager.RequestsFactory
             GetPayloadLayer() = PacketManager.BuildPLayer(new SRTControl.Shutdown(dest_socket_id).GetByted());
             return BuildPacket();
         }
-
     }
 }
