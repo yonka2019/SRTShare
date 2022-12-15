@@ -1,5 +1,6 @@
 ﻿using PcapDotNet.Core;
 using PcapDotNet.Packets;
+using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.Ip;
 using PcapDotNet.Packets.IpV4;
@@ -56,7 +57,7 @@ namespace Server
         {
             while (true)
             {
-                ShotBuildSend(PacketManager.pcapDevice, (ushort)dstPort);
+                ShotBuildSend(PacketManager.device, (ushort)dstPort);
             }
         }
 
@@ -92,19 +93,16 @@ namespace Server
         /// <param name="packet">New given packet</param>
         private static void HandlePacket(Packet packet)
         { // check by data which packet is this (control/data): 'The type initializer for 'SRTManager.PacketManager' threw
-            UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
-            if (datagram != null && datagram.DestinationPort == PacketManager.SERVER_PORT)
-            {
+            if (packet.Ethernet.IpV4.Udp != null && packet.Ethernet.IpV4.Udp.DestinationPort == PacketManager.SERVER_PORT)
+            {  // datagram layer exists
+                UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
 
                 if (SRTControl.SRTHeader.IsControl(payload)) // check if control
                 {
-                    
-
                     if (SRTControl.Handshake.IsHandshake(payload)) // check if handshake
                     {
                         SRTControl.Handshake handshake_request = new SRTControl.Handshake(payload);
-
 
                         if (handshake_request.TYPE == (uint)SRTControl.Handshake.HandshakeType.INDUCTION) // client -> server (induction)
                         {
@@ -167,7 +165,7 @@ namespace Server
 
                     if (SRTControl.Shutdown.IsShutdown(payload))
                     {
-                        uint client_id = SRTManager.ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString(), datagram.SourcePort); 
+                        uint client_id = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString(), datagram.SourcePort); 
 
                         Console.WriteLine($"Got a Shutdown Request from: {client_id}.");
 
@@ -184,6 +182,12 @@ namespace Server
                         
                     }
                 }
+            }
+            else if (packet.Ethernet.Arp != null)
+            {
+                ArpDatagram arp = packet.Ethernet.Arp;
+                Packet arpReply = ARPManager.Reply(PacketManager.device, arp.SenderHardwareAddress, arp.SenderProtocolAddress);
+                PacketManager.SendPacket(arpReply);
             }
         }
 

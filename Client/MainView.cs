@@ -1,4 +1,6 @@
-﻿using PcapDotNet.Packets;
+﻿using PcapDotNet.Base;
+using PcapDotNet.Packets;
+using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Transport;
 using SRTManager;
 using System;
@@ -36,7 +38,9 @@ namespace ClientForm
         private readonly Random rnd = new Random();
 
         private static ushort myPort = 0;
+        private static string server_mac;
         private static uint client_socket_id = 0;
+
 
 
         public MainView()
@@ -44,6 +48,13 @@ namespace ClientForm
             InitializeComponent();
 
             myPort = (ushort)rnd.Next(1, 50000);
+
+            //  start receiving packets
+            pRecvThread = new Thread(new ThreadStart(RecvP));
+            pRecvThread.Start();
+
+            Packet arpRequest = ARPManager.Request(PacketManager.device, Encoding.ASCII.GetBytes(PacketManager.SERVER_IP.IPAddress).AsReadOnly());
+            PacketManager.SendPacket(arpRequest);
 
             SRTRequest.HandshakeRequest handshake = new SRTRequest.HandshakeRequest
                 (PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
@@ -60,11 +71,6 @@ namespace ClientForm
             */
 
             PacketManager.SendPacket(handshake_packet);
-
-            pRecvThread = new Thread(new ThreadStart(RecvP));
-
-            // start the capture
-            pRecvThread.Start();
         }
 
         /// <summary>
@@ -74,7 +80,6 @@ namespace ClientForm
         {
             PacketManager.ReceivePackets(0, PacketHandler);
         }
-
 
         /// <summary>
         /// Callback function invoked by Pcap.Net for every incoming packet
@@ -95,7 +100,7 @@ namespace ClientForm
 
                         if (handshake_request.TYPE == (uint)SRTControl.Handshake.HandshakeType.INDUCTION) // server -> client (induction)
                         {
-                            if (handshake_request.SYN_COOKIE == SRTManager.ProtocolManager.GenerateCookie(SRTManager.PacketManager.LOOPBACK_IP.IPAddress, myPort, DateTime.Now))
+                            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(PacketManager.LOOPBACK_IP.IPAddress, myPort, DateTime.Now))
                             {
                                 SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
 
@@ -120,39 +125,43 @@ namespace ClientForm
 
                 else
                 {
-                    MemoryStream stream = datagram.Payload.ToMemoryStream();
-                    byte[] byteStream = stream.ToArray();
+                    ArpDatagram arp = packet.Ethernet.Arp;
+                    server_mac = arp.SenderHardwareAddress.ToString();
+                    Console.WriteLine("!!!" + server_mac);
 
-                    // [0][1]
-                    current_packet_id = BitConverter.ToUInt16(byteStream, 0); // take first two bytes of the chunk | --> ([ID (2 bytes)] <-- [TOTAL CHUNKS NUMBER (2 bytes)][DATA] |
+                    //MemoryStream stream = datagram.Payload.ToMemoryStream();
+                    //byte[] byteStream = stream.ToArray();
 
-                    // [2][3]
-                    total_chunks_number = BitConverter.ToUInt16(byteStream, 2); // take second two bytes of the chunk | ([ID (2 bytes)] --> [TOTAL CHUNKS NUMBER (2 bytes)] <-- [DATA] |
+                    //// [0][1]
+                    //current_packet_id = BitConverter.ToUInt16(byteStream, 0); // take first two bytes of the chunk | --> ([ID (2 bytes)] <-- [TOTAL CHUNKS NUMBER (2 bytes)][DATA] |
 
-                    //Console.WriteLine($"[GOT] Chunk number: {current_packet_id}/{total_chunks_number} | Size: {byteStream.Length}"); // each chunk print
+                    //// [2][3]
+                    //total_chunks_number = BitConverter.ToUInt16(byteStream, 2); // take second two bytes of the chunk | ([ID (2 bytes)] --> [TOTAL CHUNKS NUMBER (2 bytes)] <-- [DATA] |
 
-                    if (current_packet_id == total_chunks_number) // last chunk of image received
-                    {
-                        imageBuilt = true;
-                        data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
-                        ShowImage(true);
-                        data.Clear(); // prepare to next chunk
-                    }
-                    // new image chunks started (IDs: [OLD IMAGE] 1 2 3 4 [NEW IMAGE (~show old image~)] 1 2 . . .
-                    else if (current_packet_id < last_packet_id && !imageBuilt) // if the above condition didn't done (packet loss) and the image was changed, show the image
-                    {
-                        if (!firstChunk)
-                            ShowImage(false); // show image if all his chunks arrived
-                        else
-                            firstChunk = false;
+                    ////Console.WriteLine($"[GOT] Chunk number: {current_packet_id}/{total_chunks_number} | Size: {byteStream.Length}"); // each chunk print
 
-                        data.Clear(); // clear all data from past images
-                        data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
-                    }
-                    else // next packets (same chunk continues)
-                        data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
+                    //if (current_packet_id == total_chunks_number) // last chunk of image received
+                    //{
+                    //    imageBuilt = true;
+                    //    data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
+                    //    ShowImage(true);
+                    //    data.Clear(); // prepare to next chunk
+                    //}
+                    //// new image chunks started (IDs: [OLD IMAGE] 1 2 3 4 [NEW IMAGE (~show old image~)] 1 2 . . .
+                    //else if (current_packet_id < last_packet_id && !imageBuilt) // if the above condition didn't done (packet loss) and the image was changed, show the image
+                    //{
+                    //    if (!firstChunk)
+                    //        ShowImage(false); // show image if all his chunks arrived
+                    //    else
+                    //        firstChunk = false;
 
-                    last_packet_id = current_packet_id;
+                    //    data.Clear(); // clear all data from past images
+                    //    data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
+                    //}
+                    //else // next packets (same chunk continues)
+                    //    data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
+
+                    //last_packet_id = current_packet_id;
                 }
 
             }

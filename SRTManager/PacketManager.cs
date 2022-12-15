@@ -6,24 +6,42 @@ using PcapDotNet.Packets.Transport;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
+using System.Net;
 using System.Text;
 
 namespace SRTManager
 {
     public static class PacketManager
     {
-        public static readonly PacketDevice pcapDevice;
+        public static readonly LivePacketDevice device;
 
         public const int SERVER_PORT = 6969;
+        public static readonly SAddress SERVER_IP = new SAddress("127.0.0.1");
         public static readonly SAddress LOOPBACK_IP = new SAddress("127.0.0.1");
+
         static PacketManager()
         {
+            IPAddress localAddress = null;
+
+            try
+            {
+                UdpClient u = new UdpClient("8.8.8.8", 1);
+                localAddress = ((IPEndPoint)u.Client.LocalEndPoint).Address;
+            }
+            catch
+            {
+                Console.WriteLine("[ERROR] Can't find local IP");  // there is no valid NI (Network Interface)
+                Console.ReadKey();
+                Environment.Exit(0);
+            }
+
             IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
             int deviceIndex = -1;
 
             if (allDevices.Count == 0)
             {
-                Console.WriteLine("[ERROR] NO INTERFACES FOUND");
+                Console.WriteLine("[ERROR] No interfaces found");
                 Console.ReadKey();
                 Environment.Exit(0);
             }
@@ -32,9 +50,9 @@ namespace SRTManager
             for (int i = 0; i != allDevices.Count; ++i)
             {
                 LivePacketDevice device = allDevices[i];
-                if (device.Description != null)
+                foreach (DeviceAddress deviceAddress in device.Addresses)
                 {
-                    if (!device.Description.ToUpper().Contains("VIRTUAL") && !device.Description.ToUpper().Contains("LOOPBACK") && !device.Description.ToUpper().Contains("MICROSOFT"))  // not virtual & not loopback & not microsoft
+                    if (deviceAddress.Address.ToString().Contains(localAddress.ToString()))
                     {
                         deviceIndex = i + 1;
                         break;
@@ -44,14 +62,15 @@ namespace SRTManager
 
             if (deviceIndex == -1)
             {
-                Console.WriteLine($"[ERROR] THERE IS NO INTERFACE WHICH MET THE REQUIREMENTS");
+                Console.WriteLine($"[ERROR] There is no interface which matches with the local ip address");
                 Console.ReadKey();
                 Environment.Exit(0);
             }
 
             // Take the selected adapter
-            pcapDevice = allDevices[deviceIndex - 1];
-            Console.WriteLine($"[!] SELECTED INTERFACE: {pcapDevice.Description}");
+            device = allDevices[deviceIndex - 1];
+            Console.WriteLine($"[!] SELECTED INTERFACE: {device.Description}");
+
         }
 
         /// <summary>
@@ -60,7 +79,7 @@ namespace SRTManager
         /// <param name="packetToSend">The packet to send</param>
         public static void SendPacket(Packet packetToSend)
         {
-            using (PacketCommunicator communicator = pcapDevice.Open(100, // name of the device
+            using (PacketCommunicator communicator = device.Open(100, // name of the device
                                  PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
                                  1000)) // read timeout
             {
@@ -76,13 +95,13 @@ namespace SRTManager
         public static void ReceivePackets(int count, HandlePacket callback)
         {
             using (PacketCommunicator communicator =
-            pcapDevice.Open(65536,                         // portion of the packet to capture
+            device.Open(65536,                         // portion of the packet to capture
                                                            // 65536 guarantees that the whole packet will be captured on all the link layers
                     PacketDeviceOpenAttributes.Promiscuous,  // promiscuous mode
                     1000))                                  // read timeout
             {
 #if DEBUG
-                Console.WriteLine("[LISTENING] " + pcapDevice.Description + "...");
+                Console.WriteLine("[LISTENING] " + device.Description + "...");
 #endif
                 communicator.ReceivePackets(0, callback);
             }
