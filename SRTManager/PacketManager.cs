@@ -34,7 +34,7 @@ namespace SRTManager
                 LivePacketDevice device = allDevices[i];
                 if (device.Description != null)
                 {
-                    if (!device.Description.ToUpper().Contains("VIRTUAL") && !device.Description.ToUpper().Contains("LOOPBACK"))  // not virtual & not loopback
+                    if (!device.Description.ToUpper().Contains("VIRTUAL") && !device.Description.ToUpper().Contains("LOOPBACK") && !device.Description.ToUpper().Contains("MICROSOFT"))  // not virtual & not loopback & not microsoft
                     {
                         deviceIndex = i + 1;
                         break;
