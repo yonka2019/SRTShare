@@ -63,6 +63,8 @@
     <Compile Include="ProtocolFields\Control\Shutdown.cs" />
     <Compile Include="ProtocolFields\Control\SRTHeader.cs" />
     <Compile Include="ProtocolFields\Control\ControlType.cs" />
+    <Compile Include="ProtocolFields\Data\DataFlags.cs" />
+    <Compile Include="ProtocolFields\Data\SRTHeader.cs" />
     <Compile Include="ProtocolManager.cs" />
     <Compile Include="RequestsFactory\HandshakeRequest.cs" />
     <Compile Include="RequestsFactory\KeepAliveRequest.cs" />
