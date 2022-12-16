@@ -1,8 +1,8 @@
 ﻿using PcapDotNet.Packets;
 
-using SRTControl = SRTManager.ProtocolFields.Control;
+using SRTControl = CLib.ProtocolFields.Control;
 
-namespace SRTManager.RequestsFactory
+namespace CLib.SRTManager.RequestsFactory
 {
     public class KeepAliveRequest : UdpPacket
     {

@@ -1,8 +1,8 @@
 ﻿using PcapDotNet.Packets;
 
-using SRTControl = SRTManager.ProtocolFields.Control;
+using SRTControl = CLib.SRTManager.ProtocolFields.Control;
 
-namespace SRTManager.RequestsFactory
+namespace CLib.SRTManager.RequestsFactory
 {
     public class ShutDownRequest : UdpPacket
     {

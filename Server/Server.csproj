@@ -68,9 +68,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SRTManager\SRTManager.csproj">
+    <ProjectReference Include="..\CLib\CLib.csproj">
       <Project>{15441e3c-00e3-4644-a71b-3d949eeee2dc}</Project>
-      <Name>SRTManager</Name>
+      <Name>CLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

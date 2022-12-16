@@ -1,6 +1,7 @@
-﻿using System;
+﻿using CLib.SRTManager.ProtocolFields.Control;
+using System;
 
-namespace SRTManager.ProtocolFields.Control
+namespace CLib.ProtocolFields.Control
 {
     public class KeepAlive : SRTHeader
     {

@@ -2,7 +2,7 @@
 using PcapDotNet.Packets;
 using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Transport;
-using SRTManager;
+using CLib;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,8 +13,10 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
-using SRTControl = SRTManager.ProtocolFields.Control;
-using SRTRequest = SRTManager.RequestsFactory;
+using SRTControl = CLib.SRTManager.ProtocolFields.Control;
+using SRTRequest = CLib.SRTManager.RequestsFactory;
+using CLib.SRTManager.RequestsFactory;
+using CLib.SRTManager.ProtocolFields.Control;
 
 /*
  * PACKET STRUCTURE:
@@ -56,7 +58,7 @@ namespace ClientForm
             Packet arpRequest = ARPManager.Request(PacketManager.device, PacketManager.SERVER_IP);
             PacketManager.SendPacket(arpRequest);
 
-            SRTRequest.HandshakeRequest handshake = new SRTRequest.HandshakeRequest
+            HandshakeRequest handshake = new SRTRequest.HandshakeRequest
                 (PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
 
             DateTime now = DateTime.Now;
@@ -92,17 +94,17 @@ namespace ClientForm
             {
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (SRTControl.SRTHeader.IsControl(payload)) // check if control
+                if (SRTHeader.IsControl(payload)) // check if control
                 {
-                    if (SRTControl.Handshake.IsHandshake(payload)) // check if handshake
+                    if (Handshake.IsHandshake(payload)) // check if handshake
                     {
-                        SRTControl.Handshake handshake_request = new SRTControl.Handshake(payload);
+                        Handshake handshake_request = new SRTControl.Handshake(payload);
 
-                        if (handshake_request.TYPE == (uint)SRTControl.Handshake.HandshakeType.INDUCTION) // server -> client (induction)
+                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION) // server -> client (induction)
                         {
                             if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(PacketManager.LOOPBACK_IP.IPAddress, myPort, DateTime.Now))
                             {
-                                SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
+                                HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
 
                                 // client -> server (conclusion)
                                 Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: true, client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
@@ -112,7 +114,7 @@ namespace ClientForm
                             else
                             {
                                 // Exit the prgram and send a shutdwon request
-                                SRTRequest.ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
+                                ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
                                 Packet shutdown_packet = shutdown_response.Exit();
                                 PacketManager.SendPacket(shutdown_packet);
 
@@ -174,7 +176,7 @@ namespace ClientForm
         protected override void OnClosed(EventArgs e)
         {
             // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
-            SRTRequest.ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
+            ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
             Packet shutdown_packet = shutdown_response.Exit();
             PacketManager.SendPacket(shutdown_packet);
 

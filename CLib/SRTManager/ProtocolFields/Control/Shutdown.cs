@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SRTManager.ProtocolFields.Control
+namespace CLib.SRTManager.ProtocolFields.Control
 {
     public class Shutdown : SRTHeader
     {

@@ -6,7 +6,7 @@ using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.Ip;
 using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
-using SRTManager;
+using CLib;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -18,8 +18,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-using SRTControl = SRTManager.ProtocolFields.Control;
-using SRTRequest = SRTManager.RequestsFactory;
+using SRTControl = CLib.SRTManager.ProtocolFields.Control;
+using SRTRequest = CLib.SRTManager.RequestsFactory;
+using CLib.SRTManager.RequestsFactory;
+using CLib.SRTManager.ProtocolFields.Control;
 
 /*
  * PACKET STRUCTURE:
@@ -100,18 +102,18 @@ namespace Server
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (SRTControl.SRTHeader.IsControl(payload)) // check if control
+                if (SRTHeader.IsControl(payload)) // check if control
                 {
-                    if (SRTControl.Handshake.IsHandshake(payload)) // check if handshake
+                    if (Handshake.IsHandshake(payload)) // check if handshake
                     {
-                        SRTControl.Handshake handshake_request = new SRTControl.Handshake(payload);
+                        Handshake handshake_request = new SRTControl.Handshake(payload);
 
-                        if (handshake_request.TYPE == (uint)SRTControl.Handshake.HandshakeType.INDUCTION) // client -> server (induction)
+                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION) // client -> server (induction)
                         {
-                            SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
+                            HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
 
-                            uint cookie = ProtocolManager.GenerateCookie(SRTManager.PacketManager.LOOPBACK_IP.IPAddress, datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
+                            uint cookie = ProtocolManager.GenerateCookie(CLib.PacketManager.LOOPBACK_IP.IPAddress, datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
 
                             Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
@@ -121,9 +123,9 @@ namespace Server
                         }
 
 
-                        else if (handshake_request.TYPE == (uint)SRTControl.Handshake.HandshakeType.CONCLUSION) // client -> server (conclusion)
+                        else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION) // client -> server (conclusion)
                         {
-                            SRTRequest.HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
+                            HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
 
                             Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
@@ -165,7 +167,7 @@ namespace Server
                         }
                     }
 
-                    if (SRTControl.Shutdown.IsShutdown(payload))
+                    if (Shutdown.IsShutdown(payload))
                     {
                         uint client_id = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString(), datagram.SourcePort); 
 
@@ -204,7 +206,7 @@ namespace Server
 
             while (SRTSockets.ContainsKey(u_dest_socket_id))  // if socket still exist, continue check keep-alive
             {
-                SRTRequest.KeepAliveRequest keepAlive_request = new SRTRequest.KeepAliveRequest
+                KeepAliveRequest keepAlive_request = new SRTRequest.KeepAliveRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, (ushort)SRTSockets[u_dest_socket_id].SocketAddress.Port));
 
                 Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);

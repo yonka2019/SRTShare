@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace SRTManager
+namespace CLib
 {
     public class ProtocolManager
     {
@@ -63,5 +63,12 @@ public static class MethodExt
     public static uint GetUInt32(this string str)
     {
         return BitConverter.ToUInt32(Encoding.ASCII.GetBytes(str), 0);
+    }
+
+    public static string Reverse(this string input)
+    {
+        char[] chars = input.ToCharArray();
+        Array.Reverse(chars);
+        return new string(chars);
     }
 }

@@ -6,11 +6,11 @@ using PcapDotNet.Packets.Transport;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 
-namespace SRTManager
+namespace CLib
 {
     public static class PacketManager
     {
@@ -21,6 +21,14 @@ namespace SRTManager
         public static readonly SAddress LOOPBACK_IP = new SAddress("127.0.0.1");
 
         static PacketManager()
+        {
+            string activeLocalIp = GetActiveLocalIp();
+            device = AutoSelectDevice(activeLocalIp);
+
+            Console.WriteLine($"[!] SELECTED INTERFACE: {device.Description}");
+        }
+
+        private static string GetActiveLocalIp()
         {
             IPAddress localAddress = null;
 
@@ -36,8 +44,27 @@ namespace SRTManager
                 Environment.Exit(0);
             }
 
+            return localAddress.ToString();
+        }
+
+        private static LivePacketDevice AutoSelectDevice(string activeLocalIp)
+        {
             IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
-            int deviceIndex = -1;
+            int selectDeviceIndex = -1;
+
+            // iterate interfaces list and found the right one
+            for (int i = 0; i != allDevices.Count; ++i)
+            {
+                LivePacketDevice device = allDevices[i];
+                foreach (DeviceAddress deviceAddress in device.Addresses)
+                {
+                    if (deviceAddress.Address.ToString().Contains(activeLocalIp))
+                    {
+                        selectDeviceIndex = i + 1;
+                        break;
+                    }
+                }
+            }
 
             if (allDevices.Count == 0)
             {
@@ -46,21 +73,7 @@ namespace SRTManager
                 Environment.Exit(0);
             }
 
-            // iterate interfaces list and found the right one
-            for (int i = 0; i != allDevices.Count; ++i)
-            {
-                LivePacketDevice device = allDevices[i];
-                foreach (DeviceAddress deviceAddress in device.Addresses)
-                {
-                    if (deviceAddress.Address.ToString().Contains(localAddress.ToString()))
-                    {
-                        deviceIndex = i + 1;
-                        break;
-                    }
-                }
-            }
-
-            if (deviceIndex == -1)
+            if (selectDeviceIndex == -1)
             {
                 Console.WriteLine($"[ERROR] There is no interface which matches with the local ip address");
                 Console.ReadKey();
@@ -68,9 +81,7 @@ namespace SRTManager
             }
 
             // Take the selected adapter
-            device = allDevices[deviceIndex - 1];
-            Console.WriteLine($"[!] SELECTED INTERFACE: {device.Description}");
-
+            return allDevices[selectDeviceIndex - 1];
         }
 
         /// <summary>
@@ -79,6 +90,7 @@ namespace SRTManager
         /// <param name="packetToSend">The packet to send</param>
         public static void SendPacket(Packet packetToSend)
         {
+            Console.WriteLine("asdad - " + packetToSend.Ethernet.Arp.SenderProtocolIpV4Address.ToString());
             using (PacketCommunicator communicator = device.Open(100, // name of the device
                                  PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
                                  1000)) // read timeout
@@ -96,7 +108,7 @@ namespace SRTManager
         {
             using (PacketCommunicator communicator =
             device.Open(65536,                         // portion of the packet to capture
-                                                           // 65536 guarantees that the whole packet will be captured on all the link layers
+                                                       // 65536 guarantees that the whole packet will be captured on all the link layers
                     PacketDeviceOpenAttributes.Promiscuous,  // promiscuous mode
                     1000))                                  // read timeout
             {

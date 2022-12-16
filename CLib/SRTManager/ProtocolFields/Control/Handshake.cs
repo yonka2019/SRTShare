@@ -1,8 +1,6 @@
-﻿using PcapDotNet.Base;
-using System;
-using System.Numerics;
+﻿using System;
 
-namespace SRTManager.ProtocolFields.Control
+namespace CLib.SRTManager.ProtocolFields.Control
 {
     public class Handshake : SRTHeader
     {
@@ -139,7 +137,7 @@ namespace SRTManager.ProtocolFields.Control
             handshake += "Cookie: " + SYN_COOKIE + "\n";
             handshake += "Peer ip: " + PEER_IP + "\n";
             handshake += "Handshake type: " + TYPE.ToString("X") + "\n";
-            
+
 
             return handshake;
         }
