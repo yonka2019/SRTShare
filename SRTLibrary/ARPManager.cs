@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CLib
+namespace SRTLibrary
 {
     public class ARPManager
     {
@@ -20,12 +20,6 @@ namespace CLib
         {
             string myMac = my_device.GetMacAddress().ToString();
 
-            byte[] b_spa = BitConverter.GetBytes(new IpV4Address("127.0.0.1").ToValue());
-            if (BitConverter.IsLittleEndian)
-            Array.Reverse(b_spa);
-            ReadOnlyCollection<byte> spa = b_spa.AsReadOnly();
-
-            // need to do function for this three lines and do for mac and ipv4 respectively
             // CHANGE ALL UINT ADDRESEES TO IPV4 ADDRESS THINK ABOUT THATT
 
             return PacketBuilder.Build(
@@ -40,15 +34,15 @@ namespace CLib
             new ArpLayer
             {
                 ProtocolType = EthernetType.Arp,
-                SenderHardwareAddress = BitConverter.GetBytes(new MacAddress(myMac).ToValue()).AsReadOnly(),
-                SenderProtocolAddress = spa,
-                TargetHardwareAddress = BitConverter.GetBytes(new MacAddress("FF:FF:FF:FF:FF:FF".Reverse()).ToValue()).AsReadOnly(),
-                TargetProtocolAddress = new SAddress(to_ip).GetIpByted().AsReadOnly(),
+                SenderHardwareAddress = new MacAddress(myMac).ToBytes().AsReadOnly(),
+                SenderProtocolAddress = new IpV4Address("127.0.0.1").ToBytes().AsReadOnly(),
+                TargetHardwareAddress = new MacAddress("FF:FF:FF:FF:FF:FF").ToBytes().AsReadOnly(),
+                TargetProtocolAddress = new IpV4Address(to_ip).ToBytes().AsReadOnly(),
                 Operation = ArpOperation.Request,
             });
         }
 
-        public static Packet Reply(LivePacketDevice my_device, ReadOnlyCollection<byte> to_mac, string to_ip)
+        public static Packet Reply(LivePacketDevice my_device, uint to_mac, IpV4Address to_ip)
         {
             string myMac = my_device.GetMacAddress().ToString();
 
@@ -57,17 +51,17 @@ namespace CLib
             new EthernetLayer
             {
                 Source = new MacAddress(myMac),
-                Destination = new MacAddress(to_mac.ToString()),
+                Destination = new MacAddress(to_mac),
                 EtherType = EthernetType.Arp
             },
 
             new ArpLayer
             {
                 ProtocolType = EthernetType.Arp,
-                SenderHardwareAddress = Encoding.ASCII.GetBytes(myMac).AsReadOnly(),
-                SenderProtocolAddress = new SAddress("127.0.0.1").GetIpByted().AsReadOnly(),
-                TargetHardwareAddress = to_mac,
-                TargetProtocolAddress = new SAddress(to_ip).GetIpByted().AsReadOnly(),
+                SenderHardwareAddress = new MacAddress(myMac).ToBytes().AsReadOnly(),
+                SenderProtocolAddress = new IpV4Address("192.168.1.29").ToBytes().AsReadOnly(),
+                TargetHardwareAddress = new MacAddress(to_mac).ToBytes().AsReadOnly(),
+                TargetProtocolAddress = to_ip.ToBytes().AsReadOnly(),
                 Operation = ArpOperation.Reply,
             });
         }

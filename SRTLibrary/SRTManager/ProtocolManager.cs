@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace CLib
+namespace SRTLibrary
 {
     public class ProtocolManager
     {
@@ -55,20 +55,5 @@ namespace CLib
             return BitConverter.ToUInt32(md5.Hash, 0);
         }
 
-    }
-}
-
-public static class MethodExt
-{
-    public static uint GetUInt32(this string str)
-    {
-        return BitConverter.ToUInt32(Encoding.ASCII.GetBytes(str), 0);
-    }
-
-    public static string Reverse(this string input)
-    {
-        char[] chars = input.ToCharArray();
-        Array.Reverse(chars);
-        return new string(chars);
     }
 }

@@ -10,11 +10,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace CLib
+namespace SRTLibrary
 {
     public static class PacketManager
     {
-        public static readonly LivePacketDevice device;
+        public static readonly LivePacketDevice device;  // active network interface
 
         public const int SERVER_PORT = 6969;
         public const string SERVER_IP = "192.168.1.29";
@@ -23,7 +23,7 @@ namespace CLib
         static PacketManager()
         {
             string activeLocalIp = GetActiveLocalIp();
-            device = AutoSelectDevice(activeLocalIp);
+            device = AutoSelectNetworkInterface(activeLocalIp);
 
             Console.WriteLine($"[!] SELECTED INTERFACE: {device.Description}");
         }
@@ -47,7 +47,7 @@ namespace CLib
             return localAddress.ToString();
         }
 
-        private static LivePacketDevice AutoSelectDevice(string activeLocalIp)
+        private static LivePacketDevice AutoSelectNetworkInterface(string activeLocalIp)
         {
             IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
             int selectDeviceIndex = -1;
@@ -90,7 +90,6 @@ namespace CLib
         /// <param name="packetToSend">The packet to send</param>
         public static void SendPacket(Packet packetToSend)
         {
-            Console.WriteLine("asdad - " + packetToSend.Ethernet.Arp.SenderProtocolIpV4Address.ToString());
             using (PacketCommunicator communicator = device.Open(100, // name of the device
                                  PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
                                  1000)) // read timeout

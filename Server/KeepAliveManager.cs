@@ -1,10 +1,10 @@
 ﻿using PcapDotNet.Packets;
-using CLib;
+using SRTLibrary;
 using System.Threading;
 using System.Timers;
 
-using SRTRequest = CLib.SRTManager.RequestsFactory;
-using CLib.SRTManager.RequestsFactory;
+using SRTRequest = SRTLibrary.SRTManager.RequestsFactory;
+using SRTLibrary.SRTManager.RequestsFactory;
 
 namespace Server
 {

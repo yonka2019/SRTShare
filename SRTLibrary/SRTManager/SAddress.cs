@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CLib
+namespace SRTLibrary
 {
     public class SAddress
     {

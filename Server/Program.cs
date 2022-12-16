@@ -6,7 +6,7 @@ using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.Ip;
 using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
-using CLib;
+using SRTLibrary;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -18,10 +18,11 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-using SRTControl = CLib.SRTManager.ProtocolFields.Control;
-using SRTRequest = CLib.SRTManager.RequestsFactory;
-using CLib.SRTManager.RequestsFactory;
-using CLib.SRTManager.ProtocolFields.Control;
+using SRTControl = SRTLibrary.SRTManager.ProtocolFields.Control;
+using SRTRequest = SRTLibrary.SRTManager.RequestsFactory;
+using SRTLibrary.SRTManager.RequestsFactory;
+using SRTLibrary.SRTManager.ProtocolFields.Control;
+using PcapDotNet.Core.Extensions;
 
 /*
  * PACKET STRUCTURE:
@@ -113,7 +114,7 @@ namespace Server
                             HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
 
-                            uint cookie = ProtocolManager.GenerateCookie(CLib.PacketManager.LOOPBACK_IP.IPAddress, datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
+                            uint cookie = ProtocolManager.GenerateCookie(SRTLibrary.PacketManager.LOOPBACK_IP.IPAddress, datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
 
                             Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
@@ -148,7 +149,7 @@ namespace Server
 
                             // START KEEP-ALIVE EACH 1 SECOND TO CLIENT TO REAFFRIM CONNECTION :
 
-                            SRTSockets[handshake_request.SOCKET_ID].KeepAlive.StartCheck();
+                            //SRTSockets[handshake_request.SOCKET_ID].KeepAlive.StartCheck();
 
                             /* KEEP-ALIVE GOOD TRANSMISSION PREVIEW: 
                              * [SERVER] -> [CLIENT] (keep-alive check request)
@@ -187,12 +188,13 @@ namespace Server
                     }
                 }
             }
-            else if (packet.Ethernet.Arp != null && packet.Ethernet.Arp.IsValid)
+            else if (packet.Ethernet.Arp != null && packet.Ethernet.Arp.IsValid && packet.Ethernet.Arp.TargetProtocolIpV4Address != null)
             {
-                if (packet.Ethernet.Arp.SenderProtocolIpV4Address.ToString() == PacketManager.SERVER_IP)
+                if (packet.Ethernet.Arp.TargetProtocolIpV4Address.ToString() == PacketManager.SERVER_IP)
                 {
+                    Console.WriteLine(PacketManager.device.GetMacAddress().ToString());
                     ArpDatagram arp = packet.Ethernet.Arp;
-                    Packet arpReply = ARPManager.Reply(PacketManager.device, arp.SenderHardwareAddress, arp.SenderProtocolIpV4Address.ToString());
+                    Packet arpReply = ARPManager.Reply(PacketManager.device, BitConverter.ToUInt32(arp.SenderHardwareAddress.ToArray(), 0), arp.SenderProtocolIpV4Address);
                     PacketManager.SendPacket(arpReply);
                 }
             }

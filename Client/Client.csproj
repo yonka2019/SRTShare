@@ -114,9 +114,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CLib\CLib.csproj">
+    <ProjectReference Include="..\SRTLibrary\SRTLibrary.csproj">
       <Project>{15441e3c-00e3-4644-a71b-3d949eeee2dc}</Project>
-      <Name>CLib</Name>
+      <Name>SRTLibrary</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

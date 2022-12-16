@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CLib.SRTManager.ProtocolFields.Control
+namespace SRTLibrary.SRTManager.ProtocolFields.Control
 {
     public class Handshake : SRTHeader
     {
