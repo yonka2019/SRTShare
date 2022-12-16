@@ -22,8 +22,6 @@ namespace SRTLibrary
             string myMac = my_device.GetMacAddress().ToString();
             bool sameSubnet = new IPAddress(new IpV4Address(to_ip).ToBytes()).IsInSubnet(PacketManager.mask);
 
-            // CHANGE ALL UINT ADDRESEES TO IPV4 ADDRESS THINK ABOUT THATT
-
             return PacketBuilder.Build(
             DateTime.Now,
             new EthernetLayer
