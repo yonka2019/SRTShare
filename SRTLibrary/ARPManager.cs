@@ -20,7 +20,7 @@ namespace SRTLibrary
         public static Packet Request(LivePacketDevice my_device, string to_ip)
         {
             string myMac = my_device.GetMacAddress().ToString();
-            bool sameSubnet = new IPAddress(new IpV4Address(to_ip).ToBytes()).IsInSubnet(PacketManager.mask);
+            //bool sameSubnet = new IPAddress(new IpV4Address(to_ip).ToBytes()).IsInSubnet(PacketManager.mask);
 
             return PacketBuilder.Build(
             DateTime.Now,

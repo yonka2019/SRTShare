@@ -20,6 +20,7 @@ namespace SRTLibrary
         public static readonly string localIp;
         public static readonly string macAddress;
 
+        public static string defaultGateway;
         public static string mask;
 
         public const int SERVER_PORT = 6969;
@@ -31,7 +32,7 @@ namespace SRTLibrary
             localIp = GetActiveLocalIp();
             device = AutoSelectNetworkInterface(localIp);
             macAddress = device.GetMacAddress().ToString();
-
+            defaultGateway = device.GetNetworkInterface().GetIPProperties().GatewayAddresses.Where(inter => inter.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).First().Address.ToString();
             Console.WriteLine($"[!] SELECTED INTERFACE: {device.Description}");
         }
 
@@ -68,6 +69,7 @@ namespace SRTLibrary
                     if (deviceAddress.Address.ToString().Contains(activeLocalIp))
                     {
                         mask = deviceAddress.Netmask.ToString().Replace("Internet ", "");
+
                         selectDeviceIndex = i + 1;
                         break;
                     }
