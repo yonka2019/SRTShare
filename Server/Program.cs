@@ -1,4 +1,5 @@
-﻿using PcapDotNet.Core;
+﻿using PcapDotNet.Base;
+using PcapDotNet.Core;
 using PcapDotNet.Packets;
 using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Ethernet;
@@ -14,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 
 using SRTControl = SRTManager.ProtocolFields.Control;
@@ -183,11 +185,14 @@ namespace Server
                     }
                 }
             }
-            else if (packet.Ethernet.Arp != null)
+            else if (packet.Ethernet.Arp != null && packet.Ethernet.Arp.IsValid)
             {
-                ArpDatagram arp = packet.Ethernet.Arp;
-                Packet arpReply = ARPManager.Reply(PacketManager.device, arp.SenderHardwareAddress, arp.SenderProtocolAddress);
-                PacketManager.SendPacket(arpReply);
+                if (packet.Ethernet.Arp.SenderProtocolIpV4Address.ToString() == PacketManager.SERVER_IP)
+                {
+                    ArpDatagram arp = packet.Ethernet.Arp;
+                    Packet arpReply = ARPManager.Reply(PacketManager.device, arp.SenderHardwareAddress, arp.SenderProtocolIpV4Address.ToString());
+                    PacketManager.SendPacket(arpReply);
+                }
             }
         }
 
@@ -290,7 +295,7 @@ namespace Server
         {
             MemoryStream stream = new MemoryStream();
 
-            Encoder myEncoder = Encoder.Quality;
+            System.Drawing.Imaging.Encoder myEncoder = System.Drawing.Imaging.Encoder.Quality;
 
             ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
             EncoderParameters myEncoderParameters = new EncoderParameters(1);

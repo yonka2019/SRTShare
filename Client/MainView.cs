@@ -53,7 +53,7 @@ namespace ClientForm
             pRecvThread = new Thread(new ThreadStart(RecvP));
             pRecvThread.Start();
 
-            Packet arpRequest = ARPManager.Request(PacketManager.device, Encoding.ASCII.GetBytes(PacketManager.SERVER_IP.IPAddress).AsReadOnly());
+            Packet arpRequest = ARPManager.Request(PacketManager.device, PacketManager.SERVER_IP);
             PacketManager.SendPacket(arpRequest);
 
             SRTRequest.HandshakeRequest handshake = new SRTRequest.HandshakeRequest

@@ -15,7 +15,7 @@ namespace SRTManager
 {
     public class ARPManager
     {
-        public static Packet Request(LivePacketDevice my_device, ReadOnlyCollection<byte> to_ip)
+        public static Packet Request(LivePacketDevice my_device, string to_ip)
         {
             string myMac = my_device.GetMacAddress().ToString();
 
@@ -32,14 +32,14 @@ namespace SRTManager
             {
                 ProtocolType = EthernetType.Arp,
                 SenderHardwareAddress = Encoding.ASCII.GetBytes(myMac).AsReadOnly(),
-                SenderProtocolAddress = Encoding.ASCII.GetBytes("127.0.0.1").AsReadOnly(),
-                TargetHardwareAddress = null,
-                TargetProtocolAddress = to_ip,
+                SenderProtocolAddress = new SAddress("127.0.0.1").GetIpByted().AsReadOnly(),
+                TargetHardwareAddress = Encoding.ASCII.GetBytes("FF:FF:FF:FF:FF:FF").AsReadOnly(),
+                TargetProtocolAddress = new SAddress(to_ip).GetIpByted().AsReadOnly(),
                 Operation = ArpOperation.Request,
             });
         }
 
-        public static Packet Reply(LivePacketDevice my_device, ReadOnlyCollection<byte> to_mac, ReadOnlyCollection<byte> to_ip)
+        public static Packet Reply(LivePacketDevice my_device, ReadOnlyCollection<byte> to_mac, string to_ip)
         {
             string myMac = my_device.GetMacAddress().ToString();
 
@@ -56,9 +56,9 @@ namespace SRTManager
             {
                 ProtocolType = EthernetType.Arp,
                 SenderHardwareAddress = Encoding.ASCII.GetBytes(myMac).AsReadOnly(),
-                SenderProtocolAddress = Encoding.ASCII.GetBytes("127.0.0.1").AsReadOnly(),
+                SenderProtocolAddress = new SAddress("127.0.0.1").GetIpByted().AsReadOnly(),
                 TargetHardwareAddress = to_mac,
-                TargetProtocolAddress = to_ip,
+                TargetProtocolAddress = new SAddress(to_ip).GetIpByted().AsReadOnly(),
                 Operation = ArpOperation.Reply,
             });
         }

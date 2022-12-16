@@ -17,7 +17,7 @@ namespace SRTManager
         public static readonly LivePacketDevice device;
 
         public const int SERVER_PORT = 6969;
-        public static readonly SAddress SERVER_IP = new SAddress("127.0.0.1");
+        public const string SERVER_IP = "192.168.1.29";
         public static readonly SAddress LOOPBACK_IP = new SAddress("127.0.0.1");
 
         static PacketManager()
