@@ -62,11 +62,5 @@ namespace SRTLibrary
 
             return true;
         }
-
-        public byte[] GetIpByted()
-        {
-            string[] s_ip = IPAddress.Split('.');
-            return new byte[] { Convert.ToByte(s_ip[0]), Convert.ToByte(s_ip[1]), Convert.ToByte(s_ip[2]), Convert.ToByte(s_ip[3]) };
-        }
     }
 }

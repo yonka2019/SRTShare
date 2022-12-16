@@ -55,8 +55,15 @@ namespace ClientForm
             Packet arpRequest = ARPManager.Request(PacketManager.device, PacketManager.SERVER_IP);
             PacketManager.SendPacket(arpRequest);
 
+            if (server_mac == null)
+            {
+                Console.WriteLine("[ERROR] Can't get server mac address");
+                Console.ReadKey();
+                Environment.Exit(0);
+            }
+
             HandshakeRequest handshake = new SRTRequest.HandshakeRequest
-                (PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
+                (PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
 
             DateTime now = DateTime.Now;
 
@@ -101,7 +108,7 @@ namespace ClientForm
                         {
                             if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(PacketManager.LOOPBACK_IP.IPAddress, myPort, DateTime.Now))
                             {
-                                HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
+                                HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
 
                                 // client -> server (conclusion)
                                 Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: true, client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
@@ -111,7 +118,7 @@ namespace ClientForm
                             else
                             {
                                 // Exit the prgram and send a shutdwon request
-                                ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
+                                ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
                                 Packet shutdown_packet = shutdown_response.Exit();
                                 PacketManager.SendPacket(shutdown_packet);
 
@@ -179,7 +186,7 @@ namespace ClientForm
         protected override void OnClosed(EventArgs e)
         {
             // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
-            ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(myPort, PacketManager.SERVER_PORT));
+            ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
             Packet shutdown_packet = shutdown_response.Exit();
             PacketManager.SendPacket(shutdown_packet);
 

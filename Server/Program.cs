@@ -23,6 +23,7 @@ using SRTRequest = SRTLibrary.SRTManager.RequestsFactory;
 using SRTLibrary.SRTManager.RequestsFactory;
 using SRTLibrary.SRTManager.ProtocolFields.Control;
 using PcapDotNet.Core.Extensions;
+using System.Net.Sockets;
 
 /*
  * PACKET STRUCTURE:
@@ -112,7 +113,7 @@ namespace Server
                         if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION) // client -> server (induction)
                         {
                             HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
-                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
+                                (PacketManager.BuildBaseLayers(PacketManager.macAddress, packet.Ethernet.Source.ToString(), PacketManager.localIp, packet.IpV4.Source.ToString(), PacketManager.SERVER_PORT, datagram.SourcePort));
 
                             uint cookie = ProtocolManager.GenerateCookie(SRTLibrary.PacketManager.LOOPBACK_IP.IPAddress, datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
 
@@ -127,7 +128,7 @@ namespace Server
                         else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION) // client -> server (conclusion)
                         {
                             HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
-                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, datagram.SourcePort));
+                                (PacketManager.BuildBaseLayers(PacketManager.macAddress, packet.Ethernet.Source.ToString(), PacketManager.localIp, packet.IpV4.Source.ToString(), PacketManager.SERVER_PORT, datagram.SourcePort));
 
                             Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
@@ -135,7 +136,7 @@ namespace Server
                             Console.WriteLine("Conclusion [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
 
                             // ADD NEW SOCKET TO LIST 
-                            SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(new SAddress(handshake_request.PEER_IP, datagram.SourcePort), 
+                            SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(new SAddress(handshake_request.PEER_IP, datagram.SourcePort), packet.Ethernet.Source,
                                 new KeepAliveManager(handshake_request.SOCKET_ID, datagram.SourcePort)));
                             // SRTSockets: (example)
                             // [0] : ip1
@@ -194,26 +195,9 @@ namespace Server
                 {
                     Console.WriteLine(PacketManager.device.GetMacAddress().ToString());
                     ArpDatagram arp = packet.Ethernet.Arp;
-                    Packet arpReply = ARPManager.Reply(PacketManager.device, BitConverter.ToUInt32(arp.SenderHardwareAddress.ToArray(), 0), arp.SenderProtocolIpV4Address);
+                    Packet arpReply = ARPManager.Reply(PacketManager.device, BitConverter.ToString(arp.SenderHardwareAddress.ToArray()).Replace("-", ":"), arp.SenderProtocolIpV4Address.ToString());
                     PacketManager.SendPacket(arpReply);
                 }
-            }
-        }
-
-
-
-        private static void KeepAliveChecker(object dest_socket_id)
-        {
-            uint u_dest_socket_id = (uint)dest_socket_id;
-
-            while (SRTSockets.ContainsKey(u_dest_socket_id))  // if socket still exist, continue check keep-alive
-            {
-                KeepAliveRequest keepAlive_request = new SRTRequest.KeepAliveRequest
-                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, (ushort)SRTSockets[u_dest_socket_id].SocketAddress.Port));
-
-                Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
-                PacketManager.SendPacket(keepAlive_packet);
-                // need tobe continued ; Server/KeepAliveManager [count sent/confirmed, if not equal more than 5 sec - break connection]
             }
         }
 

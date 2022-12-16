@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,6 +20,7 @@ namespace SRTLibrary
         public static Packet Request(LivePacketDevice my_device, string to_ip)
         {
             string myMac = my_device.GetMacAddress().ToString();
+            bool sameSubnet = new IPAddress(new IpV4Address(to_ip).ToBytes()).IsInSubnet(PacketManager.mask);
 
             // CHANGE ALL UINT ADDRESEES TO IPV4 ADDRESS THINK ABOUT THATT
 
@@ -42,7 +44,7 @@ namespace SRTLibrary
             });
         }
 
-        public static Packet Reply(LivePacketDevice my_device, uint to_mac, IpV4Address to_ip)
+        public static Packet Reply(LivePacketDevice my_device, string to_mac, string to_ip)
         {
             string myMac = my_device.GetMacAddress().ToString();
 
@@ -61,7 +63,7 @@ namespace SRTLibrary
                 SenderHardwareAddress = new MacAddress(myMac).ToBytes().AsReadOnly(),
                 SenderProtocolAddress = new IpV4Address("192.168.1.29").ToBytes().AsReadOnly(),
                 TargetHardwareAddress = new MacAddress(to_mac).ToBytes().AsReadOnly(),
-                TargetProtocolAddress = to_ip.ToBytes().AsReadOnly(),
+                TargetProtocolAddress = new IpV4Address(to_ip).ToBytes().AsReadOnly(),
                 Operation = ArpOperation.Reply,
             });
         }
