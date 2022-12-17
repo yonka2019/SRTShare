@@ -31,7 +31,7 @@ namespace SRTLibrary
         {
             localIp = GetActiveLocalIp();
             device = AutoSelectNetworkInterface(localIp);
-            macAddress = device.GetMacAddress().ToString();
+            macAddress = device.GetMacAddress().ToString().Replace("-", ":");
             defaultGateway = device.GetNetworkInterface().GetIPProperties().GatewayAddresses.Where(inter => inter.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).First().Address.ToString();
             Console.WriteLine($"[!] SELECTED INTERFACE: {device.Description}");
         }

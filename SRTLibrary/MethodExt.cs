@@ -18,6 +18,11 @@ namespace SRTLibrary
             return BitConverter.ToUInt32(Encoding.ASCII.GetBytes(str), 0);
         }
 
+        public static string GetStringFromUint(this uint num)
+        {
+            return num.ToString("X");
+        }
+
         public static string Reverse(this string input)
         {
             char[] chars = input.ToCharArray();

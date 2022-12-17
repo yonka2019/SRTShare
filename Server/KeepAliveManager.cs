@@ -60,19 +60,19 @@ namespace Server
 
         private void KeepAliveChecker(object dest_socket_id)
         {
-            uint u_dest_socket_id = (uint)dest_socket_id;
-            timer.Start();
+            //uint u_dest_socket_id = (uint)dest_socket_id;
+            //timer.Start();
 
-            while (connected)
-            {
-                KeepAliveRequest keepAlive_request = new SRTRequest.KeepAliveRequest
-                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, socket_port));
+            //while (connected)
+            //{
+            //    KeepAliveRequest keepAlive_request = new SRTRequest.KeepAliveRequest
+            //                    (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, socket_port));
 
-                Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
-                PacketManager.SendPacket(keepAlive_packet);
+            //    Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
+            //    PacketManager.SendPacket(keepAlive_packet);
 
-                Thread.Sleep(1000);  // 1 second wait
-            }
+            //    Thread.Sleep(1000);  // 1 second wait
+            //}
         }
     }
 }

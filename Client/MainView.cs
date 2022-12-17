@@ -55,28 +55,14 @@ namespace ClientForm
             Packet arpRequest = ARPManager.Request(PacketManager.device, PacketManager.SERVER_IP);
             PacketManager.SendPacket(arpRequest);
 
-            if (server_mac == null)
-            {
-                Console.WriteLine("[ERROR] Can't get server mac address");
-                Console.ReadKey();
-                Environment.Exit(0);
-            }
+            //if (server_mac == null)
+            //{
+            //    Console.WriteLine("[ERROR] Can't get server mac address");
+            //    Console.ReadKey();
+            //    Environment.Exit(0);
+            //}
 
-            HandshakeRequest handshake = new SRTRequest.HandshakeRequest
-                (PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
-
-            DateTime now = DateTime.Now;
-
-            client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.LOOPBACK_IP.IPAddress, myPort);
-            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.LOOPBACK_IP.IPAddress, myPort, now), init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: true, client_socket_id, 0); // *** need to change peer id***
-
-            /*Packet packet = new PacketBuilder(PacketManager.BuildEthernetLayer(),
-                PacketManager.BuildIpv4Layer(),
-                PacketManager.BuildUdpLayer(myPort, PacketManager.SERVER_PORT),
-                PacketManager.BuildPLayer("Start transmission")).Build(DateTime.Now);
-            */
-
-            PacketManager.SendPacket(handshake_packet);
+            
         }
 
         /// <summary>
@@ -172,8 +158,20 @@ namespace ClientForm
                 if (packet.Ethernet.Arp.SenderProtocolIpV4Address.ToString() == PacketManager.SERVER_IP)
                 {
                     ArpDatagram arp = packet.Ethernet.Arp;
-                    server_mac = BitConverter.ToString(arp.SenderHardwareAddress.ToArray());
-                    Console.WriteLine("!!!!1 " + new MacAddress(server_mac.Replace("-", ":")).ToString());
+                    server_mac = BitConverter.ToString(arp.SenderHardwareAddress.ToArray()).Replace("-", ":");
+
+                    //Console.WriteLine("server mac: " + new MacAddress(server_mac).ToString());
+                    //Console.WriteLine("my mac: " + new MacAddress(PacketManager.macAddress).ToString());
+
+                    HandshakeRequest handshake = new SRTRequest.HandshakeRequest
+                (PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
+
+                    DateTime now = DateTime.Now;
+
+                    client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.LOOPBACK_IP.IPAddress, myPort);
+                    Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.LOOPBACK_IP.IPAddress, myPort, now), init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: true, client_socket_id, 0); // *** need to change peer id***
+
+                    PacketManager.SendPacket(handshake_packet);
                 }
             }
 

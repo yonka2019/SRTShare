@@ -136,7 +136,7 @@ namespace Server
                             Console.WriteLine("Conclusion [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
 
                             // ADD NEW SOCKET TO LIST 
-                            SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(new SClient(handshake_request.PEER_IP, datagram.SourcePort), packet.Ethernet.Source,
+                            SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(new SClient(MethodExt.GetStringFromUint(handshake_request.PEER_IP), datagram.SourcePort), packet.Ethernet.Source,
                                 new KeepAliveManager(handshake_request.SOCKET_ID, datagram.SourcePort)));
                             // SRTSockets: (example)
                             // [0] : ip1
