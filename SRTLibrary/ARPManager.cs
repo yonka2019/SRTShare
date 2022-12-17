@@ -19,7 +19,7 @@ namespace SRTLibrary
     {
         public static Packet Request(LivePacketDevice my_device, string to_ip)
         {
-            string myMac = my_device.GetMacAddress().ToString();
+            string myMac = GetMyMac(my_device);
             //bool sameSubnet = new IPAddress(new IpV4Address(to_ip).ToBytes()).IsInSubnet(PacketManager.mask);
 
             return PacketBuilder.Build(
@@ -64,6 +64,11 @@ namespace SRTLibrary
                 TargetProtocolAddress = new IpV4Address(to_ip).ToBytes().AsReadOnly(),
                 Operation = ArpOperation.Reply,
             });
+        }
+
+        public static string GetMyMac(LivePacketDevice my_device)
+        {
+            return my_device.GetMacAddress().ToString();
         }
     }
 }
