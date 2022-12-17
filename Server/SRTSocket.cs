@@ -6,12 +6,12 @@ namespace Server
 {
     public class SRTSocket
     {
-        public SAddress SocketAddress { get; } // address & port
+        public SClient SocketAddress { get; } // address & port
         public MacAddress MacAddress { get; }
         public KeepAliveManager KeepAlive { get; }
 
 
-        public SRTSocket(SAddress socketAddress, MacAddress macAddress, KeepAliveManager kaManager)
+        public SRTSocket(SClient socketAddress, MacAddress macAddress, KeepAliveManager kaManager)
         {
             SocketAddress = socketAddress;
             MacAddress = macAddress;

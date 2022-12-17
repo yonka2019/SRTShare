@@ -16,7 +16,6 @@ namespace SRTLibrary
         public static uint GenerateCookie(string ip, ushort port, DateTime current_time)
         {
             string textToEncrypt = "";
-
             textToEncrypt += ip + "&"; // add ip
             textToEncrypt += port.ToString() + "&"; // add port
             textToEncrypt += $"{current_time.Minute}.{current_time.Hour}.{current_time.Day}.{current_time.Month}.{current_time.Year}"; // add current time
