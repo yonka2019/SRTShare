@@ -75,47 +75,20 @@ namespace ClientForm
         private void PacketHandler(Packet packet)
         {
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
-            if (datagram != null 
-                && datagram.SourcePort == PacketManager.SERVER_PORT 
-                && datagram.DestinationPort == myPort)  // udp packet
+            if (datagram != null && datagram.SourcePort == PacketManager.SERVER_PORT && datagram.DestinationPort == myPort)
             {
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (SRTHeader.IsControl(payload))  // (SRT) control packet
+                if (SRTHeader.IsControl(payload)) // check if control
                 {
-                    if (Handshake.IsHandshake(payload))  // (SRT) handshake packet
+                    if (Handshake.IsHandshake(payload)) // check if handshake
                     {
                         Handshake handshake_request = new SRTControl.Handshake(payload);
 
                         if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION) // server -> client (induction)
                         {
-                            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(PacketManager.localIp, myPort, DateTime.Now))
-                            {
-                                HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
-
-                                // client -> server (conclusion)
-                                IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
-                                Console.WriteLine("My ip string: " + PacketManager.localIp);
-                                Console.WriteLine("My ip address: " + peer_ip.ToString());
-
-                                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
-                                PacketManager.SendPacket(handshake_packet);
-                            }
-                            else
-                            {
-                                // Exit the prgram and send a shutdwon request
-                                ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
-                                Packet shutdown_packet = shutdown_response.Exit();
-                                PacketManager.SendPacket(shutdown_packet);
-
-                                MessageBox.Show("Wrong cookie - Exiting...", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            }
-
+                            HandleInduction(handshake_request);
                         }
-                    }
-                    else if (KeepAlive.IsKeepAlive(payload))  // (SRT) keep-alive packet
-                    {
-
                     }
                 }
 
@@ -157,42 +130,88 @@ namespace ClientForm
                 }
 
             }
-            else if (packet.Ethernet.Arp != null 
-                && packet.Ethernet.Arp.IsValid 
-                && packet.Ethernet.Arp.TargetProtocolIpV4Address != null)  // arp packet
+
+
+            else if (IsArp(packet))
             {
                 ArpDatagram arp = packet.Ethernet.Arp;
 
-                if (BitConverter.ToString(arp.TargetHardwareAddress.ToArray()).Replace("-", ":") == ARPManager.GetMyMac(PacketManager.device))
+                if (IsMyMac(arp) && first) // my mac, and this is the first time answering 
                 {
-                    if (first)
+                    if (arp.SenderProtocolIpV4Address.ToString() == PacketManager.SERVER_IP) // mac from server
                     {
-                        if (packet.Ethernet.Arp.SenderProtocolIpV4Address.ToString() == PacketManager.SERVER_IP)
-                        {
-                            server_mac = BitConverter.ToString(arp.SenderHardwareAddress.ToArray()).Replace("-", ":");
+                        server_mac = BitConverter.ToString(arp.SenderHardwareAddress.ToArray()).Replace("-", ":");
 
-                            //Console.WriteLine("server mac: " + new MacAddress(server_mac).ToString());
-                            //Console.WriteLine("my mac: " + new MacAddress(PacketManager.macAddress).ToString());
+                        HandshakeRequest handshake = new SRTRequest.HandshakeRequest
+                    (PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
 
-                            HandshakeRequest handshake = new SRTRequest.HandshakeRequest
-                        (PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
+                        //create induction packet
+                        DateTime now = DateTime.Now;
 
-                            DateTime now = DateTime.Now;
+                        client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.localIp, myPort);
 
-                            client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.localIp, myPort);
+                        IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
+                        Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.localIp, myPort, now), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0);
 
-                            IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
-                            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.localIp, myPort, now), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0);
+                        PacketManager.SendPacket(handshake_packet);
 
-                            PacketManager.SendPacket(handshake_packet);
-
-                            first = false;
-
-                        }
+                        first = false;
                     }
-                }     
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// The function checks if it's a valid arp packet
+        /// </summary>
+        /// <param name="packet">Packet to check</param>
+        /// <returns>True if valid, false if not</returns>
+        private bool IsArp(Packet packet)
+        {
+            return packet.Ethernet.Arp != null && packet.Ethernet.Arp.IsValid && packet.Ethernet.Arp.TargetProtocolIpV4Address != null;
+        }
+
+        /// <summary>
+        /// The function checks if the targeted mac is my mac
+        /// </summary>
+        /// <param name="arp">ArpDatagram object</param>
+        /// <returns>True if it's my mac, false if not</returns>
+        private bool IsMyMac(ArpDatagram arp)
+        {
+            return BitConverter.ToString(arp.TargetHardwareAddress.ToArray()).Replace("-", ":") == ARPManager.GetMyMac(PacketManager.device);
+        }
+
+        /// <summary>
+        /// The function handles the induction phaze
+        /// </summary>
+        /// <param name="handshake_request">Handshake object</param>
+        private void HandleInduction(Handshake handshake_request)
+        {
+            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(PacketManager.localIp, myPort, DateTime.Now))
+            {
+                HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
+
+                // client -> server (conclusion)
+                IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
+                Console.WriteLine("My ip string: " + PacketManager.localIp);
+                Console.WriteLine("My ip address: " + peer_ip.ToString());
+
+                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
+                PacketManager.SendPacket(handshake_packet);
+            }
+
+            else
+            {
+                // Exit the prgram and send a shutdwon request
+                ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
+                Packet shutdown_packet = shutdown_response.Exit();
+                PacketManager.SendPacket(shutdown_packet);
+
+                MessageBox.Show("Wrong cookie - Exiting...", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
         /// <summary>
         /// The function accurs when the form is closed
