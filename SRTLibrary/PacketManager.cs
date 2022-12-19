@@ -25,7 +25,6 @@ namespace SRTLibrary
 
         public const int SERVER_PORT = 6969;
         public const string SERVER_IP = "192.168.1.29";
-        public static readonly SClient LOOPBACK_IP = new SClient("127.0.0.1");
 
         static PacketManager()
         {

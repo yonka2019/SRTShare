@@ -35,8 +35,8 @@ namespace Server
 {
     internal class Program
     {
-        private static uint SERVER_SOCKET_ID = 123;
-        private static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
+        internal const uint SERVER_SOCKET_ID = 123;
+        internal static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
         // SRTSockets: (example)
         // [0] : IPAddress
         // [SOCKET_ID] : IPAddress
@@ -113,12 +113,12 @@ namespace Server
 
                         if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION) // client -> server (induction)
                         {
-                            HandleInduction(packet, handshake_request, datagram);
+                            RequestsHandler.HandleInduction(packet, handshake_request, datagram);
                         }
 
                         else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION) // client -> server (conclusion)
                         {
-                            HandleConclusion(packet, handshake_request, datagram);
+                            RequestsHandler.HandleConclusion(packet, handshake_request, datagram);
                         }
                             // START VIDEO HERE!!
 
@@ -143,12 +143,12 @@ namespace Server
 
                     if (Shutdown.IsShutdown(payload))
                     {
-                        HandleShutDown(packet);
+                        RequestsHandler.HandleShutDown(packet);
                     }
                 }
             }
 
-            else if (packet.Ethernet.Arp != null && packet.Ethernet.Arp.IsValid && packet.Ethernet.Arp.TargetProtocolIpV4Address != null)
+            else if (packet.IsArp())
             {
                 if (packet.Ethernet.Arp.TargetProtocolIpV4Address.ToString() == PacketManager.SERVER_IP) // the arp was for the server
                 {
@@ -159,70 +159,7 @@ namespace Server
             }
         }
 
-        /// <summary>
-        /// The function handles the shutdown
-        /// </summary>
-        /// <param name="packet">packet of shutdown</param>
-        private static void HandleShutDown(Packet packet)
-        {
-            uint client_id = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString(), packet.Ethernet.Ip.Udp.SourcePort);
-
-            Console.WriteLine($"Got a Shutdown Request from: {client_id}.");
-
-            if (SRTSockets.ContainsKey(client_id))
-            {
-                SRTSockets.Remove(client_id);
-                Console.WriteLine($"Client [{client_id}] was removed.");
-            }
-
-            else
-                Console.WriteLine($"Client [{client_id}] wasn't found.");
-        }
-
-
-        /// <summary>
-        /// The function handles the induction phaze
-        /// </summary>
-        /// <param name="packet">Given packet</param>
-        /// <param name="handshake_request">The handshake object</param>
-        /// <param name="datagram">The transport layer</param>
-        private static void HandleInduction(Packet packet, Handshake handshake_request, UdpDatagram datagram)
-        {
-            HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
-                                (PacketManager.BuildBaseLayers(PacketManager.macAddress, packet.Ethernet.Source.ToString(), PacketManager.localIp, packet.IpV4.Source.ToString(), PacketManager.SERVER_PORT, datagram.SourcePort));
-
-            string client_ip = handshake_request.PEER_IP.ToString();
-            uint cookie = ProtocolManager.GenerateCookie(client_ip, datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
-
-            IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
-            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: peer_ip, clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
-            PacketManager.SendPacket(handshake_packet);
-
-            Console.WriteLine("Induction [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
-        }
-
-
-        /// <summary>
-        /// The function handles the conclusion phaze
-        /// </summary>
-        /// <param name="packet">Given packet</param>
-        /// <param name="handshake_request">The handshake object</param>
-        /// <param name="datagram">The transport layer</param>
-        private static void HandleConclusion(Packet packet, Handshake handshake_request, UdpDatagram datagram)
-        {
-            HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
-                                (PacketManager.BuildBaseLayers(PacketManager.macAddress, packet.Ethernet.Source.ToString(), PacketManager.localIp, packet.IpV4.Source.ToString(), PacketManager.SERVER_PORT, datagram.SourcePort));
-
-            IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
-            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
-            PacketManager.SendPacket(handshake_packet);
-
-            Console.WriteLine("Conclusion [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
-
-            // ADD NEW SOCKET TO LIST 
-            SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(new SClient(handshake_request.PEER_IP.ToString(), datagram.SourcePort), packet.Ethernet.Source,
-                new KeepAliveManager(handshake_request.SOCKET_ID, datagram.SourcePort)));
-        }
+       
 
 
         /// <summary>

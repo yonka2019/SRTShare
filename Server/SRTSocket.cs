@@ -4,17 +4,15 @@ using System.Net;
 
 namespace Server
 {
-    public class SRTSocket
+    internal class SRTSocket
     {
-        public SClient SocketAddress { get; } // address & port
-        public MacAddress MacAddress { get; }
-        public KeepAliveManager KeepAlive { get; }
+        internal SClient SocketAddress { get; } // address & port
+        internal KeepAliveManager KeepAlive { get; }
 
 
-        public SRTSocket(SClient socketAddress, MacAddress macAddress, KeepAliveManager kaManager)
+        internal SRTSocket(SClient socketAddress, KeepAliveManager kaManager)
         {
             SocketAddress = socketAddress;
-            MacAddress = macAddress;
             KeepAlive = kaManager;
         }
     }

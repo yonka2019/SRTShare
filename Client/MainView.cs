@@ -25,7 +25,7 @@ using System.Runtime.InteropServices;
  * //       [2 BYTES]                   [2 BYTES]          [>=1000 BYTES]   //
  */
 
-namespace ClientForm
+namespace Client
 {
     public partial class MainView : Form
     {
@@ -40,9 +40,9 @@ namespace ClientForm
         private readonly Thread pRecvThread;
         private readonly Random rnd = new Random();
 
-        private static ushort myPort = 0;
-        private static string server_mac;
-        private static uint client_socket_id = 0;
+        internal static ushort myPort = 0;
+        internal static string server_mac;
+        internal static uint client_socket_id = 0;
 
        private bool first = true;
 
@@ -87,7 +87,7 @@ namespace ClientForm
 
                         if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION) // server -> client (induction)
                         {
-                            HandleInduction(handshake_request);
+                            RequestsHandler.HandleInduction(handshake_request);
                         }
                     }
                 }
@@ -132,7 +132,7 @@ namespace ClientForm
             }
 
 
-            else if (IsArp(packet))
+            else if (packet.IsArp())
             {
                 ArpDatagram arp = packet.Ethernet.Arp;
 
@@ -163,16 +163,6 @@ namespace ClientForm
         }
 
         /// <summary>
-        /// The function checks if it's a valid arp packet
-        /// </summary>
-        /// <param name="packet">Packet to check</param>
-        /// <returns>True if valid, false if not</returns>
-        private bool IsArp(Packet packet)
-        {
-            return packet.Ethernet.Arp != null && packet.Ethernet.Arp.IsValid && packet.Ethernet.Arp.TargetProtocolIpV4Address != null;
-        }
-
-        /// <summary>
         /// The function checks if the targeted mac is my mac
         /// </summary>
         /// <param name="arp">ArpDatagram object</param>
@@ -181,37 +171,6 @@ namespace ClientForm
         {
             return BitConverter.ToString(arp.TargetHardwareAddress.ToArray()).Replace("-", ":") == ARPManager.GetMyMac(PacketManager.device);
         }
-
-        /// <summary>
-        /// The function handles the induction phaze
-        /// </summary>
-        /// <param name="handshake_request">Handshake object</param>
-        private void HandleInduction(Handshake handshake_request)
-        {
-            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(PacketManager.localIp, myPort, DateTime.Now))
-            {
-                HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
-
-                // client -> server (conclusion)
-                IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
-                Console.WriteLine("My ip string: " + PacketManager.localIp);
-                Console.WriteLine("My ip address: " + peer_ip.ToString());
-
-                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
-                PacketManager.SendPacket(handshake_packet);
-            }
-
-            else
-            {
-                // Exit the prgram and send a shutdwon request
-                ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
-                Packet shutdown_packet = shutdown_response.Exit();
-                PacketManager.SendPacket(shutdown_packet);
-
-                MessageBox.Show("Wrong cookie - Exiting...", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
 
         /// <summary>
         /// The function accurs when the form is closed

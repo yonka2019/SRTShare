@@ -1,31 +1,26 @@
-﻿namespace SRTLibrary
+﻿using PcapDotNet.Packets.Ethernet;
+using PcapDotNet.Packets.IpV4;
+
+namespace SRTLibrary
 {
     public class SClient
     {
-        public string IPAddress { get; set; }
+        public IpV4Address IPAddress { get; set; }
         public ushort Port { get; set; }
-        public string MacAddress { get; set; }
+        public MacAddress MacAddress { get; set; }
+        public uint SocketId { get; set; }
 
-        public SClient(string ipAddress)
+        public SClient(IpV4Address iPAddress, ushort port, MacAddress macAddress, uint socketId)
         {
-            IPAddress = ipAddress;
-            Port = 0;
-            MacAddress = null;
-        }
-
-        public SClient(string ipAddress, int port) : this(ipAddress)
-        {
-            Port = (ushort)port;
-        }
-
-        public SClient(string ipAddress, int port, string macAddress) : this(ipAddress, port)
-        {
+            IPAddress = iPAddress;
+            Port = port;
             MacAddress = macAddress;
+            SocketId = socketId;
         }
 
         public override string ToString()  // combine to "IPAddress:Port" 
         {
-            return IPAddress + Port.ToString();
+            return IPAddress.ToString() + Port.ToString();
         }
     }
 }

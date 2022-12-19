@@ -8,23 +8,21 @@ using SRTLibrary.SRTManager.RequestsFactory;
 
 namespace Server
 {
-    public class KeepAliveManager
+    internal class KeepAliveManager
     {
-        private readonly uint socket_id;
-        private readonly ushort socket_port;
+        private readonly SClient client;
         private int timeoutSeconds;
         private bool connected;
 
         private static System.Timers.Timer timer;
 
-        public delegate void Notify(uint socket_id);
-        public event Notify LostConnection;
+        internal delegate void Notify(uint socket_id);
+        internal event Notify LostConnection;
 
 
-        public KeepAliveManager(uint socket_id, ushort socket_port)
+        internal KeepAliveManager(SClient client)
         {
-            this.socket_id = socket_id;
-            this.socket_port = socket_port;
+            this.client = client;
             timeoutSeconds = 0;
             connected = true;
 
@@ -38,7 +36,7 @@ namespace Server
 
             if (timeoutSeconds == 5)  // KEEP-ALIVE TIMED-OUT
             {
-                LostConnection.Invoke(socket_id);
+                LostConnection.Invoke(client.SocketId);
                 connected = false;
 
                 timer.Stop();
@@ -46,33 +44,33 @@ namespace Server
             }
         }
 
-        public void StartCheck()
+        internal void StartCheck()
         {
             Thread kaChecker = new Thread(new ParameterizedThreadStart(KeepAliveChecker));  // create thread of keep-alive checker
 
-            kaChecker.Start(socket_id);
+            kaChecker.Start(client.SocketId);
         }
 
-        public void ConfirmStatus()  // reset timeout seconds
+        internal void ConfirmStatus()  // reset timeout seconds
         {
             timeoutSeconds = 0;
         }
 
-        private void KeepAliveChecker(object dest_socket_id)
+        internal void KeepAliveChecker(object dest_socket_id)
         {
-            //uint u_dest_socket_id = (uint)dest_socket_id;
-            //timer.Start();
+            uint u_dest_socket_id = (uint)dest_socket_id;
+            timer.Start();
 
-            //while (connected)
-            //{
-            //    KeepAliveRequest keepAlive_request = new SRTRequest.KeepAliveRequest
-            //                    (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, socket_port));
+            while (connected)
+            {
+                KeepAliveRequest keepAlive_request = new SRTRequest.KeepAliveRequest
+                                (PacketManager.BuildBaseLayers(PacketManager.SERVER_PORT, socket_port));
 
-            //    Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
-            //    PacketManager.SendPacket(keepAlive_packet);
+                Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
+                PacketManager.SendPacket(keepAlive_packet);
 
-            //    Thread.Sleep(1000);  // 1 second wait
-            //}
+                Thread.Sleep(1000);  // 1 second wait
+            }
         }
     }
 }
