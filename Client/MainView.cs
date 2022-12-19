@@ -78,7 +78,6 @@ namespace Client
                     }
                     else if (KeepAlive.IsKeepAlive(payload))
                     {
-                        KeepAlive keepAlive_request = new KeepAlive(payload);
 
                         KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, MainView.server_mac, PacketManager.localIp, PacketManager.SERVER_IP, MainView.myPort, PacketManager.SERVER_PORT));
                         Packet keepAlive_confirm = keepAlive_response.Check(server_socket_id);
