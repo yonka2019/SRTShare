@@ -101,12 +101,11 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
         public uint SYN_COOKIE { get; set; }
 
         /// <summary>
-        /// 64 bits (8 bytes). IPv4 or IPv6 address of the packet's
+        /// 32 bits (4 bytes). IPv4 address of the packet's
         /// sender.The value consists of four 32-bit fields.In the case of
         /// IPv4 addresses, fields 2, 3 and 4 are filled with zeroes.
         /// </summary>
         public IpV4Address PEER_IP { get; set; }
-
 
         public enum Extension // Extension Field
         {

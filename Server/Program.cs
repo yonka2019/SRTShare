@@ -125,8 +125,6 @@ namespace Server
                             Console.WriteLine("Induction [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
 
                         }
-
-
                         else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION) // client -> server (conclusion)
                         {
                             HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest

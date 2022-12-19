@@ -75,13 +75,15 @@ namespace ClientForm
         private void PacketHandler(Packet packet)
         {
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
-            if (datagram != null && datagram.SourcePort == PacketManager.SERVER_PORT && datagram.DestinationPort == myPort)
+            if (datagram != null 
+                && datagram.SourcePort == PacketManager.SERVER_PORT 
+                && datagram.DestinationPort == myPort)  // udp packet
             {
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (SRTHeader.IsControl(payload)) // check if control
+                if (SRTHeader.IsControl(payload))  // (SRT) control packet
                 {
-                    if (Handshake.IsHandshake(payload)) // check if handshake
+                    if (Handshake.IsHandshake(payload))  // (SRT) handshake packet
                     {
                         Handshake handshake_request = new SRTControl.Handshake(payload);
 
@@ -99,7 +101,6 @@ namespace ClientForm
                                 Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
                                 PacketManager.SendPacket(handshake_packet);
                             }
-
                             else
                             {
                                 // Exit the prgram and send a shutdwon request
@@ -111,6 +112,10 @@ namespace ClientForm
                             }
 
                         }
+                    }
+                    else if (KeepAlive.IsKeepAlive(payload))  // (SRT) keep-alive packet
+                    {
+
                     }
                 }
 
@@ -152,7 +157,9 @@ namespace ClientForm
                 }
 
             }
-            else if (packet.Ethernet.Arp != null && packet.Ethernet.Arp.IsValid && packet.Ethernet.Arp.TargetProtocolIpV4Address != null)
+            else if (packet.Ethernet.Arp != null 
+                && packet.Ethernet.Arp.IsValid 
+                && packet.Ethernet.Arp.TargetProtocolIpV4Address != null)  // arp packet
             {
                 ArpDatagram arp = packet.Ethernet.Arp;
 
@@ -183,11 +190,8 @@ namespace ClientForm
 
                         }
                     }
-                }
-                
-                
+                }     
             }
-
         }
 
         /// <summary>
