@@ -1,6 +1,4 @@
-﻿using PcapDotNet.Packets.Ethernet;
-using SRTLibrary;
-using System.Net;
+﻿using SRTLibrary;
 
 namespace Server
 {

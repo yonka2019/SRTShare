@@ -41,9 +41,21 @@ namespace SRTLibrary
         /// </summary>
         /// <param name="packet">Packet to check</param>
         /// <returns>True if valid, false if not</returns>
-        public static bool IsArp(this Packet packet)
+        public static bool IsValidARP(this Packet packet)
         {
             return packet.Ethernet.Arp != null && packet.Ethernet.Arp.IsValid && packet.Ethernet.Arp.TargetProtocolIpV4Address != null;
+        }
+
+        /// <summary>
+        /// The function checks if it's a valid udp packet
+        /// </summary>
+        /// <param name="packet">Packet to check</param>
+        /// <returns>True if valid, false if not</returns>
+        public static bool IsValidUDP(this Packet packet, ushort destPort, ushort sourcePort = 0)
+        {
+            return sourcePort == 0
+                ? packet.Ethernet.IpV4.Udp != null && packet.Ethernet.IpV4.Udp.DestinationPort == destPort
+                : packet.Ethernet.IpV4.Udp != null && packet.Ethernet.IpV4.Udp.SourcePort == sourcePort && packet.Ethernet.IpV4.Udp.DestinationPort == destPort;
         }
     }
 }

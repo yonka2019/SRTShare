@@ -19,7 +19,7 @@ namespace Client
         {
             if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(PacketManager.localIp, MainView.myPort, DateTime.Now))
             {
-                HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, MainView.server_mac, PacketManager.localIp, PacketManager.SERVER_IP, MainView.myPort, PacketManager.SERVER_PORT));
+                HandshakeRequest handshake_response = new HandshakeRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, MainView.server_mac, PacketManager.localIp, PacketManager.SERVER_IP, MainView.myPort, PacketManager.SERVER_PORT));
 
                 // client -> server (conclusion)
                 IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
@@ -32,7 +32,7 @@ namespace Client
             else
             {
                 // Exit the prgram and send a shutdwon request
-                ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, MainView.server_mac, PacketManager.localIp, PacketManager.SERVER_IP, MainView.myPort, PacketManager.SERVER_PORT));
+                ShutDownRequest shutdown_response = new ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, MainView.server_mac, PacketManager.localIp, PacketManager.SERVER_IP, MainView.myPort, PacketManager.SERVER_PORT));
                 Packet shutdown_packet = shutdown_response.Exit();
                 PacketManager.SendPacket(shutdown_packet);
 

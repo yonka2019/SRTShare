@@ -1,23 +1,14 @@
 ﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.Arp;
-using PcapDotNet.Packets.Ethernet;
-using PcapDotNet.Packets.Transport;
 using PcapDotNet.Packets.IpV4;
+using PcapDotNet.Packets.Transport;
 using SRTLibrary;
 using SRTLibrary.SRTManager.ProtocolFields.Control;
 using SRTLibrary.SRTManager.RequestsFactory;
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
-using SRTControl = SRTLibrary.SRTManager.ProtocolFields.Control;
-using SRTRequest = SRTLibrary.SRTManager.RequestsFactory;
-using PcapDotNet.Core;
-using PcapDotNet.Core.Extensions;
-using System.Runtime.InteropServices;
 
 /*
  * PACKET STRUCTURE:
@@ -29,14 +20,6 @@ namespace Client
 {
     public partial class MainView : Form
     {
-        private static ushort current_packet_id = 0; // packet id have same meaning as 'chunk number'
-        private static ushort last_packet_id = 1; // packet id have same meaning as 'chunk number'
-        private static ushort total_chunks_number = 0;
-
-        private static bool firstChunk = true;
-        private static bool imageBuilt;
-
-        private static readonly List<byte> data = new List<byte>();
         private readonly Thread pRecvThread;
         private readonly Random rnd = new Random();
 
@@ -44,7 +27,8 @@ namespace Client
         internal static string server_mac;
         internal static uint client_socket_id = 0;
 
-       private bool first = true;
+        private static uint server_socket_id = 0;
+        private bool first = true;
 
         public MainView()
         {
@@ -74,65 +58,35 @@ namespace Client
         /// <param name="packet">New given packet</param>
         private void PacketHandler(Packet packet)
         {
-            UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
-            if (datagram != null && datagram.SourcePort == PacketManager.SERVER_PORT && datagram.DestinationPort == myPort)
+            if (packet.IsValidUDP(myPort, PacketManager.SERVER_PORT))  // UDP Packet
             {
+                UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (SRTHeader.IsControl(payload)) // check if control
+                if (SRTHeader.IsControl(payload))  // (SRT) Control
                 {
-                    if (Handshake.IsHandshake(payload)) // check if handshake
+                    if (Handshake.IsHandshake(payload))  // (SRT) Handshake
                     {
-                        Handshake handshake_request = new SRTControl.Handshake(payload);
+                        Handshake handshake_request = new Handshake(payload);
 
-                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION) // server -> client (induction)
+                        server_socket_id = handshake_request.SOCKET_ID;  // as first packet, we are setting the socket id to know it for the future
+
+                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION)  // [server -> client] (SRT) Induction
                         {
                             RequestsHandler.HandleInduction(handshake_request);
                         }
                     }
-                }
-
-                else
-                {
-                    MemoryStream stream = datagram.Payload.ToMemoryStream();
-                    byte[] byteStream = stream.ToArray();
-
-                    // [0][1]
-                    current_packet_id = BitConverter.ToUInt16(byteStream, 0); // take first two bytes of the chunk | --> ([ID (2 bytes)] <-- [TOTAL CHUNKS NUMBER (2 bytes)][DATA] |
-
-                    // [2][3]
-                    total_chunks_number = BitConverter.ToUInt16(byteStream, 2); // take second two bytes of the chunk | ([ID (2 bytes)] --> [TOTAL CHUNKS NUMBER (2 bytes)] <-- [DATA] |
-
-                    //Console.WriteLine($"[GOT] Chunk number: {current_packet_id}/{total_chunks_number} | Size: {byteStream.Length}"); // each chunk print
-
-                    if (current_packet_id == total_chunks_number) // last chunk of image received
+                    else if (KeepAlive.IsKeepAlive(payload))
                     {
-                        imageBuilt = true;
-                        data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
-                        ShowImage(true);
-                        data.Clear(); // prepare to next chunk
-                    }
-                    // new image chunks started (IDs: [OLD IMAGE] 1 2 3 4 [NEW IMAGE (~show old image~)] 1 2 . . .
-                    else if (current_packet_id < last_packet_id && !imageBuilt) // if the above condition didn't done (packet loss) and the image was changed, show the image
-                    {
-                        if (!firstChunk)
-                            ShowImage(false); // show image if all his chunks arrived
-                        else
-                            firstChunk = false;
+                        KeepAlive keepAlive_request = new KeepAlive(payload);
 
-                        data.Clear(); // clear all data from past images
-                        data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
+                        KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, MainView.server_mac, PacketManager.localIp, PacketManager.SERVER_IP, MainView.myPort, PacketManager.SERVER_PORT));
+                        Packet keepAlive_confirm = keepAlive_response.Check(server_socket_id);
+                        PacketManager.SendPacket(keepAlive_confirm);
                     }
-                    else // next packets (same chunk continues)
-                        data.AddRange(byteStream.Skip(4).Take(byteStream.Length - 4).ToList());
-
-                    last_packet_id = current_packet_id;
                 }
-
             }
-
-
-            else if (packet.IsArp())
+            else if (packet.IsValidARP())  // ARP Packet
             {
                 ArpDatagram arp = packet.Ethernet.Arp;
 
@@ -142,7 +96,7 @@ namespace Client
                     {
                         server_mac = BitConverter.ToString(arp.SenderHardwareAddress.ToArray()).Replace("-", ":");
 
-                        HandshakeRequest handshake = new SRTRequest.HandshakeRequest
+                        HandshakeRequest handshake = new HandshakeRequest
                     (PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
 
                         //create induction packet
@@ -179,33 +133,13 @@ namespace Client
         protected override void OnClosed(EventArgs e)
         {
             // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
-            ShutDownRequest shutdown_response = new SRTRequest.ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
+            ShutDownRequest shutdown_response = new ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
             Packet shutdown_packet = shutdown_response.Exit();
             PacketManager.SendPacket(shutdown_packet);
 
             MessageBox.Show("Sent a ShutDown request!",
                 "Bye Bye", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             base.OnClosed(e);
-        }
-
-
-        /// <summary>
-        /// The function shows the server's screen if all the chunks arrived
-        /// </summary>
-        /// <param name="allChunksReceived">True if all chunks were received, false if not</param>
-        private void ShowImage(bool allChunksReceived)
-        {
-            Console.WriteLine($"[GOT : {myPort}] Image (Total chunks: {total_chunks_number})"); // each image
-
-            if (allChunksReceived)
-                Console.WriteLine("[IMAGE BUILT SUCCESSFULLY] SHOWING IMAGE\n--------------------\n\n\n");
-            else
-                Console.WriteLine("[CHUNKS MISSING] SHOWING IMAGE\n--------------------\n\n\n");
-
-            using (MemoryStream ms = new MemoryStream(data.ToArray()))
-            {
-                pictureBox1.Image = new Bitmap(Image.FromStream(ms));
-            }
         }
     }
 }
