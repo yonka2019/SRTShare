@@ -115,9 +115,11 @@ namespace Server
                             HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.macAddress, packet.Ethernet.Source.ToString(), PacketManager.localIp, packet.IpV4.Source.ToString(), PacketManager.SERVER_PORT, datagram.SourcePort));
 
-                            uint cookie = ProtocolManager.GenerateCookie(SRTLibrary.PacketManager.LOOPBACK_IP.IPAddress, datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
+                            string client_ip = handshake_request.PEER_IP.ToString();
+                            uint cookie = ProtocolManager.GenerateCookie(client_ip, datagram.SourcePort, DateTime.Now); // need to save cookie somewhere
 
-                            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
+                            IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
+                            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: peer_ip, clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
 
                             Console.WriteLine("Induction [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
@@ -130,13 +132,14 @@ namespace Server
                             HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.macAddress, packet.Ethernet.Source.ToString(), PacketManager.localIp, packet.IpV4.Source.ToString(), PacketManager.SERVER_PORT, datagram.SourcePort));
 
-                            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
+                            IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
+                            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
                             PacketManager.SendPacket(handshake_packet);
 
                             Console.WriteLine("Conclusion [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
 
                             // ADD NEW SOCKET TO LIST 
-                            SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(new SClient(MethodExt.GetStringFromUint(handshake_request.PEER_IP), datagram.SourcePort), packet.Ethernet.Source,
+                            SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(new SClient(handshake_request.PEER_IP.ToString(), datagram.SourcePort), packet.Ethernet.Source,
                                 new KeepAliveManager(handshake_request.SOCKET_ID, datagram.SourcePort)));
                             // SRTSockets: (example)
                             // [0] : ip1

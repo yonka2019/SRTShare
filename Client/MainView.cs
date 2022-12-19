@@ -2,6 +2,7 @@
 using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.Transport;
+using PcapDotNet.Packets.IpV4;
 using SRTLibrary;
 using SRTLibrary.SRTManager.ProtocolFields.Control;
 using SRTLibrary.SRTManager.RequestsFactory;
@@ -16,6 +17,7 @@ using SRTControl = SRTLibrary.SRTManager.ProtocolFields.Control;
 using SRTRequest = SRTLibrary.SRTManager.RequestsFactory;
 using PcapDotNet.Core;
 using PcapDotNet.Core.Extensions;
+using System.Runtime.InteropServices;
 
 /*
  * PACKET STRUCTURE:
@@ -85,12 +87,16 @@ namespace ClientForm
 
                         if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION) // server -> client (induction)
                         {
-                            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(PacketManager.LOOPBACK_IP.IPAddress, myPort, DateTime.Now))
+                            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(PacketManager.localIp, myPort, DateTime.Now))
                             {
                                 HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
 
                                 // client -> server (conclusion)
-                                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: true, client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
+                                IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
+                                Console.WriteLine("My ip string: " + PacketManager.localIp);
+                                Console.WriteLine("My ip address: " + peer_ip.ToString());
+
+                                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
                                 PacketManager.SendPacket(handshake_packet);
                             }
 
@@ -166,9 +172,10 @@ namespace ClientForm
 
                             DateTime now = DateTime.Now;
 
-                            client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.LOOPBACK_IP.IPAddress, myPort);
+                            client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.localIp, myPort);
 
-                            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.LOOPBACK_IP.IPAddress, myPort, now), init_psn: 0, p_ip: PacketManager.LOOPBACK_IP.IPAddress.GetUInt32(), clientSide: true, client_socket_id, 0); // *** need to change peer id***
+                            IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
+                            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.localIp, myPort, now), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0);
 
                             PacketManager.SendPacket(handshake_packet);
 

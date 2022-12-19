@@ -30,6 +30,14 @@ namespace SRTLibrary
             return new string(chars);
         }
 
+        public static string ReverseIp(this string input)
+        {
+            string[] ip_parts = input.Split('.');
+            Array.Reverse(ip_parts);
+            string reversedIpAddress = string.Join(".", ip_parts);
+            return reversedIpAddress;
+        }
+
         public static byte[] ToBytes(this MacAddress macAddress)
         {
             byte[] byted = BitConverter.GetBytes(macAddress.ToValue()); // convert 6 bytes to 8 (BitConverter.GetBytes(long value))
