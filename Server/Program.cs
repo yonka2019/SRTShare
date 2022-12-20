@@ -11,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using SRTControl = SRTLibrary.SRTManager.ProtocolFields.Control;
 
 /*
  * PACKET STRUCTURE:
@@ -105,7 +104,7 @@ namespace Server
                     {
                         uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString(), packet.Ethernet.IpV4.Udp.SourcePort);
 
-                        if(SRTSockets.ContainsKey(clientSocketId))
+                        if (SRTSockets.ContainsKey(clientSocketId))
                             SRTSockets[clientSocketId].KeepAlive.ConfirmStatus();  // sign as alive
                     }
                 }
@@ -121,6 +120,10 @@ namespace Server
             }
         }
 
+        internal static void LostConnection(uint socket_id)
+        {
+            Console.WriteLine($"[{socket_id}] is dead");
+        }
         /// <summary>
         /// The function takes a screen shot 
         /// </summary>

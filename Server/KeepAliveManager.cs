@@ -35,8 +35,7 @@ namespace Server
 
             if (timeoutSeconds == 5)  // KEEP-ALIVE TIMED-OUT
             {
-                //LostConnection.Invoke(client.SocketId);
-                System.Console.WriteLine($"[{client.SocketId}] is dead");
+                LostConnection.Invoke(client.SocketId);
                 connected = false;
 
                 timer.Stop();

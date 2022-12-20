@@ -71,9 +71,11 @@ namespace Server
 
             // ADD NEW SOCKET TO LIST 
             SClient currentClient = new SClient(handshake_request.PEER_IP, datagram.SourcePort, packet.Ethernet.Source, handshake_request.SOCKET_ID);
-
+            
+            KeepAliveManager kaManager = new KeepAliveManager(currentClient);
             Program.SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(currentClient,
-                new KeepAliveManager(currentClient)));
+                kaManager));
+            kaManager.LostConnection += Program.LostConnection;
         }
     }
 }
