@@ -31,6 +31,7 @@ namespace SRTManager
             // iterate interfaces list and found the right one
             for (int i = 0; i != allDevices.Count; ++i)
             {
+                Console.WriteLine(allDevices[i].Description);
                 LivePacketDevice device = allDevices[i];
                 if (device.Description != null)
                 {
