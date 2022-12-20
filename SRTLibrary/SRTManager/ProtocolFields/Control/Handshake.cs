@@ -1,12 +1,13 @@
-﻿using PcapDotNet.Base;
-using System;
-using System.Numerics;
+﻿using System;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using PcapDotNet.Packets.IpV4;
 
-namespace SRTManager.ProtocolFields.Control
+namespace SRTLibrary.SRTManager.ProtocolFields.Control
 {
     public class Handshake : SRTHeader
     {
-        public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, uint p_ip) : base(ControlType.HANDSHAKE, dest_socket_id)
+        public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, IpV4Address p_ip) : base(ControlType.HANDSHAKE, dest_socket_id)
         {
             VERSION = version; byteFields.Add(BitConverter.GetBytes(VERSION));
             ENCRYPTION_FIELD = encryption_field; byteFields.Add(BitConverter.GetBytes(ENCRYPTION_FIELD));
@@ -16,7 +17,7 @@ namespace SRTManager.ProtocolFields.Control
             TYPE = type; byteFields.Add(BitConverter.GetBytes(TYPE));
             SOCKET_ID = source_socket_id; byteFields.Add(BitConverter.GetBytes(SOCKET_ID));
             SYN_COOKIE = syn_cookie; byteFields.Add(BitConverter.GetBytes(SYN_COOKIE));
-            PEER_IP = p_ip; byteFields.Add(BitConverter.GetBytes(PEER_IP));
+            PEER_IP = p_ip; byteFields.Add(PEER_IP.ToBytes());
         }
 
         public Handshake(byte[] data) : base(data)  // initialize SRT Control header fields
@@ -31,7 +32,8 @@ namespace SRTManager.ProtocolFields.Control
             TYPE = BitConverter.ToUInt32(data, 31);  // [31 32 33 34] (4 bytes)
             SOCKET_ID = BitConverter.ToUInt32(data, 35);  // [35 36 37 38] (4 bytes)
             SYN_COOKIE = BitConverter.ToUInt32(data, 39);  // [39 40 41 42] (4 bytes)
-            PEER_IP = BitConverter.ToUInt32(data, 43); // [43 44 45 46] (4 bytes)
+            PEER_IP = new PcapDotNet.Packets.IpV4.IpV4Address(System.BitConverter.ToUInt32(data, 43)); // [43 44 45 46]
+            PEER_IP = new PcapDotNet.Packets.IpV4.IpV4Address(MethodExt.ReverseIp(PEER_IP.ToString()));
         }
 
         /// <summary>
@@ -99,12 +101,11 @@ namespace SRTManager.ProtocolFields.Control
         public uint SYN_COOKIE { get; set; }
 
         /// <summary>
-        /// 64 bits (8 bytes). IPv4 or IPv6 address of the packet's
+        /// 32 bits (4 bytes). IPv4 address of the packet's
         /// sender.The value consists of four 32-bit fields.In the case of
         /// IPv4 addresses, fields 2, 3 and 4 are filled with zeroes.
         /// </summary>
-        public uint PEER_IP { get; set; }
-
+        public IpV4Address PEER_IP { get; set; }
 
         public enum Extension // Extension Field
         {
@@ -137,9 +138,9 @@ namespace SRTManager.ProtocolFields.Control
             handshake += "Source id: " + SOCKET_ID + "\n";
             handshake += "Dest id: " + DEST_SOCKET_ID + "\n";
             handshake += "Cookie: " + SYN_COOKIE + "\n";
-            handshake += "Peer ip: " + PEER_IP + "\n";
+            handshake += "Peer ip: " + PEER_IP.ToString() + "\n";
             handshake += "Handshake type: " + TYPE.ToString("X") + "\n";
-            
+
 
             return handshake;
         }

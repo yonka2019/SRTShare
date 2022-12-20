@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace SRTManager
+namespace SRTLibrary
 {
     public class ProtocolManager
     {
@@ -16,7 +16,6 @@ namespace SRTManager
         public static uint GenerateCookie(string ip, ushort port, DateTime current_time)
         {
             string textToEncrypt = "";
-
             textToEncrypt += ip + "&"; // add ip
             textToEncrypt += port.ToString() + "&"; // add port
             textToEncrypt += $"{current_time.Minute}.{current_time.Hour}.{current_time.Day}.{current_time.Month}.{current_time.Year}"; // add current time
@@ -55,13 +54,5 @@ namespace SRTManager
             return BitConverter.ToUInt32(md5.Hash, 0);
         }
 
-    }
-}
-
-public static class MethodExt
-{
-    public static uint GetUInt32(this string str)
-    {
-        return BitConverter.ToUInt32(Encoding.ASCII.GetBytes(str), 0);
     }
 }

@@ -61,6 +61,7 @@
     <Compile Include="KeepAliveManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RequestsHandler.cs" />
     <Compile Include="SRTSocket.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -68,9 +69,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SRTManager\SRTManager.csproj">
+    <ProjectReference Include="..\SRTLibrary\SRTLibrary.csproj">
       <Project>{15441e3c-00e3-4644-a71b-3d949eeee2dc}</Project>
-      <Name>SRTManager</Name>
+      <Name>SRTLibrary</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,8 +1,8 @@
 ﻿using PcapDotNet.Packets;
 
-using SRTControl = SRTManager.ProtocolFields.Control;
+using SRTControl = SRTLibrary.SRTManager.ProtocolFields.Control;
 
-namespace SRTManager.RequestsFactory
+namespace SRTLibrary.SRTManager.RequestsFactory
 {
     public class ShutDownRequest : UdpPacket
     {
@@ -18,6 +18,5 @@ namespace SRTManager.RequestsFactory
             GetPayloadLayer() = PacketManager.BuildPLayer(new SRTControl.Shutdown(dest_socket_id).GetByted());
             return BuildPacket();
         }
-
     }
 }
