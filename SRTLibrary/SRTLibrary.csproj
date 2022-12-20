@@ -7,8 +7,8 @@
     <ProjectGuid>{15441E3C-00E3-4644-A71B-3D949EEEE2DC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SRTManager</RootNamespace>
-    <AssemblyName>SRTManager</AssemblyName>
+    <RootNamespace>SRTLibrary</RootNamespace>
+    <AssemblyName>SRTLibrary</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -56,22 +56,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ARPManager.cs" />
+    <Compile Include="MethodExt.cs" />
     <Compile Include="PacketManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ProtocolFields\Control\Handshake.cs" />
-    <Compile Include="ProtocolFields\Control\Keep-Alive.cs" />
-    <Compile Include="ProtocolFields\Control\Shutdown.cs" />
-    <Compile Include="ProtocolFields\Control\SRTHeader.cs" />
-    <Compile Include="ProtocolFields\Control\ControlType.cs" />
-    <Compile Include="ProtocolManager.cs" />
-    <Compile Include="RequestsFactory\HandshakeRequest.cs" />
-    <Compile Include="RequestsFactory\KeepAliveRequest.cs" />
-    <Compile Include="RequestsFactory\ShutDownRequest.cs" />
-    <Compile Include="RequestsFactory\UdpPacket.cs" />
-    <Compile Include="SAddress.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Control\Keep-Alive.cs" />
+    <Compile Include="SRTManager\ProtocolManager.cs" />
+    <Compile Include="SRTManager\SClient.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Control\ControlType.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Control\Handshake.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Control\Shutdown.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Control\SRTHeader.cs" />
+    <Compile Include="SRTManager\RequestsFactory\HandshakeRequest.cs" />
+    <Compile Include="SRTManager\RequestsFactory\KeepAliveRequest.cs" />
+    <Compile Include="SRTManager\RequestsFactory\ShutDownRequest.cs" />
+    <Compile Include="SRTManager\RequestsFactory\UdpPacket.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

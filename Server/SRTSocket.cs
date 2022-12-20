@@ -1,14 +1,14 @@
-﻿using SRTManager;
-using System.Net;
+﻿using SRTLibrary;
 
 namespace Server
 {
-    public class SRTSocket
+    internal class SRTSocket
     {
-        public KeepAliveManager KeepAlive { get; }
-        public SAddress SocketAddress { get; } // address & port
+        internal SClient SocketAddress { get; } // address & port
+        internal KeepAliveManager KeepAlive { get; }
 
-        public SRTSocket(SAddress socketAddress, KeepAliveManager kaManager)
+
+        internal SRTSocket(SClient socketAddress, KeepAliveManager kaManager)
         {
             SocketAddress = socketAddress;
             KeepAlive = kaManager;

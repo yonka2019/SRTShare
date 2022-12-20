@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace ClientForm
+namespace Client
 {
     internal static class Program
     {

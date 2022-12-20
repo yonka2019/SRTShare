@@ -1,4 +1,4 @@
-﻿namespace SRTManager.ProtocolFields.Control
+﻿namespace SRTLibrary.SRTManager.ProtocolFields.Control
 {
     public enum ControlType : ushort
     {
