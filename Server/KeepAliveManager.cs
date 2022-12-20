@@ -35,7 +35,8 @@ namespace Server
 
             if (timeoutSeconds == 5)  // KEEP-ALIVE TIMED-OUT
             {
-                LostConnection.Invoke(client.SocketId);
+                //LostConnection.Invoke(client.SocketId);
+                System.Console.WriteLine($"[{client.SocketId}] is dead");
                 connected = false;
 
                 timer.Stop();
@@ -53,6 +54,7 @@ namespace Server
         internal void ConfirmStatus()  // reset timeout seconds
         {
             timeoutSeconds = 0;
+            System.Console.WriteLine($"[{client.SocketId}] is still alive");
         }
 
         internal void KeepAliveChecker(object dest_socket_id)
@@ -68,7 +70,7 @@ namespace Server
                 Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
                 PacketManager.SendPacket(keepAlive_packet);
 
-                Thread.Sleep(1000);  // 1 second wait
+                Thread.Sleep(3000);  // 1 second wait
             }
         }
     }

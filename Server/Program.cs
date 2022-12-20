@@ -100,10 +100,13 @@ namespace Server
                     {
                         RequestsHandler.HandleShutDown(packet);
                     }
+
                     else if (KeepAlive.IsKeepAlive(payload))  // (SRT) KeepAlive
                     {
-                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.ToString(), packet.Ethernet.IpV4.Udp.SourcePort);
-                        SRTSockets[clientSocketId].KeepAlive.ConfirmStatus();  // sign as alive
+                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString(), packet.Ethernet.IpV4.Udp.SourcePort);
+
+                        if(SRTSockets.ContainsKey(clientSocketId))
+                            SRTSockets[clientSocketId].KeepAlive.ConfirmStatus();  // sign as alive
                     }
                 }
             }

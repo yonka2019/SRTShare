@@ -29,6 +29,7 @@ namespace Client
 
         private static uint server_socket_id = 0;
         private bool first = true;
+        private bool alive = true;
 
         public MainView()
         {
@@ -76,14 +77,19 @@ namespace Client
                             RequestsHandler.HandleInduction(handshake_request);
                         }
                     }
+
                     else if (KeepAlive.IsKeepAlive(payload))
                     {
-                        KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, MainView.server_mac, PacketManager.localIp, PacketManager.SERVER_IP, MainView.myPort, PacketManager.SERVER_PORT));
-                        Packet keepAlive_confirm = keepAlive_response.Check(server_socket_id);
-                        PacketManager.SendPacket(keepAlive_confirm);
+                        if(alive)
+                        {
+                            KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, MainView.server_mac, PacketManager.localIp, PacketManager.SERVER_IP, MainView.myPort, PacketManager.SERVER_PORT));
+                            Packet keepAlive_confirm = keepAlive_response.Check(server_socket_id);
+                            PacketManager.SendPacket(keepAlive_confirm);
+                        }
                     }
                 }
             }
+
             else if (packet.IsValidARP())  // ARP Packet
             {
                 ArpDatagram arp = packet.Ethernet.Arp;
@@ -134,6 +140,8 @@ namespace Client
             ShutDownRequest shutdown_response = new ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
             Packet shutdown_packet = shutdown_response.Exit();
             PacketManager.SendPacket(shutdown_packet);
+
+            alive = false;
 
             MessageBox.Show("Sent a ShutDown request!",
                 "Bye Bye", MessageBoxButtons.OK, MessageBoxIcon.Warning);
