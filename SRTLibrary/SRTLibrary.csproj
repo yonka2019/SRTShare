@@ -61,6 +61,8 @@
     <Compile Include="PacketManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\Keep-Alive.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Data\DataFlags.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Data\SRTHeader.cs" />
     <Compile Include="SRTManager\ProtocolManager.cs" />
     <Compile Include="SRTManager\SClient.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\ControlType.cs" />
