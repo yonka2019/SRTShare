@@ -12,7 +12,7 @@ namespace Client
     internal class RequestsHandler
     {
         /// <summary>
-        /// The function handles the induction phaze
+        /// The function handles what happens after getting an induction message from the server
         /// </summary>
         /// <param name="handshake_request">Handshake object</param>
         internal static void HandleInduction(Handshake handshake_request)
@@ -38,6 +38,27 @@ namespace Client
 
                 MessageBox.Show("Wrong cookie - Exiting...", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+
+        /// <summary>
+        /// The function handles what happens after getting an arp message from the server
+        /// </summary>
+        /// <param name="server_mac">Server's mac</param>
+        /// <param name="myPort">Client's port</param>
+        /// <param name="client_socket_id">Client's socket id</param>
+        internal static void HandleArp(string server_mac, ushort myPort, uint client_socket_id)
+        {
+            HandshakeRequest handshake = new HandshakeRequest
+                    (PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
+
+            //create induction packet
+            DateTime now = DateTime.Now;
+
+            IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
+            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.localIp, myPort, now), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0);
+
+            PacketManager.SendPacket(handshake_packet);
         }
     }
 }

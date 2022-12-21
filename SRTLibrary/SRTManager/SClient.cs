@@ -18,6 +18,7 @@ namespace SRTLibrary
             SocketId = socketId;
         }
 
+
         public override string ToString()  // combine to "IPAddress:Port" 
         {
             return IPAddress.ToString() + Port.ToString();

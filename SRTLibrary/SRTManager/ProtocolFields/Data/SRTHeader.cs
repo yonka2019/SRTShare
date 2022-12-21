@@ -15,7 +15,6 @@ namespace SRTManager.ProtocolFields.Data
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
         /// 
-
         public SRTHeader(uint sequence_number, PositionFlags packet_position_flag, EncryptionFlags encryption_flag, bool is_retransmitted, uint message_number, uint time_stamp, uint dest_socket_id, List<byte> data)
         {
             IS_CONTROL_PACKET = false; byteFields.Add(BitConverter.GetBytes(IS_CONTROL_PACKET));
@@ -31,6 +30,7 @@ namespace SRTManager.ProtocolFields.Data
             DEST_SOCKET_ID = dest_socket_id; byteFields.Add(BitConverter.GetBytes(DEST_SOCKET_ID));
             DATA = data; byteFields.Add(DATA.ToArray());
         }
+
 
         /// <summary>
         /// Byte[] -> Fields (To extract)
@@ -56,10 +56,17 @@ namespace SRTManager.ProtocolFields.Data
             }
         }
 
+
+        /// <summary>
+        /// The function checks if it's a data packet
+        /// </summary>
+        /// <param name="data">Data to check</param>
+        /// <returns>True if data packet, false if not</returns>
         public static bool IsData(byte[] data)
         {
             return !BitConverter.ToBoolean(data, 0);
         }
+
 
         /// <summary>
         /// 8 bit (1 bytes). The control packet has this flag set to

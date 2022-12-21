@@ -12,8 +12,9 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
         {
         }
 
+
         /// <summary>
-        /// Checks if it's a keep alive packet
+        /// The function checks if it's a keep alive packet
         /// </summary>
         /// <param name="data">Byte array to check</param>
         /// <returns>True if keep alive, false if not</returns>

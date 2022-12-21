@@ -12,8 +12,9 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
         {
         }
 
+
         /// <summary>
-        /// Checks if it's a shutdown packet
+        /// The function checks if it's a shutdown packet
         /// </summary>
         /// <param name="data">Byte array to check</param>
         /// <returns>True if shutdown, false if not</returns>

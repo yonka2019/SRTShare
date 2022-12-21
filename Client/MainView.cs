@@ -31,6 +31,7 @@ namespace Client
         private bool first = true;
         private bool alive = true;
 
+
         public MainView()
         {
             InitializeComponent();
@@ -41,9 +42,10 @@ namespace Client
             pRecvThread = new Thread(new ThreadStart(RecvP));
             pRecvThread.Start();
 
-            Packet arpRequest = ARPManager.Request(PacketManager.device, PacketManager.SERVER_IP);
+            Packet arpRequest = ARPManager.Request(PacketManager.device, PacketManager.SERVER_IP); // search for server's mac
             PacketManager.SendPacket(arpRequest);
         }
+
 
         /// <summary>
         /// The function starts receiving the packets
@@ -52,6 +54,7 @@ namespace Client
         {
             PacketManager.ReceivePackets(0, PacketHandler);
         }
+
 
         /// <summary>
         /// Callback function invoked by Pcap.Net for every incoming packet
@@ -80,7 +83,7 @@ namespace Client
 
                     else if (KeepAlive.IsKeepAlive(payload))
                     {
-                        if(alive)
+                        if(alive) // if client still alive, it will send a keep-alive response
                         {
                             KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, MainView.server_mac, PacketManager.localIp, PacketManager.SERVER_IP, MainView.myPort, PacketManager.SERVER_PORT));
                             Packet keepAlive_confirm = keepAlive_response.Check(server_socket_id);
@@ -98,27 +101,18 @@ namespace Client
                 {
                     if (arp.SenderProtocolIpV4Address.ToString() == PacketManager.SERVER_IP) // mac from server
                     {
+                        // After client got the server's mac, it sends the first induction message
                         server_mac = BitConverter.ToString(arp.SenderHardwareAddress.ToArray()).Replace("-", ":");
-
-                        HandshakeRequest handshake = new HandshakeRequest
-                    (PacketManager.BuildBaseLayers(PacketManager.macAddress, server_mac, PacketManager.localIp, PacketManager.SERVER_IP, myPort, PacketManager.SERVER_PORT));
-
-                        //create induction packet
-                        DateTime now = DateTime.Now;
-
                         client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.localIp, myPort);
 
-                        IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
-                        Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.localIp, myPort, now), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0);
-
-                        PacketManager.SendPacket(handshake_packet);
-
+                        RequestsHandler.HandleArp(server_mac, myPort, client_socket_id);
                         first = false;
                     }
                 }
             }
 
         }
+
 
         /// <summary>
         /// The function checks if the targeted mac is my mac
@@ -129,6 +123,7 @@ namespace Client
         {
             return BitConverter.ToString(arp.TargetHardwareAddress.ToArray()).Replace("-", ":") == ARPManager.GetMyMac(PacketManager.device);
         }
+
 
         /// <summary>
         /// The function accurs when the form is closed

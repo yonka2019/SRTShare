@@ -37,10 +37,12 @@ namespace Server
             public static extern int GetDeviceCaps(IntPtr hDC, int index);
         }
 
+
         private static void Main()
         {
             new Thread(new ThreadStart(RecvP)).Start(); // always listen for any new connections
         }
+
 
         /// <summary>
         /// The function starts receiving the packets
@@ -49,6 +51,7 @@ namespace Server
         {
             PacketManager.ReceivePackets(0, HandlePacket);
         }
+
 
         /// <summary>
         /// Callback function invoked by Pcap.Net for every incoming packet
@@ -75,7 +78,7 @@ namespace Server
                         else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION) // [client -> server] (SRT) Conclusion
                         {
                             RequestsHandler.HandleConclusion(packet, handshake_request, datagram);
-                            SRTSockets[handshake_request.SOCKET_ID].KeepAlive.StartCheck();
+                            SRTSockets[handshake_request.SOCKET_ID].KeepAlive.StartCheck(); // start keep-alive checking
                             // START VIDEO HERE!!
 
 
@@ -95,6 +98,7 @@ namespace Server
                              */
                         }
                     }
+
                     else if (Shutdown.IsShutdown(payload))  // (SRT) Shutdown
                     {
                         RequestsHandler.HandleShutDown(packet);
@@ -109,6 +113,7 @@ namespace Server
                     }
                 }
             }
+
             else if (packet.IsValidARP())  // ARP Packet
             {
                 if (packet.Ethernet.Arp.TargetProtocolIpV4Address.ToString() == PacketManager.SERVER_IP) // the arp was for the server
@@ -120,10 +125,13 @@ namespace Server
             }
         }
 
+
         internal static void LostConnection(uint socket_id)
         {
             Console.WriteLine($"[{socket_id}] is dead");
         }
+
+
         /// <summary>
         /// The function takes a screen shot 
         /// </summary>
@@ -149,6 +157,7 @@ namespace Server
             }
         }
 
+
         /// <summary>
         /// The function converts a bitmap obejct into a memory stream (easier to send)
         /// </summary>
@@ -170,6 +179,7 @@ namespace Server
 
             return stream;
         }
+
 
         /// <summary>
         /// The function creates an encoder to convert the Bitmap object

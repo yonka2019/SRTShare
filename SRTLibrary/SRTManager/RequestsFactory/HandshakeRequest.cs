@@ -8,17 +8,8 @@ namespace SRTLibrary.SRTManager.RequestsFactory
 {
     public class HandshakeRequest : UdpPacket
     {
-        /*
-         *  Usage Example:
-                    var handshakeRequest = new SRTManager.ProtocolManager.Handshake(PacketManager.BuildEthernetLayer(),
-                    PacketManager.BuildIpv4Layer(),
-                    PacketManager.BuildUdpLayer(600, PacketManager.SERVER_PORT));
-                    Packet readyToSent = a.Induction("a", 1, false);
-        */
-
         public HandshakeRequest(params ILayer[] layers) : base(layers) { }
 
-        // public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint socket_id, uint syn_cookie, decimal p_ip)
 
         /// <summary>
         /// The function creates an induction packet (Handshake)
@@ -50,6 +41,7 @@ namespace SRTLibrary.SRTManager.RequestsFactory
 
             return BuildPacket();
         }
+
 
         /// <summary>
         /// The function creates a conclusion packet (Handshake)

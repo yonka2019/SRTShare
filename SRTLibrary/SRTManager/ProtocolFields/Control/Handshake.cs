@@ -20,6 +20,7 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
             PEER_IP = p_ip; byteFields.Add(PEER_IP.ToBytes());
         }
 
+
         public Handshake(byte[] data) : base(data)  // initialize SRT Control header fields
         {
             // initialize SRT Control Handshake header fields
@@ -36,8 +37,9 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
             PEER_IP = new PcapDotNet.Packets.IpV4.IpV4Address(MethodExt.ReverseIp(PEER_IP.ToString()));
         }
 
+
         /// <summary>
-        /// Checks if it's a handshake packet
+        /// The function checks if it's a handshake packet
         /// </summary>
         /// <param name="data">Byte array to check</param>
         /// <returns>True if handshake, false if not</returns>
@@ -45,6 +47,7 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
         {
             return BitConverter.ToUInt16(data, 1) == (ushort)ControlType.HANDSHAKE;
         }
+
 
         /// <summary>
         /// 32 bits (4 bytes). A base protocol version number. Currently used

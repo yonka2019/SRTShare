@@ -8,6 +8,7 @@ namespace SRTLibrary.SRTManager.RequestsFactory
     {
         public ShutDownRequest(params ILayer[] layers) : base(layers) { }
 
+
         /// <summary>
         /// The function creates a shutdown packet
         /// </summary>

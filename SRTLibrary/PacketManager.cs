@@ -34,6 +34,11 @@ namespace SRTLibrary
             Console.WriteLine($"[!] SELECTED INTERFACE: {device.Description}");
         }
 
+
+        /// <summary>
+        /// The function gets the local ip of the computer
+        /// </summary>
+        /// <returns>The computer's local ip</returns>
         private static string GetActiveLocalIp()
         {
             IPAddress localAddress = null;
@@ -53,6 +58,12 @@ namespace SRTLibrary
             return localAddress.ToString();
         }
 
+
+        /// <summary>
+        /// The function auto selects the device where all the messages will be sent to
+        /// </summary>
+        /// <param name="activeLocalIp">Local ip</param>
+        /// <returns>Device where all the messages will be sent to</returns>
         private static LivePacketDevice AutoSelectNetworkInterface(string activeLocalIp)
         {
             IList<LivePacketDevice> allDevices = LivePacketDevice.AllLocalMachine;
@@ -61,7 +72,6 @@ namespace SRTLibrary
             // iterate interfaces list and found the right one
             for (int i = 0; i != allDevices.Count; ++i)
             {
-                Console.WriteLine(allDevices[i].Description);
                 LivePacketDevice device = allDevices[i];
                 foreach (DeviceAddress deviceAddress in device.Addresses)
                 {
@@ -93,6 +103,7 @@ namespace SRTLibrary
             return allDevices[selectDeviceIndex - 1];
         }
 
+
         /// <summary>
         /// The function sends the given packet
         /// </summary>
@@ -106,6 +117,7 @@ namespace SRTLibrary
                 communicator.SendPacket(packetToSend);
             }
         }
+
 
         /// <summary>
         /// The fucntion handles the packets recieves by a handle to a function that it gets
@@ -127,13 +139,14 @@ namespace SRTLibrary
             }
         }
 
+
         /// <summary>
         /// The function builds the ethernet layer
         /// </summary>
         /// <param name="sourceMac">Source mac</param>
         /// <param name="destMac">Destination mac</param>
         /// <returns>Ethernet layer object</returns>
-        public static EthernetLayer BuildEthernetLayer(string sourceMac = "7C:B0:C2:FE:0F:C5", string destMac = "7C:B0:C2:FE:0F:C5")
+        public static EthernetLayer BuildEthernetLayer(string sourceMac, string destMac)
         {
             return
             new EthernetLayer
@@ -144,13 +157,14 @@ namespace SRTLibrary
             };
         }
 
+
         /// <summary>
         /// The function builds the ip layer
         /// </summary>
         /// <param name="sourceIp">Source ip</param>
         /// <param name="destIp">Destination ip</param>
         /// <returns>Ip layer object</returns>
-        public static IpV4Layer BuildIpv4Layer(string sourceIp = "127.0.0.1", string destIp = "127.0.0.1")
+        public static IpV4Layer BuildIpv4Layer(string sourceIp, string destIp)
         {
             return
             new IpV4Layer
@@ -167,13 +181,14 @@ namespace SRTLibrary
             };
         }
 
+
         /// <summary>
         /// The function builds the transport layer
         /// </summary>
         /// <param name="sourcePort">Source port</param>
         /// <param name="destPort">Destination port</param>
         /// <returns>Transport layer object (udp)</returns>
-        public static UdpLayer BuildUdpLayer(ushort sourcePort = SERVER_PORT, ushort destPort = 10000)
+        public static UdpLayer BuildUdpLayer(ushort sourcePort, ushort destPort)
         {
             return
             new UdpLayer
@@ -185,6 +200,7 @@ namespace SRTLibrary
             };
         }
 
+
         public static PayloadLayer BuildPLayer(string data = "")
         {
             return new PayloadLayer
@@ -192,6 +208,7 @@ namespace SRTLibrary
                 Data = new Datagram(Encoding.ASCII.GetBytes(data))
             };
         }
+
 
         /// <summary>
         /// The function converts a byte list into a payload layer
@@ -217,6 +234,7 @@ namespace SRTLibrary
             };
         }
 
+
         /// <summary>
         /// The function converts a byte array into a payload layer
         /// </summary>
@@ -229,6 +247,7 @@ namespace SRTLibrary
                 Data = new Datagram(data)
             };
         }
+
 
         /// <summary>
         /// The function builds all of the base layers (ehternet, ip, transport)

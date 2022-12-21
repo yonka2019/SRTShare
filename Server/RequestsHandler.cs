@@ -12,7 +12,7 @@ namespace Server
     internal class RequestsHandler
     {
         /// <summary>
-        /// The function handles the shutdown
+        /// The function handles what happens after getting a shutdown message from a client
         /// </summary>
         /// <param name="packet">packet of shutdown</param>
         internal static void HandleShutDown(Packet packet)
@@ -31,8 +31,9 @@ namespace Server
                 Console.WriteLine($"Client [{client_id}] wasn't found.");
         }
 
+
         /// <summary>
-        /// The function handles the induction phaze
+        /// The function handles what happens after getting an induction message from a client
         /// </summary>
         /// <param name="packet">Given packet</param>
         /// <param name="handshake_request">The handshake object</param>
@@ -52,8 +53,9 @@ namespace Server
             Console.WriteLine("Induction [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
         }
 
+
         /// <summary>
-        /// The function handles the conclusion phaze
+        /// The function handles what happens after getting an conclusion message from a client
         /// </summary>
         /// <param name="packet">Given packet</param>
         /// <param name="handshake_request">The handshake object</param>

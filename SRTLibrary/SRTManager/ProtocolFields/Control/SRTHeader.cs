@@ -8,6 +8,7 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
         protected readonly List<byte[]> byteFields = new List<byte[]>();
         public List<byte[]> GetByted() { return byteFields; }
 
+
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
@@ -19,6 +20,7 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
             TYPE_SPECIFIC_INFO = type_specific_info; byteFields.Add(BitConverter.GetBytes(TYPE_SPECIFIC_INFO));
             DEST_SOCKET_ID = dest_socket_id; byteFields.Add(BitConverter.GetBytes(DEST_SOCKET_ID));
         }
+
 
         /// <summary>
         /// Byte[] -> Fields (To extract)
@@ -32,10 +34,17 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
             DEST_SOCKET_ID = BitConverter.ToUInt32(data, 9); // [9 10 11 12]
         }
 
+
+        /// <summary>
+        /// The function checks if it's a control packet
+        /// </summary>
+        /// <param name="data">Data to check</param>
+        /// <returns>True if control packet, false if not</returns>
         public static bool IsControl(byte[] data)
         {
             return BitConverter.ToBoolean(data, 0);
         }
+
 
         /// <summary>
         /// 8 bit (1 bytes). The control packet has this flag set to

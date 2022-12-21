@@ -43,6 +43,10 @@ namespace Server
             }
         }
 
+
+        /// <summary>
+        /// The function starts the thread responsible for keep-alive sending
+        /// </summary>
         internal void StartCheck()
         {
             Thread kaChecker = new Thread(new ParameterizedThreadStart(KeepAliveChecker));  // create thread of keep-alive checker
@@ -50,12 +54,21 @@ namespace Server
             kaChecker.Start(client.SocketId);
         }
 
+
+        /// <summary>
+        /// The function confirms the keep-alive message (resets the timer)
+        /// </summary>
         internal void ConfirmStatus()  // reset timeout seconds
         {
             timeoutSeconds = 0;
             System.Console.WriteLine($"[{client.SocketId}] is still alive");
         }
 
+
+        /// <summary>
+        /// The function sends keep-alive packets every 3 seconds while the client is connected
+        /// </summary>
+        /// <param name="dest_socket_id"></param>
         internal void KeepAliveChecker(object dest_socket_id)
         {
             uint u_dest_socket_id = (uint)dest_socket_id;
@@ -69,7 +82,7 @@ namespace Server
                 Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
                 PacketManager.SendPacket(keepAlive_packet);
 
-                Thread.Sleep(3000);  // 1 second wait
+                Thread.Sleep(3000);  // 3 second wait
             }
         }
     }

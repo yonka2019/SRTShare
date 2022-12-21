@@ -5,14 +5,6 @@ namespace SRTLibrary.SRTManager.RequestsFactory
 {
     public class UdpPacket
     {
-        /* Usage Example:
-            EthernetLayer ethernetLayer = PacketManager.BuildEthernetLayer();
-            IpV4Layer ipV4Layer = PacketManager.BuildIpv4Layer();
-            UdpLayer udpLayer = PacketManager.BuildUdpLayer(PacketManager.SERVER_PORT, 123);
-            var a = new ProtocolManager(ethernetLayer, ipV4Layer, udpLayer);
-            Packet doneToSend = a.HandshakeRequest();
-         */
-
         private readonly ILayer[] workingLayers; // layers we working with, we should add last packet data (SRT)
         /*
          * EthernetLayer - Exist
@@ -27,6 +19,7 @@ namespace SRTLibrary.SRTManager.RequestsFactory
             layers.CopyTo(workingLayers, 0);
         }
 
+
         /// <summary>
         /// The function returns the payload layer
         /// </summary>
@@ -35,6 +28,7 @@ namespace SRTLibrary.SRTManager.RequestsFactory
         {
             return ref workingLayers[workingLayers.Length - 1];
         }
+
 
         /// <summary>
         /// The function builds and returns a packet based on the existing layers
