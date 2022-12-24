@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SRTManager.ProtocolFields.Data
+namespace SRTLibrary.SRTManager.ProtocolFields.Data
 {
     public class SRTHeader
     {

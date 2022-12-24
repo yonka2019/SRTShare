@@ -3,7 +3,8 @@ using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
 using SRTLibrary;
-using SRTLibrary.SRTManager.ProtocolFields.Control;
+using Control = SRTLibrary.SRTManager.ProtocolFields.Control;
+using Data = SRTLibrary.SRTManager.ProtocolFields.Data;
 using SRTLibrary.SRTManager.RequestsFactory;
 using System;
 using System.Linq;
@@ -67,21 +68,21 @@ namespace Client
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (SRTHeader.IsControl(payload))  // (SRT) Control
+                if (Control.SRTHeader.IsControl(payload))  // (SRT) Control
                 {
-                    if (Handshake.IsHandshake(payload))  // (SRT) Handshake
+                    if (Control.Handshake.IsHandshake(payload))  // (SRT) Handshake
                     {
-                        Handshake handshake_request = new Handshake(payload);
+                        Control.Handshake handshake_request = new Control.Handshake(payload);
 
                         server_socket_id = handshake_request.SOCKET_ID;  // as first packet, we are setting the socket id to know it for the future
 
-                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION)  // [server -> client] (SRT) Induction
+                        if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.INDUCTION)  // [server -> client] (SRT) Induction
                         {
                             RequestsHandler.HandleInduction(handshake_request);
                         }
                     }
 
-                    else if (KeepAlive.IsKeepAlive(payload))
+                    else if (Control.KeepAlive.IsKeepAlive(payload))
                     {
                         if(alive) // if client still alive, it will send a keep-alive response
                         {
@@ -90,6 +91,13 @@ namespace Client
                             PacketManager.SendPacket(keepAlive_confirm);
                         }
                     }
+                }
+
+                else if(Data.SRTHeader.IsData(payload))
+                {
+                    Data.SRTHeader data_request = new Data.SRTHeader(payload);
+
+                    RequestsHandler.HandleData(data_request, pictureBox1);
                 }
             }
 

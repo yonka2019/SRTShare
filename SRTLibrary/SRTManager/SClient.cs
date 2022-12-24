@@ -9,15 +9,16 @@ namespace SRTLibrary
         public ushort Port { get; set; }
         public MacAddress MacAddress { get; set; }
         public uint SocketId { get; set; }
+        public uint MTU { get; set; }
 
-        public SClient(IpV4Address iPAddress, ushort port, MacAddress macAddress, uint socketId)
+        public SClient(IpV4Address iPAddress, ushort port, MacAddress macAddress, uint socketId, uint MTU)
         {
-            IPAddress = iPAddress;
-            Port = port;
-            MacAddress = macAddress;
-            SocketId = socketId;
+            this.IPAddress = iPAddress;
+            this.Port = port;
+            this.MacAddress = macAddress;
+            this.SocketId = socketId;
+            this.MTU = MTU;
         }
-
 
         public override string ToString()  // combine to "IPAddress:Port" 
         {

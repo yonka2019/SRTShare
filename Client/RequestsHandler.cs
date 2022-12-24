@@ -1,21 +1,29 @@
 ﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.IpV4;
 using SRTLibrary;
-using SRTLibrary.SRTManager.ProtocolFields.Control;
+using Control = SRTLibrary.SRTManager.ProtocolFields.Control;
+using Data = SRTLibrary.SRTManager.ProtocolFields.Data;
+
 using SRTLibrary.SRTManager.RequestsFactory;
 using System;
 using System.Windows.Forms;
 using SRTRequest = SRTLibrary.SRTManager.RequestsFactory;
+using System.Collections.Generic;
+using System.IO;
+using System.Drawing;
 
 namespace Client
 {
     internal class RequestsHandler
     {
+        private static readonly List<byte> all_chuncks = new List<byte>();
+
+
         /// <summary>
         /// The function handles what happens after getting an induction message from the server
         /// </summary>
         /// <param name="handshake_request">Handshake object</param>
-        internal static void HandleInduction(Handshake handshake_request)
+        internal static void HandleInduction(Control.Handshake handshake_request)
         {
             if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(PacketManager.localIp, MainView.myPort, DateTime.Now))
             {
@@ -60,5 +68,33 @@ namespace Client
 
             PacketManager.SendPacket(handshake_packet);
         }
+
+        internal static void HandleData(Data.SRTHeader data_request, PictureBox pictureBox)
+        {
+            if(data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.LAST)
+            {
+                all_chuncks.AddRange(data_request.DATA);
+                ShowImage(true, pictureBox);
+                all_chuncks.Clear();
+            }
+
+            else
+                all_chuncks.AddRange(data_request.DATA);
+        }
+
+        private static void ShowImage(bool allChunksReceived, PictureBox pictureBox)
+        {
+
+            if (allChunksReceived)
+                Console.WriteLine("[IMAGE BUILT SUCCESSFULLY] SHOWING IMAGE\n--------------------\n\n\n");
+            else
+                Console.WriteLine("[CHUNKS MISSING] SHOWING IMAGE\n--------------------\n\n\n");
+
+            using (MemoryStream ms = new MemoryStream(all_chuncks.ToArray()))
+            {
+                pictureBox.Image = new Bitmap(Image.FromStream(ms));
+            }
+        }
+
     }
 }

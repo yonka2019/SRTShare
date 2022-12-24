@@ -72,11 +72,13 @@ namespace Server
             Console.WriteLine("Conclusion [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
 
             // ADD NEW SOCKET TO LIST 
-            SClient currentClient = new SClient(handshake_request.PEER_IP, datagram.SourcePort, packet.Ethernet.Source, handshake_request.SOCKET_ID);
+            SClient currentClient = new SClient(handshake_request.PEER_IP, datagram.SourcePort, packet.Ethernet.Source, handshake_request.SOCKET_ID, handshake_request.MTU);
             
             KeepAliveManager kaManager = new KeepAliveManager(currentClient);
+            DataManager dataManager = new DataManager(currentClient);
+
             Program.SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(currentClient,
-                kaManager));
+                kaManager, dataManager));
             kaManager.LostConnection += Program.LostConnection;
         }
     }

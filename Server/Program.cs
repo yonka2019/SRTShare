@@ -79,16 +79,18 @@ namespace Server
                         {
                             RequestsHandler.HandleConclusion(packet, handshake_request, datagram);
                             SRTSockets[handshake_request.SOCKET_ID].KeepAlive.StartCheck(); // start keep-alive checking
+                            SRTSockets[handshake_request.SOCKET_ID].Data.StartVideo(); // start keep-alive checking
+
                             // START VIDEO HERE!!
 
 
-                            // START KEEP-ALIVE EACH 1 SECOND TO CLIENT TO REAFFRIM CONNECTION :
+                            // START KEEP-ALIVE EACH 3 SECONDS TO CLIENT TO REAFFRIM CONNECTION :
 
                             /* KEEP-ALIVE GOOD TRANSMISSION PREVIEW: 
                              * [SERVER] -> [CLIENT] (keep-alive check request)
                              * [CLIENT -> [SERVER] (keep-alive check confirm)
                              * --------------------
-                             * [!] EACH SECOND [!]
+                             * [!] EACH 3 SECONDS [!]
                              */
 
                             /* KEEP-ALIVE BAD TRANSMISSION PREVIEW: 
@@ -130,6 +132,71 @@ namespace Server
         {
             Console.WriteLine($"[{socket_id}] is dead");
         }
+
+
+//        private static void ShotBuildSend(PacketDevice device, ushort dstPort)
+//        {
+//            using (PacketCommunicator communicator = device.Open(100, // name of the device
+//                                                         PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
+//                                                         1000)) // read timeout
+//            {
+//                List<Packet> imageChunks = SplitToPackets(dstPort);
+//                int chunk_counter = -1;
+//                int total_chunks = imageChunks.Count - 1;
+
+//                Console.WriteLine($"[SEND : {dstPort}] Image (Total chunks: {total_chunks})"); // each image
+//                foreach (Packet chunk in imageChunks)
+//                {
+//                    communicator.SendPacket(chunk);
+//#if DEBUG
+//                    Console.WriteLine($"[SEND : {dstPort}] Chunk number: {++chunk_counter}/{total_chunks} | Size: {chunk.Count}"); // each chunk
+//#endif
+//                }
+//                Console.WriteLine("--------------------\n\n\n");
+//            }
+//        }
+
+        //private static List<Packet> SplitToPackets(ushort dstPort)
+        //{
+        //    Bitmap bmp = TakeScreenShot();
+        //    MemoryStream mStream = GetJpegStream(bmp);
+
+        //    List<byte> stream = mStream.ToArray().ToList();
+        //    List<Packet> packets = new List<Packet>();
+        //    List<byte> packet_id; // packet id have same meaning as 'chunk number'
+        //    List<byte> total_chunks_number;
+        //    List<byte> packet_data;
+        //    int i;
+
+        //    EthernetLayer ethernetLayer = PcapFunc.BuildEthernetLayer();
+        //    IpV4Layer ipV4Layer = PcapFunc.BuildIpv4Layer();
+        //    UdpLayer udpLayer = PcapFunc.BuildUdpLayer(PcapFunc.SERVER_PORT, dstPort);
+
+        //    for (i = 1000; (i + 1000) < stream.Count; i += 1000) // 1000 bytes iterating
+        //    {
+        //        packet_id = BitConverter.GetBytes((ushort)((i - 1000) / 1000)).ToList();
+        //        total_chunks_number = BitConverter.GetBytes((ushort)((stream.Count / 1000) - 1)).ToList();
+        //        packet_data = stream.GetRange(i - 1000, 1000);
+
+        //        packet_id.AddRange(total_chunks_number); // [packet id - (2bytes)][chunks number - (2bytes)]
+        //        packet_id.AddRange(packet_data); // [packet id - (2bytes)][chunks number - (2bytes)][data] // FINAL
+
+        //        PayloadLayer p1 = PcapFunc.BuildPLayer(packet_id.ToArray());
+        //        packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p1).Build(DateTime.Now));
+        //    }
+
+        //    packet_id = BitConverter.GetBytes((ushort)((i - 1000) / 1000)).ToList();
+        //    total_chunks_number = BitConverter.GetBytes((ushort)((stream.Count / 1000) - 1)).ToList();
+        //    packet_data = stream.GetRange(i, stream.Count - i);
+
+        //    packet_id.AddRange(total_chunks_number); // [packet id - (2bytes)][chunks number - (2bytes)]
+        //    packet_id.AddRange(packet_data); // [packet id - (2bytes)][chunks number - (2bytes)][last data]
+
+        //    PayloadLayer p2 = PcapFunc.BuildPLayer(packet_id.ToArray());
+        //    packets.Add(new PacketBuilder(ethernetLayer, ipV4Layer, udpLayer, p2).Build(DateTime.Now));
+
+        //    return packets;
+        //}
 
 
         /// <summary>
