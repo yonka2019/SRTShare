@@ -42,13 +42,13 @@ namespace Server
         /// </summary>
         internal void StartVideo()
         {
-            Thread videoStarter = new Thread(new ParameterizedThreadStart(VideoSender));  // create thread of keep-alive checker
+            Thread videoStarter = new Thread(new ParameterizedThreadStart(VideoInit));  // create thread of keep-alive checker
 
             videoStarter.Start(client.SocketId);
         }
 
 
-        private void VideoSender(object dest_socket_id)
+        private void VideoInit(object dest_socket_id)
         {
             uint u_dest_socket_id = (uint)dest_socket_id;
 
