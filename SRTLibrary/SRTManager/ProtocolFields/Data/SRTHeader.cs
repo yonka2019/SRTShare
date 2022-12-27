@@ -31,7 +31,6 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Data
             DATA = data; byteFields.Add(DATA.ToArray());
         }
 
-
         /// <summary>
         /// Byte[] -> Fields (To extract)
         /// </summary>
