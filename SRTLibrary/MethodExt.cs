@@ -20,7 +20,6 @@ namespace SRTLibrary
             return reversedIpAddress;
         }
 
-
         /// <summary>
         /// The function converts a mac address to byte array
         /// </summary>
@@ -37,7 +36,6 @@ namespace SRTLibrary
             return byted;
         }
 
-
         /// <summary>
         /// The function converts an ip address to byte array
         /// </summary>
@@ -53,7 +51,6 @@ namespace SRTLibrary
             return byted;
         }
 
-
         /// <summary>
         /// The function checks if it's a valid arp packet
         /// </summary>
@@ -63,7 +60,6 @@ namespace SRTLibrary
         {
             return packet.Ethernet.Arp != null && packet.Ethernet.Arp.IsValid && packet.Ethernet.Arp.TargetProtocolIpV4Address != null;
         }
-
 
         /// <summary>
         /// The function checks if it's a valid udp packet

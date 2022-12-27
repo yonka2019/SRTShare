@@ -34,7 +34,6 @@ namespace SRTLibrary
             Console.WriteLine($"[!] SELECTED INTERFACE: {device.Description}");
         }
 
-
         /// <summary>
         /// The function gets the local ip of the computer
         /// </summary>
@@ -57,7 +56,6 @@ namespace SRTLibrary
 
             return localAddress.ToString();
         }
-
 
         /// <summary>
         /// The function auto selects the device where all the messages will be sent to
@@ -103,7 +101,6 @@ namespace SRTLibrary
             return allDevices[selectDeviceIndex - 1];
         }
 
-
         /// <summary>
         /// The function sends the given packet
         /// </summary>
@@ -117,7 +114,6 @@ namespace SRTLibrary
                 communicator.SendPacket(packetToSend);
             }
         }
-
 
         /// <summary>
         /// The fucntion handles the packets recieves by a handle to a function that it gets
@@ -139,7 +135,6 @@ namespace SRTLibrary
             }
         }
 
-
         /// <summary>
         /// The function builds the ethernet layer
         /// </summary>
@@ -156,7 +151,6 @@ namespace SRTLibrary
                 EtherType = EthernetType.None, // Will be filled automatically.
             };
         }
-
 
         /// <summary>
         /// The function builds the ip layer
@@ -180,7 +174,6 @@ namespace SRTLibrary
                 TypeOfService = 0,
             };
         }
-
 
         /// <summary>
         /// The function builds the transport layer
@@ -209,7 +202,6 @@ namespace SRTLibrary
             };
         }
 
-
         /// <summary>
         /// The function converts a byte list into a payload layer
         /// </summary>
@@ -234,7 +226,6 @@ namespace SRTLibrary
             };
         }
 
-
         /// <summary>
         /// The function converts a byte array into a payload layer
         /// </summary>
@@ -247,7 +238,6 @@ namespace SRTLibrary
                 Data = new Datagram(data)
             };
         }
-
 
         /// <summary>
         /// The function builds all of the base layers (ehternet, ip, transport)

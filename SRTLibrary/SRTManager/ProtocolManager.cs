@@ -23,7 +23,6 @@ namespace SRTLibrary
             return Md5Encrypt(textToEncrypt); // return the encrypted cookie
         }
 
-
         /// <summary>
         /// The function gtenerates a socket id for the handshake
         /// </summary>
@@ -38,7 +37,6 @@ namespace SRTLibrary
 
             return Md5Encrypt(textToEncrypt); // return the encrypted cookie
         }
-
 
         /// <summary>
         /// The function encrypts the given text

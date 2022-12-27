@@ -55,7 +55,6 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Data
             }
         }
 
-
         /// <summary>
         /// The function checks if it's a data packet
         /// </summary>
@@ -65,7 +64,6 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Data
         {
             return !BitConverter.ToBoolean(data, 0);
         }
-
 
         /// <summary>
         /// 8 bit (1 bytes). The control packet has this flag set to

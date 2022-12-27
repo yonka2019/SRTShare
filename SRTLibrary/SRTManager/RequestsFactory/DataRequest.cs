@@ -1,10 +1,5 @@
-﻿using System;
+﻿using PcapDotNet.Packets;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using PcapDotNet.Packets;
-
 using SRTData = SRTLibrary.SRTManager.ProtocolFields.Data;
 
 
@@ -43,7 +38,5 @@ namespace SRTLibrary.SRTManager.RequestsFactory
 
             return packets;
         }
-
-
     }
 }

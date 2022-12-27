@@ -1,13 +1,9 @@
 ﻿using PcapDotNet.Packets;
-using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Transport;
 using SRTLibrary;
 using SRTLibrary.SRTManager.ProtocolFields.Control;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -37,12 +33,10 @@ namespace Server
             public static extern int GetDeviceCaps(IntPtr hDC, int index);
         }
 
-
         private static void Main()
         {
             new Thread(new ThreadStart(RecvP)).Start(); // always listen for any new connections
         }
-
 
         /// <summary>
         /// The function starts receiving the packets
@@ -51,7 +45,6 @@ namespace Server
         {
             PacketManager.ReceivePackets(0, HandlePacket);
         }
-
 
         /// <summary>
         /// Callback function invoked by Pcap.Net for every incoming packet
@@ -80,24 +73,6 @@ namespace Server
                             RequestsHandler.HandleConclusion(packet, handshake_request, datagram);
                             SRTSockets[handshake_request.SOCKET_ID].KeepAlive.StartCheck(); // start keep-alive checking
                             SRTSockets[handshake_request.SOCKET_ID].Data.StartVideo(); // start keep-alive checking
-
-                            // START VIDEO HERE!!
-
-
-                            // START KEEP-ALIVE EACH 3 SECONDS TO CLIENT TO REAFFRIM CONNECTION :
-
-                            /* KEEP-ALIVE GOOD TRANSMISSION PREVIEW: 
-                             * [SERVER] -> [CLIENT] (keep-alive check request)
-                             * [CLIENT -> [SERVER] (keep-alive check confirm)
-                             * --------------------
-                             * [!] EACH 3 SECONDS [!]
-                             */
-
-                            /* KEEP-ALIVE BAD TRANSMISSION PREVIEW: 
-                             * [SERVER] -> [CLIENT] (keep-alive check request)
-                             * . . . (5 seconds passed, no check confirm)
-                             * [SERVER] CLOSE [client] SOCKET, DISPOSE RESOURCES
-                             */
                         }
                     }
 
@@ -118,15 +93,12 @@ namespace Server
 
             else if (packet.IsValidARP())  // ARP Packet
             {
-                if (packet.Ethernet.Arp.TargetProtocolIpV4Address.ToString() == PacketManager.SERVER_IP) // the arp was for the server
+                if (packet.Ethernet.Arp.TargetProtocolIpV4Address.ToString() == PacketManager.SERVER_IP)  // the arp was for the server
                 {
-                    ArpDatagram arp = packet.Ethernet.Arp;
-                    Packet arpReply = ARPManager.Reply(PacketManager.device, BitConverter.ToString(arp.SenderHardwareAddress.ToArray()).Replace("-", ":"), arp.SenderProtocolIpV4Address.ToString());
-                    PacketManager.SendPacket(arpReply);
+                    RequestsHandler.HandleArp(packet);
                 }
             }
         }
-
 
         internal static void LostConnection(uint socket_id)
         {

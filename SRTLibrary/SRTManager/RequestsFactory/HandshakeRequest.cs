@@ -1,7 +1,6 @@
-﻿using SRTLibrary.SRTManager.ProtocolFields.Control;
-using PcapDotNet.Packets;
+﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.IpV4;
-
+using SRTLibrary.SRTManager.ProtocolFields.Control;
 using SRTControl = SRTLibrary.SRTManager.ProtocolFields.Control;
 
 namespace SRTLibrary.SRTManager.RequestsFactory
@@ -9,7 +8,6 @@ namespace SRTLibrary.SRTManager.RequestsFactory
     public class HandshakeRequest : UdpPacket
     {
         public HandshakeRequest(params ILayer[] layers) : base(layers) { }
-
 
         /// <summary>
         /// The function creates an induction packet (Handshake)
@@ -42,7 +40,6 @@ namespace SRTLibrary.SRTManager.RequestsFactory
             return BuildPacket();
         }
 
-
         /// <summary>
         /// The function creates a conclusion packet (Handshake)
         /// </summary>
@@ -73,6 +70,5 @@ namespace SRTLibrary.SRTManager.RequestsFactory
 
             return BuildPacket();
         }
-
     }
 }

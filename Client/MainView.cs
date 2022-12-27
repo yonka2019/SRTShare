@@ -1,15 +1,14 @@
 ﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.Arp;
-using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
 using SRTLibrary;
-using Control = SRTLibrary.SRTManager.ProtocolFields.Control;
-using Data = SRTLibrary.SRTManager.ProtocolFields.Data;
 using SRTLibrary.SRTManager.RequestsFactory;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using Control = SRTLibrary.SRTManager.ProtocolFields.Control;
+using Data = SRTLibrary.SRTManager.ProtocolFields.Data;
 
 /*
  * PACKET STRUCTURE:
@@ -32,7 +31,6 @@ namespace Client
         private bool first = true;
         private bool alive = true;
 
-
         public MainView()
         {
             InitializeComponent();
@@ -47,7 +45,6 @@ namespace Client
             PacketManager.SendPacket(arpRequest);
         }
 
-
         /// <summary>
         /// The function starts receiving the packets
         /// </summary>
@@ -55,7 +52,6 @@ namespace Client
         {
             PacketManager.ReceivePackets(0, PacketHandler);
         }
-
 
         /// <summary>
         /// Callback function invoked by Pcap.Net for every incoming packet
@@ -84,7 +80,7 @@ namespace Client
 
                     else if (Control.KeepAlive.IsKeepAlive(payload))
                     {
-                        if(alive) // if client still alive, it will send a keep-alive response
+                        if (alive) // if client still alive, it will send a keep-alive response
                         {
                             KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.macAddress, MainView.server_mac, PacketManager.localIp, PacketManager.SERVER_IP, MainView.myPort, PacketManager.SERVER_PORT));
                             Packet keepAlive_confirm = keepAlive_response.Check(server_socket_id);
@@ -93,7 +89,7 @@ namespace Client
                     }
                 }
 
-                else if(Data.SRTHeader.IsData(payload))
+                else if (Data.SRTHeader.IsData(payload))
                 {
                     Data.SRTHeader data_request = new Data.SRTHeader(payload);
 
@@ -121,7 +117,6 @@ namespace Client
 
         }
 
-
         /// <summary>
         /// The function checks if the targeted mac is my mac
         /// </summary>
@@ -131,7 +126,6 @@ namespace Client
         {
             return BitConverter.ToString(arp.TargetHardwareAddress.ToArray()).Replace("-", ":") == ARPManager.GetMyMac(PacketManager.device);
         }
-
 
         /// <summary>
         /// The function accurs when the form is closed

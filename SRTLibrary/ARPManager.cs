@@ -42,7 +42,6 @@ namespace SRTLibrary
             });
         }
 
-
         /// <summary>
         /// The function builds a "mac response" packet
         /// </summary>
@@ -73,7 +72,6 @@ namespace SRTLibrary
                 Operation = ArpOperation.Reply,
             });
         }
-
 
         /// <summary>
         /// The function gets the mac of the given device

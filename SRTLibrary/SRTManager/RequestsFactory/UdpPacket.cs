@@ -5,7 +5,7 @@ namespace SRTLibrary.SRTManager.RequestsFactory
 {
     public class UdpPacket
     {
-        private readonly ILayer[] workingLayers; // layers we working with, we should add last packet data (SRT)
+        private readonly ILayer[] workingLayers;  // layers we working with, we should add last packet data (SRT)
         /*
          * EthernetLayer - Exist
          * InternetLayer - Exist
@@ -19,7 +19,6 @@ namespace SRTLibrary.SRTManager.RequestsFactory
             layers.CopyTo(workingLayers, 0);
         }
 
-
         /// <summary>
         /// The function returns the payload layer
         /// </summary>
@@ -28,7 +27,6 @@ namespace SRTLibrary.SRTManager.RequestsFactory
         {
             return ref workingLayers[workingLayers.Length - 1];
         }
-
 
         /// <summary>
         /// The function builds and returns a packet based on the existing layers

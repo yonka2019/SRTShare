@@ -48,7 +48,6 @@ namespace Client
             }
         }
 
-
         /// <summary>
         /// The function handles what happens after getting an arp message from the server
         /// </summary>
@@ -95,6 +94,5 @@ namespace Client
                 pictureBox.Image = new Bitmap(Image.FromStream(ms));
             }
         }
-
     }
 }

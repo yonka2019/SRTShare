@@ -1,10 +1,13 @@
 ﻿using PcapDotNet.Packets;
+using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
 using SRTLibrary;
 using SRTLibrary.SRTManager.ProtocolFields.Control;
 using SRTLibrary.SRTManager.RequestsFactory;
 using System;
+using System.Linq;
+using System.Net.Sockets;
 using SRTRequest = SRTLibrary.SRTManager.RequestsFactory;
 
 namespace Server
@@ -53,7 +56,6 @@ namespace Server
             Console.WriteLine("Induction [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
         }
 
-
         /// <summary>
         /// The function handles what happens after getting an conclusion message from a client
         /// </summary>
@@ -62,7 +64,7 @@ namespace Server
         /// <param name="datagram">The transport layer</param>
         internal static void HandleConclusion(Packet packet, Handshake handshake_request, UdpDatagram datagram)
         {
-            HandshakeRequest handshake_response = new SRTRequest.HandshakeRequest
+            HandshakeRequest handshake_response = new HandshakeRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.macAddress, packet.Ethernet.Source.ToString(), PacketManager.localIp, packet.IpV4.Source.ToString(), PacketManager.SERVER_PORT, datagram.SourcePort));
 
             IpV4Address peer_ip = new IpV4Address(PacketManager.localIp);
@@ -80,6 +82,17 @@ namespace Server
             Program.SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(currentClient,
                 kaManager, dataManager));
             kaManager.LostConnection += Program.LostConnection;
+        }
+
+        /// <summary>
+        /// The function handles with the arp request from the client
+        /// </summary>
+        /// <param name="packet">Received packet</param>
+        internal static void HandleArp(Packet packet)
+        {
+            ArpDatagram arp = packet.Ethernet.Arp;
+            Packet arpReply = ARPManager.Reply(PacketManager.device, BitConverter.ToString(arp.SenderHardwareAddress.ToArray()).Replace("-", ":"), arp.SenderProtocolIpV4Address.ToString());
+            PacketManager.SendPacket(arpReply);
         }
     }
 }
