@@ -103,6 +103,7 @@ namespace Server
         internal static void LostConnection(uint socket_id)
         {
             Console.WriteLine($"[{socket_id}] is dead");
+            SRTSockets[socket_id].Data.StopVideo();
         }
     }
 }

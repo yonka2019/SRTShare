@@ -41,7 +41,7 @@ namespace Client
             pRecvThread = new Thread(new ThreadStart(RecvP));
             pRecvThread.Start();
 
-            Packet arpRequest = ARPManager.Request(PacketManager.device, PacketManager.SERVER_IP); // search for server's mac
+            Packet arpRequest = ARPManager.Request(PacketManager.SERVER_IP); // search for server's mac
             PacketManager.SendPacket(arpRequest);
         }
 
@@ -106,7 +106,7 @@ namespace Client
                     if (arp.SenderProtocolIpV4Address.ToString() == PacketManager.SERVER_IP) // mac from server
                     {
                         // After client got the server's mac, it sends the first induction message
-                        server_mac = BitConverter.ToString(arp.SenderHardwareAddress.ToArray()).Replace("-", ":");
+                        server_mac = MethodExt.GetValidMac(arp.SenderHardwareAddress);
                         client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.localIp, myPort);
 
                         RequestsHandler.HandleArp(server_mac, myPort, client_socket_id);
@@ -124,7 +124,7 @@ namespace Client
         /// <returns>True if it's my mac, false if not</returns>
         private bool IsMyMac(ArpDatagram arp)
         {
-            return BitConverter.ToString(arp.TargetHardwareAddress.ToArray()).Replace("-", ":") == ARPManager.GetMyMac(PacketManager.device);
+            return MethodExt.GetValidMac(arp.TargetHardwareAddress) == PacketManager.macAddress;
         }
 
         /// <summary>

@@ -91,7 +91,7 @@ namespace Server
         internal static void HandleArp(Packet packet)
         {
             ArpDatagram arp = packet.Ethernet.Arp;
-            Packet arpReply = ARPManager.Reply(PacketManager.device, BitConverter.ToString(arp.SenderHardwareAddress.ToArray()).Replace("-", ":"), arp.SenderProtocolIpV4Address.ToString());
+            Packet arpReply = ARPManager.Reply(MethodExt.GetValidMac(arp.SenderHardwareAddress), arp.SenderProtocolIpV4Address.ToString());
             PacketManager.SendPacket(arpReply);
         }
     }

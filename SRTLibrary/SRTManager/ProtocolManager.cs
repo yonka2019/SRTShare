@@ -53,6 +53,5 @@ namespace SRTLibrary
             //get hash result after compute it  
             return BitConverter.ToUInt32(md5.Hash, 0);
         }
-
     }
 }

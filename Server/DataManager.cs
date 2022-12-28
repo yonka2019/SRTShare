@@ -25,17 +25,14 @@ namespace Server
             public static extern int GetDeviceCaps(IntPtr hDC, int index);
         }
 
-
         private readonly SClient client;
         private bool connected;
-
 
         internal DataManager(SClient client)
         {
             this.client = client;
             connected = true;
         }
-
 
         /// <summary>
         /// The function starts the thread responsible for screenshare sending
@@ -46,7 +43,14 @@ namespace Server
 
             videoStarter.Start(client.SocketId);
         }
-
+        
+        /// <summary>
+        /// Stops the video via the condition variable
+        /// </summary>
+        internal void StopVideo()
+        {
+            connected = false;
+        }
 
         private void VideoInit(object dest_socket_id)
         {
@@ -67,7 +71,6 @@ namespace Server
                     PacketManager.SendPacket(packet);
             }
         }
-
 
         private static Bitmap TakeScreenShot()
         {
@@ -90,11 +93,9 @@ namespace Server
             }
         }
 
-
         private static MemoryStream GetJpegStream(Bitmap bmp)
         {
             MemoryStream stream = new MemoryStream();
-
             Encoder myEncoder = Encoder.Quality;
 
             ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
@@ -107,7 +108,6 @@ namespace Server
 
             return stream;
         }
-
 
         private static ImageCodecInfo GetEncoder(ImageFormat format)
         {
@@ -124,4 +124,3 @@ namespace Server
         }
     }
 }
-

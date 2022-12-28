@@ -2,6 +2,8 @@
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace SRTLibrary
 {
@@ -71,6 +73,11 @@ namespace SRTLibrary
             return sourcePort == 0
                 ? packet.Ethernet.IpV4.Udp != null && packet.Ethernet.IpV4.Udp.DestinationPort == destPort
                 : packet.Ethernet.IpV4.Udp != null && packet.Ethernet.IpV4.Udp.SourcePort == sourcePort && packet.Ethernet.IpV4.Udp.DestinationPort == destPort;
+        }
+
+        public static string GetValidMac(ReadOnlyCollection<byte> mac)
+        {
+            return BitConverter.ToString(mac.ToArray()).Replace("-", ":");
         }
     }
 }
