@@ -1,4 +1,6 @@
-﻿using System;
+﻿using SRTLibrary;
+using System;
+using System.Net.NetworkInformation;
 using System.Windows.Forms;
 
 namespace Client
@@ -13,7 +15,30 @@ namespace Client
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            TestConnection();
             Application.Run(new MainView());
+        }
+
+        /// <summary>
+        /// Before the SRT connection, check via ICMP (ping) if the server totally alive
+        /// </summary>
+        private static void TestConnection()
+        {
+            Ping ping = new Ping();
+
+            // Set the address to ping
+            string ipAddress = ConnectionConfig.SERVER_IP;
+
+            // Send the ping and get the reply
+            PingReply reply = ping.Send(ipAddress);
+
+            // Check the status of the reply
+            if (reply.Status != IPStatus.Success)
+            {
+                MessageBox.Show("Server isn't alive\n..or he doesn't allowed to receive any ICMP requests", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Environment.Exit(-1);
+            }
         }
     }
 }

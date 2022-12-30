@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using SRTRequest = SRTLibrary.SRTManager.RequestsFactory;
 
 namespace Server
 {
@@ -43,7 +42,7 @@ namespace Server
 
             videoStarter.Start(client.SocketId);
         }
-        
+
         /// <summary>
         /// Stops the video via the condition variable
         /// </summary>
@@ -63,7 +62,7 @@ namespace Server
                 List<byte> stream = mStream.ToArray().ToList();
 
                 DataRequest dataRequest = new DataRequest(
-                                (PacketManager.BuildBaseLayers(PacketManager.macAddress, client.MacAddress.ToString(), PacketManager.localIp, client.IPAddress.ToString(), PacketManager.SERVER_PORT, client.Port)));
+                                PacketManager.BuildBaseLayers(PacketManager.MacAddress, client.MacAddress.ToString(), PacketManager.LocalIp, client.IPAddress.ToString(), ConnectionConfig.SERVER_PORT, client.Port));
 
                 List<Packet> data_packets = dataRequest.SplitToPackets(stream, time_stamp: 0, u_dest_socket_id, (int)client.MTU);
 

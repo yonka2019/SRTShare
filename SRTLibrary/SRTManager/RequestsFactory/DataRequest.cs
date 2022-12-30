@@ -16,14 +16,15 @@ namespace SRTLibrary.SRTManager.RequestsFactory
             SRTData.SRTHeader srt_packet_data;
 
             int i;
+            uint messageNumber = 0;
 
-            for (i = MTU; (i + MTU) < stream.Count; i += MTU) // MTU bytes iterating
+            for (i = MTU; (i + MTU) < stream.Count; i += MTU, messageNumber++)  // MTU bytes iterating
             {
                 packet_data = stream.GetRange(i - MTU, MTU);
 
                 SRTData.PositionFlags packetPositionFlag = (i == MTU) ? SRTData.PositionFlags.FIRST : SRTData.PositionFlags.MIDDLE;
 
-                srt_packet_data = new SRTData.SRTHeader(sequence_number: 0, packetPositionFlag, SRTData.EncryptionFlags.NOT_ENCRYPTED, is_retransmitted: false, message_number: 0, time_stamp, dest_socket_id, packet_data);
+                srt_packet_data = new SRTData.SRTHeader(sequence_number: 0, packetPositionFlag, SRTData.EncryptionFlags.NOT_ENCRYPTED, is_retransmitted: false, message_number: messageNumber, time_stamp, dest_socket_id, packet_data);
                 GetPayloadLayer() = PacketManager.BuildPLayer(srt_packet_data.GetByted());
 
                 packets.Add(BuildPacket());
@@ -31,7 +32,7 @@ namespace SRTLibrary.SRTManager.RequestsFactory
 
             packet_data = stream.GetRange(i, stream.Count - i);
 
-            srt_packet_data = new SRTData.SRTHeader(sequence_number: 0, SRTData.PositionFlags.LAST, SRTData.EncryptionFlags.NOT_ENCRYPTED, is_retransmitted: false, message_number: 0, time_stamp, dest_socket_id, packet_data);
+            srt_packet_data = new SRTData.SRTHeader(sequence_number: 0, SRTData.PositionFlags.LAST, SRTData.EncryptionFlags.NOT_ENCRYPTED, is_retransmitted: false, message_number: ++messageNumber, time_stamp, dest_socket_id, packet_data);
             GetPayloadLayer() = PacketManager.BuildPLayer(srt_packet_data.GetByted());
 
             packets.Add(BuildPacket());

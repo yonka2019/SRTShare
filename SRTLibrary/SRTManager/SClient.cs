@@ -13,10 +13,10 @@ namespace SRTLibrary
 
         public SClient(IpV4Address iPAddress, ushort port, MacAddress macAddress, uint socketId, uint MTU)
         {
-            this.IPAddress = iPAddress;
-            this.Port = port;
-            this.MacAddress = macAddress;
-            this.SocketId = socketId;
+            IPAddress = iPAddress;
+            Port = port;
+            MacAddress = macAddress;
+            SocketId = socketId;
             this.MTU = MTU;
         }
 

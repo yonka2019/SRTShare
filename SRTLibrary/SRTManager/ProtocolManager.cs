@@ -13,13 +13,11 @@ namespace SRTLibrary
         /// <param name="port">Client's port</param>
         /// <param name="current_time">Current time</param>
         /// <returns></returns>
-        public static uint GenerateCookie(string ip, ushort port, DateTime current_time)
+        public static uint GenerateCookie(string ip, ushort port)
         {
             string textToEncrypt = "";
             textToEncrypt += ip + "&"; // add ip
-            textToEncrypt += port.ToString() + "&"; // add port
-            textToEncrypt += $"{current_time.Minute}.{current_time.Hour}.{current_time.Day}.{current_time.Month}.{current_time.Year}"; // add current time
-
+            textToEncrypt += port.ToString(); // add port
             return Md5Encrypt(textToEncrypt); // return the encrypted cookie
         }
 

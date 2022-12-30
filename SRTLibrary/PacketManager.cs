@@ -15,23 +15,23 @@ namespace SRTLibrary
 {
     public static class PacketManager
     {
-        public static readonly LivePacketDevice device;  // active network interface
-        public static readonly string localIp;
-        public static readonly string macAddress;
-
-        public static string defaultGateway;
-        public static string mask;
-
-        public const int SERVER_PORT = 6969;
-        public const string SERVER_IP = "192.168.1.29";
+        public static readonly LivePacketDevice Device;  // active network interface
+        public static readonly string LocalIp;
+        public static readonly string MacAddress;
+        public static readonly string DefaultGateway;
+        public static string Mask { get; private set; }
 
         static PacketManager()
         {
-            localIp = GetActiveLocalIp();
-            device = AutoSelectNetworkInterface(localIp);
-            macAddress = device.GetMacAddress().ToString().Replace("-", ":");
-            defaultGateway = device.GetNetworkInterface().GetIPProperties().GatewayAddresses.Where(inter => inter.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).First().Address.ToString();
-            Console.WriteLine($"[!] SELECTED INTERFACE: {device.Description}");
+            LocalIp = GetActiveLocalIp();
+            Device = AutoSelectNetworkInterface(LocalIp);
+            MacAddress = Device.GetMacAddress().ToString().Replace("-", ":");
+            DefaultGateway = Device.GetNetworkInterface().GetIPProperties().GatewayAddresses.Where(inter => inter.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).First().Address.ToString();
+            Console.WriteLine($"####################\n[!] SELECTED INTERFACE: {Device.Description}\n" +
+                $"* Local IP: {LocalIp}\n" +
+                $"* MAC: {MacAddress}\n" +
+                $"* Gateway: {DefaultGateway}\n" +
+                $"* Mask: {Mask}\n####################\n\n");
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace SRTLibrary
                 {
                     if (deviceAddress.Address.ToString().Contains(activeLocalIp))
                     {
-                        mask = deviceAddress.Netmask.ToString().Replace("Internet ", "");
+                        Mask = deviceAddress.Netmask.ToString().Replace("Internet ", "");
 
                         selectDeviceIndex = i + 1;
                         break;
@@ -107,7 +107,7 @@ namespace SRTLibrary
         /// <param name="packetToSend">The packet to send</param>
         public static void SendPacket(Packet packetToSend)
         {
-            using (PacketCommunicator communicator = device.Open(100, // name of the device
+            using (PacketCommunicator communicator = Device.Open(100, // name of the device
                                  PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
                                  1000)) // read timeout
             {
@@ -123,13 +123,13 @@ namespace SRTLibrary
         public static void ReceivePackets(int count, HandlePacket callback)
         {
             using (PacketCommunicator communicator =
-            device.Open(65536,                         // portion of the packet to capture
+            Device.Open(65536,                         // portion of the packet to capture
                                                        // 65536 guarantees that the whole packet will be captured on all the link layers
                     PacketDeviceOpenAttributes.Promiscuous,  // promiscuous mode
                     1000))                                  // read timeout
             {
 #if DEBUG
-                Console.WriteLine("[LISTENING] " + device.Description + "...");
+                Console.WriteLine("[LISTENING]");
 #endif
                 communicator.ReceivePackets(0, callback);
             }

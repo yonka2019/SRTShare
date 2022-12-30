@@ -5,7 +5,6 @@ using SRTLibrary.SRTManager.ProtocolFields.Control;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 /*
@@ -20,18 +19,6 @@ namespace Server
     {
         internal const uint SERVER_SOCKET_ID = 123;
         internal static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
-        // SRTSockets: (example)
-        // [0] : SRTSocket
-        // [SOCKET_ID] : SRTSocket
-
-        private static class Win32Native
-        {
-            public const int DESKTOPVERTRES = 0x75;
-            public const int DESKTOPHORZRES = 0x76;
-
-            [DllImport("gdi32.dll")]
-            public static extern int GetDeviceCaps(IntPtr hDC, int index);
-        }
 
         private static void Main()
         {
@@ -52,7 +39,7 @@ namespace Server
         /// <param name="packet">New given packet</param>
         private static void HandlePacket(Packet packet)
         {
-            if (packet.IsValidUDP(PacketManager.SERVER_PORT))  // UDP Packet
+            if (packet.IsValidUDP(ConnectionConfig.SERVER_PORT))  // UDP Packet
             {
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
@@ -63,23 +50,19 @@ namespace Server
                     {
                         Handshake handshake_request = new Handshake(payload);
 
-                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION) // [client -> server] (SRT) Induction
-                        {
-                            RequestsHandler.HandleInduction(packet, handshake_request, datagram);
-                        }
+                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION)  // [client -> server] (SRT) Induction
+                            RequestsHandler.HandleInduction(packet, handshake_request);
 
-                        else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION) // [client -> server] (SRT) Conclusion
+                        else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION)  // [client -> server] (SRT) Conclusion
                         {
-                            RequestsHandler.HandleConclusion(packet, handshake_request, datagram);
-                            SRTSockets[handshake_request.SOCKET_ID].KeepAlive.StartCheck(); // start keep-alive checking
-                            SRTSockets[handshake_request.SOCKET_ID].Data.StartVideo(); // start keep-alive checking
+                            RequestsHandler.HandleConclusion(packet, handshake_request);
+                            SRTSockets[handshake_request.SOCKET_ID].KeepAlive.StartCheck();  // start keep-alive checking
+                            SRTSockets[handshake_request.SOCKET_ID].Data.StartVideo();  // start keep-alive checking
                         }
                     }
 
                     else if (Shutdown.IsShutdown(payload))  // (SRT) Shutdown
-                    {
                         RequestsHandler.HandleShutDown(packet);
-                    }
 
                     else if (KeepAlive.IsKeepAlive(payload))  // (SRT) KeepAlive
                     {
@@ -93,17 +76,37 @@ namespace Server
 
             else if (packet.IsValidARP())  // ARP Packet
             {
-                if (packet.Ethernet.Arp.TargetProtocolIpV4Address.ToString() == PacketManager.SERVER_IP)  // the arp was for the server
-                {
+                if (packet.Ethernet.Arp.TargetProtocolIpV4Address.ToString() == PacketManager.LocalIp)  // the arp was for the server
                     RequestsHandler.HandleArp(packet);
-                }
             }
         }
 
+        /// <summary>
+        /// If a client lost connection, this function will be called
+        /// </summary>
+        /// <param name="socket_id">socket id who lost connection</param>
         internal static void LostConnection(uint socket_id)
         {
-            Console.WriteLine($"[{socket_id}] is dead");
+            Console.WriteLine($"[{SRTSockets[socket_id].SocketAddress.IPAddress}] is dead");
             SRTSockets[socket_id].Data.StopVideo();
+            Dispose(socket_id);
+        }
+
+        /// <summary>
+        /// On lost connection / shutdown, we need to dispose client resources and information
+        /// </summary>
+        /// <param name="client_id">client id who need to be cleaned</param>
+        internal static void Dispose(uint client_id)
+        {
+            if (SRTSockets.ContainsKey(client_id))
+            {
+                string removedIp = SRTSockets[client_id].SocketAddress.IPAddress.ToString();
+
+                SRTSockets.Remove(client_id);
+                Console.WriteLine($"Client [{removedIp}] was removed.");
+            }
+            else
+                Console.WriteLine($"Client [{SRTSockets[client_id].SocketAddress.IPAddress}] wasn't found.");
         }
     }
 }

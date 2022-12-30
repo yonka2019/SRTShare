@@ -1,7 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
+﻿using PcapDotNet.Core.Extensions;
 using PcapDotNet.Packets.IpV4;
+using System;
 
 namespace SRTLibrary.SRTManager.ProtocolFields.Control
 {
@@ -12,7 +11,9 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
             VERSION = version; byteFields.Add(BitConverter.GetBytes(VERSION));
             ENCRYPTION_FIELD = encryption_field; byteFields.Add(BitConverter.GetBytes(ENCRYPTION_FIELD));
             INTIAL_PSN = intial_psn; byteFields.Add(BitConverter.GetBytes(INTIAL_PSN));
-            byteFields.Add(BitConverter.GetBytes(MTU));
+
+            // (.Mtu - 100; explanation) To avoid errors with sending, because this field used to set fixed size of splitted data packet, while the real mtu that the interface provides refers the whole size of the packet which get sent 
+            MTU = (uint)PacketManager.Device.GetNetworkInterface().GetIPProperties().GetIPv4Properties().Mtu - 100; byteFields.Add(BitConverter.GetBytes(MTU));
             byteFields.Add(BitConverter.GetBytes(MFW));
             TYPE = type; byteFields.Add(BitConverter.GetBytes(TYPE));
             SOCKET_ID = source_socket_id; byteFields.Add(BitConverter.GetBytes(SOCKET_ID));
@@ -28,13 +29,13 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
             VERSION = BitConverter.ToUInt32(data, 13);  // [13 14 15 16] (4 bytes)
             ENCRYPTION_FIELD = BitConverter.ToUInt16(data, 17);  // [17 18] (2 bytes)
             INTIAL_PSN = BitConverter.ToUInt32(data, 19);  // [19 20 21 22] (4 bytes)
-            // MTU = [23 24 25 26] (4 bytes)
+            MTU = BitConverter.ToUInt32(data, 23);  // [23 24 25 26] (4 bytes)
             // MFW = [27 28 29 30] (4 bytes)
             TYPE = BitConverter.ToUInt32(data, 31);  // [31 32 33 34] (4 bytes)
             SOCKET_ID = BitConverter.ToUInt32(data, 35);  // [35 36 37 38] (4 bytes)
             SYN_COOKIE = BitConverter.ToUInt32(data, 39);  // [39 40 41 42] (4 bytes)
-            PEER_IP = new PcapDotNet.Packets.IpV4.IpV4Address(System.BitConverter.ToUInt32(data, 43)); // [43 44 45 46]
-            PEER_IP = new PcapDotNet.Packets.IpV4.IpV4Address(MethodExt.ReverseIp(PEER_IP.ToString()));
+            PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 43)); // [43 44 45 46]
+            PEER_IP = new IpV4Address(MethodExt.ReverseIp(PEER_IP.ToString()));
         }
 
 
@@ -47,7 +48,6 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
         {
             return BitConverter.ToUInt16(data, 1) == (ushort)ControlType.HANDSHAKE;
         }
-
 
         /// <summary>
         /// 32 bits (4 bytes). A base protocol version number. Currently used
@@ -74,7 +74,7 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
         /// to 1500, which is the default Maximum Transmission Unit(MTU) size
         /// for Ethernet, but can be less.
         /// </summary>
-        public uint MTU => 1000;  // Maximum Transmission Unit Size
+        public uint MTU { get; private set; }  // Maximum Transmission Unit Size
 
         /// <summary>
         /// 32 bits (4 bytes). The value of this field is the
@@ -143,7 +143,6 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
             handshake += "Cookie: " + SYN_COOKIE + "\n";
             handshake += "Peer ip: " + PEER_IP.ToString() + "\n";
             handshake += "Handshake type: " + TYPE.ToString("X") + "\n";
-
 
             return handshake;
         }

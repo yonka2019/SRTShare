@@ -26,13 +26,12 @@ namespace SRTLibrary.SRTManager.RequestsFactory
             if (clientSide)
             {
                 // CALLER -> LISTENER (first message REQUEST) [CLIENT -> SERVER]
-                F_Handshake = new SRTControl.Handshake(version: 4, encryption_field: 0, init_psn, type: (uint)Handshake.HandshakeType.INDUCTION, source_socket_id, dest_socket_id, 0, p_ip);
+                F_Handshake = new Handshake(version: 4, encryption_field: 0, init_psn, type: (uint)Handshake.HandshakeType.INDUCTION, source_socket_id, dest_socket_id, 0, p_ip);
             }
-
             else
             {
                 // LISTENER -> CALLER (first message RESPONSE) [SERVER -> CLIENT]
-                F_Handshake = new SRTControl.Handshake(version: 5, encryption_field: 0, init_psn, type: (uint)Handshake.HandshakeType.INDUCTION, source_socket_id, dest_socket_id, cookie, p_ip);
+                F_Handshake = new Handshake(version: 5, encryption_field: 0, init_psn, type: (uint)Handshake.HandshakeType.INDUCTION, source_socket_id, dest_socket_id, cookie, p_ip);
             }
 
             GetPayloadLayer() = PacketManager.BuildPLayer(F_Handshake.GetByted()); // set last payload layer as our srt packet
@@ -57,13 +56,12 @@ namespace SRTLibrary.SRTManager.RequestsFactory
             if (clientSide)
             {
                 // CALLER -> LISTENER (second message REQUEST) [CLIENT -> SERVER]
-                F_Handshake = new SRTControl.Handshake(version: 5, encryption_field: 0, init_psn, type: (uint)Handshake.HandshakeType.CONCLUSION, source_socket_id, dest_socket_id, cookie, p_ip);
+                F_Handshake = new Handshake(version: 5, encryption_field: 0, init_psn, type: (uint)Handshake.HandshakeType.CONCLUSION, source_socket_id, dest_socket_id, cookie, p_ip);
             }
-
             else
             {
                 // LISTENER -> CALLER (second message RESPONSE) [SERVER -> CLIENT]
-                F_Handshake = new SRTControl.Handshake(version: 5, encryption_field: 0, init_psn, type: (uint)Handshake.HandshakeType.CONCLUSION, source_socket_id, dest_socket_id, 0, p_ip);
+                F_Handshake = new Handshake(version: 5, encryption_field: 0, init_psn, type: (uint)Handshake.HandshakeType.CONCLUSION, source_socket_id, dest_socket_id, 0, p_ip);
             }
 
             GetPayloadLayer() = PacketManager.BuildPLayer(F_Handshake.GetByted()); // set last payload layer as our srt packet

@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SRTLibrary.SRTManager.ProtocolFields.Data
 {
@@ -14,7 +11,6 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Data
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        /// 
         public SRTHeader(uint sequence_number, PositionFlags packet_position_flag, EncryptionFlags encryption_flag, bool is_retransmitted, uint message_number, uint time_stamp, uint dest_socket_id, List<byte> data)
         {
             IS_CONTROL_PACKET = false; byteFields.Add(BitConverter.GetBytes(IS_CONTROL_PACKET));

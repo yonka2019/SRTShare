@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ARPManager.cs" />
+    <Compile Include="ConnectionConfig.cs" />
     <Compile Include="MethodExt.cs" />
     <Compile Include="PacketManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
