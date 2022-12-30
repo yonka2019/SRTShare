@@ -18,7 +18,7 @@ namespace Client
         {
             if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(PacketManager.LocalIp, MainView.myPort))
             {
-                HandshakeRequest handshake_response = new HandshakeRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConnectionConfig.SERVER_IP, MainView.myPort, ConnectionConfig.SERVER_PORT));
+                HandshakeRequest handshake_response = new HandshakeRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ServerProperties.IP, MainView.myPort, ServerProperties.PORT));
 
                 // client -> server (conclusion)
                 IpV4Address peer_ip = new IpV4Address(PacketManager.LocalIp);
@@ -29,7 +29,7 @@ namespace Client
             else
             {
                 // Exit the prgram and send a shutdwon request
-                ShutDownRequest shutdown_response = new ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConnectionConfig.SERVER_IP, MainView.myPort, ConnectionConfig.SERVER_PORT));
+                ShutDownRequest shutdown_response = new ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ServerProperties.IP, MainView.myPort, ServerProperties.PORT));
                 Packet shutdown_packet = shutdown_response.Exit();
                 PacketManager.SendPacket(shutdown_packet);
 
@@ -46,7 +46,7 @@ namespace Client
         internal static void HandleArp(string server_mac, ushort myPort, uint client_socket_id)
         {
             HandshakeRequest handshake = new HandshakeRequest
-                    (PacketManager.BuildBaseLayers(PacketManager.MacAddress, server_mac, PacketManager.LocalIp, ConnectionConfig.SERVER_IP, myPort, ConnectionConfig.SERVER_PORT));
+                    (PacketManager.BuildBaseLayers(PacketManager.MacAddress, server_mac, PacketManager.LocalIp, ServerProperties.IP, myPort, ServerProperties.PORT));
 
 
             IpV4Address peer_ip = new IpV4Address(PacketManager.LocalIp);

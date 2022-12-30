@@ -28,7 +28,7 @@ namespace Client
             Ping ping = new Ping();
 
             // Set the address to ping
-            string ipAddress = ConnectionConfig.SERVER_IP;
+            string ipAddress = ServerProperties.IP;
 
             // Send the ping and get the reply
             PingReply reply = ping.Send(ipAddress);

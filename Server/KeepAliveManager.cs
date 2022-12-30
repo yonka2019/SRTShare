@@ -71,7 +71,7 @@ namespace Server
             while (connected)
             {
                 KeepAliveRequest keepAlive_request = new KeepAliveRequest
-                                (PacketManager.BuildBaseLayers(PacketManager.MacAddress, client.MacAddress.ToString(), PacketManager.LocalIp, client.IPAddress.ToString(), ConnectionConfig.SERVER_PORT, client.Port));
+                                (PacketManager.BuildBaseLayers(PacketManager.MacAddress, client.MacAddress.ToString(), PacketManager.LocalIp, client.IPAddress.ToString(), ServerProperties.PORT, client.Port));
 
                 Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
                 PacketManager.SendPacket(keepAlive_packet);
