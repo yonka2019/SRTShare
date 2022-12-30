@@ -25,6 +25,8 @@ namespace Client
         private readonly Thread pRecvKAThread;
         private readonly Random rnd = new Random();
 
+        private bool serverAlive = false;
+
         internal static ushort myPort;
         internal static string server_mac = null;
         internal static uint client_socket_id = 0;  // the server sends this value
@@ -75,7 +77,7 @@ namespace Client
                 if (duration <= 0)
                 {
                     timer.Stop();
-                    if (server_mac == null)  // still null after 3 seconds
+                    if (!serverAlive)  // still null after 3 seconds
                     {
                         MessageBox.Show("Server isn't responding..", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Environment.Exit(-1);
@@ -115,7 +117,10 @@ namespace Client
                         server_socket_id = handshake_request.SOCKET_ID;  // as first packet, we are setting the socket id to know it for the future
 
                         if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.INDUCTION)  // [server -> client] (SRT) Induction
+                        {
+                            serverAlive = true;
                             RequestsHandler.HandleInduction(handshake_request);
+                        }
                     }
                 }
 
