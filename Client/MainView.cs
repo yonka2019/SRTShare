@@ -113,11 +113,14 @@ namespace Client
 
                     else if (Control.KeepAlive.IsKeepAlive(payload))
                     {
+                        Debug.WriteLine("[GOT] Keep-Alive");
                         if (alive) // if client still alive, it will send a keep-alive response
                         {
                             KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConnectionConfig.SERVER_IP, MainView.myPort, ConnectionConfig.SERVER_PORT));
                             Packet keepAlive_confirm = keepAlive_response.Check(server_socket_id);
                             PacketManager.SendPacket(keepAlive_confirm);
+                            Debug.WriteLine("[SEND] Keep-Alive Confirm");
+
                         }
                     }
                 }
