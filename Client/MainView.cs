@@ -22,6 +22,7 @@ namespace Client
     public partial class MainView : Form
     {
         private readonly Thread pRecvThread;
+        private readonly Thread pRecvKAThread;
         private readonly Random rnd = new Random();
 
         internal static ushort myPort;
@@ -42,6 +43,10 @@ namespace Client
             //  start receiving packets
             pRecvThread = new Thread(new ThreadStart(RecvP));
             pRecvThread.Start();
+
+            //  start receiving keep-alive packets
+            pRecvKAThread = new Thread(new ThreadStart(RecvKeepAliveP));
+            pRecvKAThread.Start();
 
             Packet arpRequest = ARPManager.Request(ConnectionConfig.SERVER_IP, out bool sameSubnet); // search for server's mac
             PacketManager.SendPacket(arpRequest);
@@ -80,12 +85,14 @@ namespace Client
             timer.Start();
         }
 
-        /// <summary>
-        /// The function starts receiving the packets
-        /// </summary>
         private void RecvP()
         {
             PacketManager.ReceivePackets(0, PacketHandler);
+        }
+
+        private void RecvKeepAliveP()
+        {
+            PacketManager.ReceivePackets(0, KeepAliveHandler);
         }
 
         /// <summary>
@@ -109,19 +116,6 @@ namespace Client
 
                         if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.INDUCTION)  // [server -> client] (SRT) Induction
                             RequestsHandler.HandleInduction(handshake_request);
-                    }
-
-                    else if (Control.KeepAlive.IsKeepAlive(payload))
-                    {
-                        Debug.WriteLine("[GOT] Keep-Alive");
-                        if (alive) // if client still alive, it will send a keep-alive response
-                        {
-                            KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConnectionConfig.SERVER_IP, MainView.myPort, ConnectionConfig.SERVER_PORT));
-                            Packet keepAlive_confirm = keepAlive_response.Check(server_socket_id);
-                            PacketManager.SendPacket(keepAlive_confirm);
-                            Debug.WriteLine("[SEND] Keep-Alive Confirm");
-
-                        }
                     }
                 }
 
@@ -152,6 +146,33 @@ namespace Client
                 }
             }
 
+        }
+        /// <summary>
+        /// Callback function invoked by Pcap.Net for every keep alive packets
+        /// </summary>
+        /// <param name="packet">New given keepalive packet</param>
+        private void KeepAliveHandler(Packet packet)
+        {
+            if (packet.IsValidUDP(myPort, ConnectionConfig.SERVER_PORT))  // UDP Packet
+            {
+                UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
+                byte[] payload = datagram.Payload.ToArray();
+
+                if (Control.SRTHeader.IsControl(payload))  // (SRT) Control
+                {
+                    if (Control.KeepAlive.IsKeepAlive(payload))
+                    {
+                        Debug.WriteLine("[GOT] Keep-Alive");
+                        if (alive) // if client still alive, it will send a keep-alive response
+                        {
+                            KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConnectionConfig.SERVER_IP, MainView.myPort, ConnectionConfig.SERVER_PORT));
+                            Packet keepAlive_confirm = keepAlive_response.Check(server_socket_id);
+                            PacketManager.SendPacket(keepAlive_confirm);
+                            Debug.WriteLine("[SEND] Keep-Alive Confirm");
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>

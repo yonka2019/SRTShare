@@ -76,7 +76,7 @@ namespace Server
                 Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
                 PacketManager.SendPacket(keepAlive_packet);
 
-                Thread.Sleep(3000);  // 3 second wait between the keep-alives
+                Thread.Sleep(3000);  // 5 second wait between the keep-alives
             }
         }
     }
