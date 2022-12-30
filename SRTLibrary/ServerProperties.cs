@@ -17,6 +17,13 @@ namespace SRTLibrary
         {
             // Read the JSON file into a string
             string ap = UpDirTo(Directory.GetCurrentDirectory(), CONFIG_NAME);
+            if (ap == null)
+            {
+                System.Console.WriteLine("[ERROR] Can't find config file");
+                System.Console.ReadKey();
+                System.Environment.Exit(-1);
+            }
+
             string json = File.ReadAllText($"{ap}\\{CONFIG_NAME}");
 
             // Deserialize the JSON string into a Person object
@@ -36,7 +43,7 @@ namespace SRTLibrary
         {
             DirectoryInfo upDir = Directory.GetParent(currentDirectory);
             if (upDir == null)
-                return "null";
+                return null;
 
             string upDirName = upDir.FullName;
 
