@@ -19,7 +19,7 @@ namespace SRTLibrary
             string ap = UpDirTo(Directory.GetCurrentDirectory(), CONFIG_NAME);
             if (ap == null)
             {
-                System.Console.WriteLine("[ERROR] Can't find config file");
+                System.Console.WriteLine("[ERROR] Can't find config file (or maybe he is duplicated?)");
                 System.Console.ReadKey();
                 System.Environment.Exit(-1);
             }
