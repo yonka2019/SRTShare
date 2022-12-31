@@ -41,12 +41,15 @@ namespace SRTLibrary
         /// <returns>directory which contains the config file</returns>
         private static string UpDirTo(string currentDirectory, string settingsFileName)
         {
+            if (Directory.GetFiles(currentDirectory, settingsFileName).Length == 1)  // in the current directory
+                return currentDirectory;
+
+            // not in current -> maybe in the parent directory?
             DirectoryInfo upDir = Directory.GetParent(currentDirectory);
-            if (upDir == null)
+            if (upDir == null)  // there is no parent directory, and the settings wasn't found -> not exist/duplicated
                 return null;
 
             string upDirName = upDir.FullName;
-
             return Directory.GetFiles(upDirName, settingsFileName).Length != 1 ? UpDirTo(upDirName, settingsFileName) : upDirName;
         }
     }
