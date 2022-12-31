@@ -66,7 +66,7 @@ namespace SRTLibrary
             {
                 ProtocolType = EthernetType.IpV4,  // IMPORTANT! NOT EthernetType.Arp HERE!!
                 SenderHardwareAddress = new MacAddress(PacketManager.MacAddress).ToBytes().AsReadOnly(),
-                SenderProtocolAddress = new IpV4Address(ServerProperties.IP).ToBytes().AsReadOnly(),
+                SenderProtocolAddress = new IpV4Address(ConfigManager.IP).ToBytes().AsReadOnly(),
                 TargetHardwareAddress = new MacAddress(to_mac).ToBytes().AsReadOnly(), // mac to send to
                 TargetProtocolAddress = new IpV4Address(to_ip).ToBytes().AsReadOnly(), // ip to send to
                 Operation = ArpOperation.Reply,

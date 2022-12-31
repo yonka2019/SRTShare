@@ -31,7 +31,13 @@ namespace SRTLibrary
                 $"* Local IP: {LocalIp}\n" +
                 $"* MAC: {MacAddress}\n" +
                 $"* Gateway: {DefaultGateway}\n" +
-                $"* Mask: {Mask}\n####################\n\n");
+                $"* Mask: {Mask}\n" +
+                $"####################\n\n");
+
+            Console.WriteLine($"####################\n[!] SERVER SETTINGS (from {ConfigManager.CONFIG_NAME})\n" +
+                $"* IP: {ConfigManager.IP}\n" +
+                $"* PORT: {ConfigManager.PORT}\n" +
+                $"####################\n\n");
         }
 
         /// <summary>

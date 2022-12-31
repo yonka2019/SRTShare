@@ -56,7 +56,7 @@ namespace Client
             });
             pRecvKAThread.Start();
 
-            Packet arpRequest = ARPManager.Request(ServerProperties.IP, out bool sameSubnet); // search for server's mac
+            Packet arpRequest = ARPManager.Request(ConfigManager.IP, out bool sameSubnet); // search for server's mac
             PacketManager.SendPacket(arpRequest);
 
             if (!sameSubnet)
@@ -99,7 +99,7 @@ namespace Client
         /// <param name="packet">New given packet</param>
         private void PacketHandler(Packet packet)
         {
-            if (packet.IsValidUDP(myPort, ServerProperties.PORT))  // UDP Packet
+            if (packet.IsValidUDP(myPort, ConfigManager.PORT))  // UDP Packet
             {
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
@@ -134,7 +134,7 @@ namespace Client
 
                 if (MethodExt.GetValidMac(arp.TargetHardwareAddress) == PacketManager.MacAddress && first) // my mac, and this is the first time answering 
                 {
-                    if ((arp.SenderProtocolIpV4Address.ToString() == ServerProperties.IP) || (arp.SenderProtocolIpV4Address.ToString() == PacketManager.DefaultGateway)) // mac from server
+                    if ((arp.SenderProtocolIpV4Address.ToString() == ConfigManager.IP) || (arp.SenderProtocolIpV4Address.ToString() == PacketManager.DefaultGateway)) // mac from server
                     {
                         // After client got the server's mac, it sends the first induction message
                         server_mac = MethodExt.GetValidMac(arp.SenderHardwareAddress);
@@ -154,7 +154,7 @@ namespace Client
         /// <param name="packet">New given keepalive packet</param>
         private void KeepAliveHandler(Packet packet)
         {
-            if (packet.IsValidUDP(myPort, ServerProperties.PORT))  // UDP Packet
+            if (packet.IsValidUDP(myPort, ConfigManager.PORT))  // UDP Packet
             {
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
@@ -166,7 +166,7 @@ namespace Client
                         Debug.WriteLine("[GOT] Keep-Alive");
                         if (alive) // if client still alive, it will send a keep-alive response
                         {
-                            KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ServerProperties.IP, MainView.myPort, ServerProperties.PORT));
+                            KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
                             Packet keepAlive_confirm = keepAlive_response.Check(server_socket_id);
                             PacketManager.SendPacket(keepAlive_confirm);
                             Debug.WriteLine("[SEND] Keep-Alive Confirm");
@@ -185,7 +185,7 @@ namespace Client
             if (server_mac != null)
             {
                 // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
-                ShutDownRequest shutdown_response = new ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, server_mac, PacketManager.LocalIp, ServerProperties.IP, myPort, ServerProperties.PORT));
+                ShutDownRequest shutdown_response = new ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, server_mac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
                 Packet shutdown_packet = shutdown_response.Exit(server_socket_id);
                 PacketManager.SendPacket(shutdown_packet);
             }

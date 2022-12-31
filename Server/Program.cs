@@ -39,7 +39,7 @@ namespace Server
         /// <param name="packet">New given packet</param>
         private static void HandlePacket(Packet packet)
         {
-            if (packet.IsValidUDP(ServerProperties.PORT))  // UDP Packet
+            if (packet.IsValidUDP(ConfigManager.PORT))  // UDP Packet
             {
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();

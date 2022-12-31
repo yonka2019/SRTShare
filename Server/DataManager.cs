@@ -62,7 +62,7 @@ namespace Server
                 List<byte> stream = mStream.ToArray().ToList();
 
                 DataRequest dataRequest = new DataRequest(
-                                PacketManager.BuildBaseLayers(PacketManager.MacAddress, client.MacAddress.ToString(), PacketManager.LocalIp, client.IPAddress.ToString(), ServerProperties.PORT, client.Port));
+                                PacketManager.BuildBaseLayers(PacketManager.MacAddress, client.MacAddress.ToString(), PacketManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
                 List<Packet> data_packets = dataRequest.SplitToPackets(stream, time_stamp: 0, u_dest_socket_id, (int)client.MTU);
 
