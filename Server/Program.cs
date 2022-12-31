@@ -22,15 +22,13 @@ namespace Server
 
         private static void Main()
         {
-            new Thread(new ThreadStart(RecvP)).Start(); // always listen for any new connections
-        }
+            _ = ConfigManager.IP;
 
-        /// <summary>
-        /// The function starts receiving the packets
-        /// </summary>
-        private static void RecvP()
-        {
-            PacketManager.ReceivePackets(0, HandlePacket);
+            new Thread(() => { PacketManager.ReceivePackets(0, HandlePacket); }).Start(); // always listen for any new connections
+
+            PacketManager.PrintInterfaceData();
+            PacketManager.PrintServerData();
+
         }
 
         /// <summary>

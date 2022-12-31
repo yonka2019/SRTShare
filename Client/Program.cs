@@ -16,7 +16,12 @@ namespace Client
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            _ = ConfigManager.IP;
             TestConnection();
+
+            PacketManager.PrintInterfaceData();
+            PacketManager.PrintServerData();
+
             Application.Run(new MainView());
         }
 

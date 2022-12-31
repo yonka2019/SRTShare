@@ -1,7 +1,9 @@
 ﻿using Newtonsoft.Json;
+using PcapDotNet.Packets.Ethernet;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace SRTLibrary
 {
@@ -74,6 +76,9 @@ namespace SRTLibrary
             bool portGood = false;
 
             Console.Clear();
+
+            PacketManager.PrintInterfaceData();
+
             Console.WriteLine($"# --- Creating config ({CONFIG_NAME}) --- #\n");
 
             // get IP

@@ -60,7 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ARPManager.cs" />
-    <Compile Include="ServerProperties.cs" />
+    <Compile Include="ConfigManager.cs" />
     <Compile Include="MethodExt.cs" />
     <Compile Include="PacketManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

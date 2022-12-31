@@ -17,6 +17,7 @@ namespace SRTLibrary
     {
         public static readonly LivePacketDevice Device;  // active network interface
         public static readonly string LocalIp;
+        public static readonly string PublicIp;
         public static readonly string MacAddress;
         public static readonly string DefaultGateway;
         public static string Mask { get; private set; }
@@ -24,20 +25,29 @@ namespace SRTLibrary
         static PacketManager()
         {
             LocalIp = GetActiveLocalIp();
+            PublicIp = GetActivePublicIp();
             Device = AutoSelectNetworkInterface(LocalIp);
             MacAddress = Device.GetMacAddress().ToString().Replace("-", ":");
             DefaultGateway = Device.GetNetworkInterface().GetIPProperties().GatewayAddresses.Where(inter => inter.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).First().Address.ToString();
-            Console.WriteLine($"####################\n[!] SELECTED INTERFACE: {Device.Description}\n" +
-                $"* Local IP: {LocalIp}\n" +
-                $"* MAC: {MacAddress}\n" +
-                $"* Gateway: {DefaultGateway}\n" +
-                $"* Mask: {Mask}\n" +
-                $"####################\n\n");
+        }
 
+        public static void PrintInterfaceData()
+        {
+            Console.WriteLine($"####################\n[!] SELECTED INTERFACE: {PacketManager.Device.Description}\n" +
+                            $"* Local IP: {PacketManager.LocalIp}\n" +
+                            $"* Public IP: {PacketManager.PublicIp}\n" +
+                            $"* MAC: {PacketManager.MacAddress}\n" +
+                            $"* Gateway: {PacketManager.DefaultGateway}\n" +
+                            $"* Mask: {PacketManager.Mask}\n" +
+                            $"####################\n\n");
+        }
+        
+        public static void PrintServerData()
+        {
             Console.WriteLine($"####################\n[!] SERVER SETTINGS (from {ConfigManager.CONFIG_NAME})\n" +
-                $"* IP: {ConfigManager.IP}\n" +
-                $"* PORT: {ConfigManager.PORT}\n" +
-                $"####################\n\n");
+                            $"* IP: {ConfigManager.IP}\n" +
+                            $"* PORT: {ConfigManager.PORT}\n" +
+                            $"####################\n\n");
         }
 
         /// <summary>
@@ -62,6 +72,25 @@ namespace SRTLibrary
 
             return localAddress.ToString();
         }
+
+#region https://stackoverflow.com/questions/3253701/get-public-external-ip-address
+        private static string GetActivePublicIp()
+        {
+            string url = "http://checkip.dyndns.org";
+
+            System.Net.WebRequest req = System.Net.WebRequest.Create(url);
+            System.Net.WebResponse resp = req.GetResponse();
+            System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
+
+            string response = sr.ReadToEnd().Trim();
+            string[] a = response.Split(':');
+            string a2 = a[1].Substring(1);
+            string[] a3 = a2.Split('<');
+            string a4 = a3[0];
+
+            return a4;
+        }
+#endregion
 
         /// <summary>
         /// The function auto selects the device where all the messages will be sent to
