@@ -43,11 +43,17 @@ namespace Client
             myPort = (ushort)rnd.Next(1, 50000);
 
             //  start receiving packets
-            pRecvThread = new Thread(new ThreadStart(RecvP));
+            pRecvThread = new Thread(() => {
+                PacketManager.ReceivePackets(0, PacketHandler);
+            });
             pRecvThread.Start();
 
             //  start receiving keep-alive packets
-            pRecvKAThread = new Thread(new ThreadStart(RecvKeepAliveP));
+            pRecvKAThread = new Thread(() =>
+            {
+                PacketManager.ReceivePackets(0, KeepAliveHandler);
+
+            });
             pRecvKAThread.Start();
 
             Packet arpRequest = ARPManager.Request(ServerProperties.IP, out bool sameSubnet); // search for server's mac
@@ -85,16 +91,6 @@ namespace Client
                 }
             };
             timer.Start();
-        }
-
-        private void RecvP()
-        {
-            PacketManager.ReceivePackets(0, PacketHandler);
-        }
-
-        private void RecvKeepAliveP()
-        {
-            PacketManager.ReceivePackets(0, KeepAliveHandler);
         }
 
         /// <summary>
