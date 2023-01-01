@@ -12,6 +12,8 @@ namespace Client
         private static ushort lastDataPosition;
         private static readonly List<byte> allChunks = new List<byte>();
 
+        // check if need to be async
+
         internal static void ProduceImage(Data.SRTHeader data_request, PictureBox pictureBoxDisplayIn)
         {
             if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.FIRST)
@@ -30,6 +32,7 @@ namespace Client
                 ShowImage(true, pictureBoxDisplayIn);
                 allChunks.Clear();
             }
+
             else
             {
                 allChunks.AddRange(data_request.DATA);
