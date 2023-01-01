@@ -97,7 +97,7 @@ namespace SRTLibrary
                 {  // 2nd check [0-255.0-255.0-255.0-255]
                     for (int i = 1; i <= 4; i++)
                     {
-                        if (int.Parse(ipMatch.Groups[1].Value) < 0 || int.Parse(ipMatch.Groups[1].Value) > 255)  // check if each block is between 0-255
+                        if (int.Parse(ipMatch.Groups[i].Value) < 0 || int.Parse(ipMatch.Groups[i].Value) > 255)  // check if each block is between 0-255
                         {
                             ipGood = false;
                             break;

@@ -52,7 +52,6 @@ namespace Client
             pRecvKAThread = new Thread(() =>
             {
                 PacketManager.ReceivePackets(0, KeepAliveHandler);
-
             });
             pRecvKAThread.Start();
 
@@ -85,7 +84,7 @@ namespace Client
                     timer.Stop();
                     if (!serverAlive)  // still null after 3 seconds
                     {
-                        MessageBox.Show("Server isn't responding..", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Server isn't responding to [SRT: Induction] request..", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Environment.Exit(-1);
                     }
                 }

@@ -17,10 +17,11 @@ namespace Client
             Application.SetCompatibleTextRenderingDefault(false);
 
             _ = ConfigManager.IP;
-            TestConnection();
 
             PacketManager.PrintInterfaceData();
             PacketManager.PrintServerData();
+
+            TestConnection();
 
             Application.Run(new MainView());
         }

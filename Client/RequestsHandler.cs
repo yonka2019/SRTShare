@@ -48,7 +48,6 @@ namespace Client
             HandshakeRequest handshake = new HandshakeRequest
                     (PacketManager.BuildBaseLayers(PacketManager.MacAddress, server_mac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
 
-
             IpV4Address peer_ip = new IpV4Address(PacketManager.LocalIp);
             Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.LocalIp, myPort), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0);
 
