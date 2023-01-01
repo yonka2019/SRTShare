@@ -143,7 +143,7 @@ namespace SRTLibrary
         public static void SendPacket(Packet packetToSend)
         {
             using (PacketCommunicator communicator = Device.Open(100, // name of the device
-                                 PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
+                                 PacketDeviceOpenAttributes.DataTransferUdpRemote, // promiscuous mode
                                  1000)) // read timeout
             {
                 communicator.SendPacket(packetToSend);
@@ -160,7 +160,7 @@ namespace SRTLibrary
             using (PacketCommunicator communicator =
             Device.Open(65536,                         // portion of the packet to capture
                                                        // 65536 guarantees that the whole packet will be captured on all the link layers
-                    PacketDeviceOpenAttributes.Promiscuous,  // promiscuous mode
+                    PacketDeviceOpenAttributes.DataTransferUdpRemote,  // promiscuous mode
                     1000))                                  // read timeout
             {
 #if DEBUG
