@@ -29,6 +29,9 @@ namespace Server
             PacketManager.PrintInterfaceData();
             PacketManager.PrintServerData();
 
+#if DEBUG
+            Console.Title = "Data sent: 0"; // prepare console for future setting the current number of sent DATA packets
+#endif
         }
 
         /// <summary>

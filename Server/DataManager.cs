@@ -67,7 +67,12 @@ namespace Server
                 List<Packet> data_packets = dataRequest.SplitToPackets(stream, time_stamp: 0, u_dest_socket_id, (int)client.MTU);
 
                 foreach (Packet packet in data_packets)
+                {
                     PacketManager.SendPacket(packet);
+#if DEBUG
+                    Console.Title = Console.Title.ReformatConsoleTitle(1);  // set console title to current sent DATA packets
+#endif
+                }
             }
         }
 

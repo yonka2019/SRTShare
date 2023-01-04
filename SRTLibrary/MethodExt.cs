@@ -1,9 +1,11 @@
-﻿using PcapDotNet.Packets;
+﻿using PcapDotNet.Base;
+using PcapDotNet.Packets;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace SRTLibrary
 {
@@ -139,6 +141,20 @@ namespace SRTLibrary
                 }
             }
             return true;
+        }
+        
+        public static string ReformatConsoleTitle(this string title, int addNumber)
+        {
+            Regex regex = new Regex(@"(\d+)$");
+            Match match = regex.Match(title);
+
+            if (match.Success)
+            {
+                UInt128 curr = UInt128.Parse(match.Groups[1].Value);
+                return regex.Replace(title, (curr + UInt128.Parse(addNumber.ToString())).ToString());
+            }
+
+            return null;
         }
     }
 }

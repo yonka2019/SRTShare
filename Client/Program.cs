@@ -23,6 +23,9 @@ namespace Client
 
             TestConnection();
 
+#if DEBUG
+            Console.Title = "Data received: 0"; // prepare console for future setting the current number of received DATA packets
+#endif
             Application.Run(new MainView());
         }
 

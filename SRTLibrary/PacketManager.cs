@@ -34,11 +34,11 @@ namespace SRTLibrary
         public static void PrintInterfaceData()
         {
             Console.WriteLine($"####################\n[!] SELECTED INTERFACE: {PacketManager.Device.Description}\n" +
-                            $"* Local IP: {PacketManager.LocalIp}\n" +
-                            $"* Public IP: {PacketManager.PublicIp}\n" +
-                            $"* MAC: {PacketManager.MacAddress}\n" +
-                            $"* Gateway: {PacketManager.DefaultGateway}\n" +
-                            $"* Mask: {PacketManager.Mask}\n" +
+                            $"* Local IP: {LocalIp}\n" +
+                            $"* Public IP: {PublicIp}\n" +
+                            $"* MAC: {MacAddress}\n" +
+                            $"* Gateway: {DefaultGateway}\n" +
+                            $"* Mask: {Mask}\n" +
                             $"####################\n\n");
         }
         

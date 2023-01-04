@@ -25,6 +25,7 @@ namespace Client
 
                 Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: true, MainView.client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
                 PacketManager.SendPacket(handshake_packet);
+
             }
             else
             {

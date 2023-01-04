@@ -122,7 +122,9 @@ namespace Client
                 else if (Data.SRTHeader.IsData(payload))
                 {
                     Data.SRTHeader data_request = new Data.SRTHeader(payload);
-
+#if DEBUG
+                    Console.Title = Console.Title.ReformatConsoleTitle(1);
+#endif
                     RequestsHandler.HandleData(data_request, pictureBox1);
                 }
             }
