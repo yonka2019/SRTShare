@@ -57,10 +57,11 @@ namespace SRTLibrary
         private static string GetActiveLocalIp()
         {
             IPAddress localAddress = null;
+            string googleDns = "8.8.8.8";
 
             try
             {
-                UdpClient u = new UdpClient("8.8.8.8", 1);
+                UdpClient u = new UdpClient(googleDns, 1);
                 localAddress = ((IPEndPoint)u.Client.LocalEndPoint).Address;
             }
             catch
@@ -76,17 +77,30 @@ namespace SRTLibrary
 #region https://stackoverflow.com/questions/3253701/get-public-external-ip-address
         private static string GetActivePublicIp()
         {
-            string url = "http://checkip.dyndns.org";
+            string checkIpURL = @"http://checkip.dyndns.org";
 
-            System.Net.WebRequest req = System.Net.WebRequest.Create(url);
-            System.Net.WebResponse resp = req.GetResponse();
-            System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
+            string response;
+            string[] a;
+            string a2;
+            string[] a3;
+            string a4;
 
-            string response = sr.ReadToEnd().Trim();
-            string[] a = response.Split(':');
-            string a2 = a[1].Substring(1);
-            string[] a3 = a2.Split('<');
-            string a4 = a3[0];
+            try
+            {
+                WebRequest req = WebRequest.Create(checkIpURL);
+                WebResponse resp = req.GetResponse();
+                System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
+
+                response = sr.ReadToEnd().Trim();
+                a = response.Split(':');
+                a2 = a[1].Substring(1);
+                a3 = a2.Split('<');
+                a4 = a3[0];
+            }
+            catch
+            {
+                return "ERROR";
+            }
 
             return a4;
         }

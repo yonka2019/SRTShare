@@ -1,4 +1,5 @@
-﻿using PcapDotNet.Packets;
+﻿using PcapDotNet.Base;
+using PcapDotNet.Packets;
 using SRTLibrary;
 using SRTLibrary.SRTManager.RequestsFactory;
 using System;
@@ -26,6 +27,10 @@ namespace Server
 
         private readonly SClient client;
         private bool connected;
+
+#if DEBUG
+        private static ulong dataSent = 0;
+#endif
 
         internal DataManager(SClient client)
         {
@@ -70,7 +75,7 @@ namespace Server
                 {
                     PacketManager.SendPacket(packet);
 #if DEBUG
-                    Console.Title = Console.Title.ReformatConsoleTitle(1);  // set console title to current sent DATA packets
+                    Console.Title = $"Data sent {++dataSent}";
 #endif
                 }
             }

@@ -142,25 +142,5 @@ namespace SRTLibrary
             }
             return true;
         }
-
-        /// <summary>
-        /// If the program in debug mode, the console is updates current sent/received data packets, this function changes the number via regex expressions
-        /// </summary>
-        /// <param name="title">current title</param>
-        /// <param name="addNumber">how much to add to current value which is in the title</param>
-        /// <returns>ready string to get setted into the console title</returns>
-        public static string ReformatConsoleTitle(this string title, int addNumber)
-        {
-            Regex regex = new Regex(@"(\d+)$");
-            Match match = regex.Match(title);
-
-            if (match.Success)
-            {
-                UInt128 curr = UInt128.Parse(match.Groups[1].Value);
-                return regex.Replace(title, (curr + UInt128.Parse(addNumber.ToString())).ToString());
-            }
-
-            return null;
-        }
     }
 }

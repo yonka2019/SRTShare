@@ -1,4 +1,5 @@
-﻿using PcapDotNet.Packets;
+﻿using PcapDotNet.Base;
+using PcapDotNet.Packets;
 using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Transport;
 using SRTLibrary;
@@ -34,6 +35,10 @@ namespace Client
 
         private bool first = true;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
         private bool alive = true;
+
+#if DEBUG
+        private static ulong dataReceived = 0;
+#endif
 
         public MainView()
         {
@@ -123,7 +128,7 @@ namespace Client
                 {
                     Data.SRTHeader data_request = new Data.SRTHeader(payload);
 #if DEBUG
-                    Console.Title = Console.Title.ReformatConsoleTitle(1);
+                    Console.Title = $"Data received {++dataReceived}";
 #endif
                     RequestsHandler.HandleData(data_request, pictureBox1);
                 }

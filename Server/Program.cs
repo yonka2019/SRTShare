@@ -1,4 +1,5 @@
-﻿using PcapDotNet.Packets;
+﻿using PcapDotNet.Base;
+using PcapDotNet.Packets;
 using PcapDotNet.Packets.Transport;
 using SRTLibrary;
 using SRTLibrary.SRTManager.ProtocolFields.Control;
@@ -28,10 +29,6 @@ namespace Server
 
             PacketManager.PrintInterfaceData();
             PacketManager.PrintServerData();
-
-#if DEBUG
-            Console.Title = "Data sent: 0"; // prepare console for future setting the current number of sent DATA packets
-#endif
         }
 
         /// <summary>
