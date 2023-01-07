@@ -22,7 +22,7 @@ namespace SRTLibrary
         }
 
         /// <summary>
-        /// The function gtenerates a socket id for the handshake
+        /// The function generates a socket id for the handshake
         /// </summary>
         /// <param name="ip">Client's ip</param>
         /// <param name="port">Client's port</param>

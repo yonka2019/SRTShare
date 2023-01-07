@@ -12,7 +12,7 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
             ENCRYPTION_FIELD = encryption_field; byteFields.Add(BitConverter.GetBytes(ENCRYPTION_FIELD));
             INTIAL_PSN = intial_psn; byteFields.Add(BitConverter.GetBytes(INTIAL_PSN));
 
-            // (.Mtu - 100; explanation) To avoid errors with sending, because this field used to set fixed size of splitted data packet, while the real mtu that the interface provides refers the whole size of the packet which get sent 
+            // (.Mtu - 100; explanation) To avoid errors with sending, because this field used to set fixed size of splitted data packet, while the real mtu that the interface provides refers the whole size of the packet which get sent, and with the whole srt packet and all layers in will much more
             MTU = (uint)PacketManager.Device.GetNetworkInterface().GetIPProperties().GetIPv4Properties().Mtu - 100; byteFields.Add(BitConverter.GetBytes(MTU));
             byteFields.Add(BitConverter.GetBytes(MFW));
             TYPE = type; byteFields.Add(BitConverter.GetBytes(TYPE));
@@ -138,11 +138,11 @@ namespace SRTLibrary.SRTManager.ProtocolFields.Control
         {
             string handshake = "";
 
-            handshake += "Source id: " + SOCKET_ID + "\n";
-            handshake += "Dest id: " + DEST_SOCKET_ID + "\n";
+            handshake += "Source SId: " + SOCKET_ID + "\n";
+            handshake += "Dest SId: " + DEST_SOCKET_ID + "\n";
             handshake += "Cookie: " + SYN_COOKIE + "\n";
             handshake += "Peer ip: " + PEER_IP.ToString() + "\n";
-            handshake += "Handshake type: " + TYPE.ToString("X") + "\n";
+            handshake += "Handshake type: " + TYPE.ToString("X");
 
             return handshake;
         }

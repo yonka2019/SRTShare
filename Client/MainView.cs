@@ -1,5 +1,4 @@
-﻿using PcapDotNet.Base;
-using PcapDotNet.Packets;
+﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Transport;
 using SRTLibrary;
@@ -33,7 +32,7 @@ namespace Client
         internal static uint client_socket_id = 0;  // the server sends this value
         private static uint server_socket_id = 0;  // we getting know this value on the indoction that the server returns to us
 
-        private bool first = true;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
+        private bool handledArp = true;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
         private bool alive = true;
 
 #if DEBUG
@@ -43,12 +42,12 @@ namespace Client
         public MainView()
         {
             InitializeComponent();
-            pictureBox1.Width = Screen.FromControl(this).WorkingArea.Width / 3;
 
             myPort = (ushort)rnd.Next(1, 50000);
 
             //  start receiving packets
-            pRecvThread = new Thread(() => {
+            pRecvThread = new Thread(() =>
+            {
                 PacketManager.ReceivePackets(0, PacketHandler);
             });
             pRecvThread.Start();
@@ -64,7 +63,7 @@ namespace Client
             PacketManager.SendPacket(arpRequest);
 
             if (!sameSubnet)
-                Debug.WriteLine("[INFO] External server address");
+                Console.WriteLine("[Client] External server address\n");
 
             ResponseCheck();
         }
@@ -116,10 +115,17 @@ namespace Client
 
                         server_socket_id = handshake_request.SOCKET_ID;  // as first packet, we are setting the socket id to know it for the future
 
-                        if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.INDUCTION)  // [server -> client] (SRT) Induction
+                        if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.INDUCTION)  // (SRT) Induction
                         {
                             serverAlive = true;
                             RequestsHandler.HandleInduction(handshake_request);
+                        }
+                        else if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.CONCLUSION)
+                        {
+                            Invoke((MethodInvoker)delegate {
+                                VideoBox.Text = "";
+                            });
+                            Console.WriteLine("[Handshake completed] Starting video display\n");
                         }
                     }
                 }
@@ -130,7 +136,7 @@ namespace Client
 #if DEBUG
                     Console.Title = $"Data received {++dataReceived}";
 #endif
-                    RequestsHandler.HandleData(data_request, pictureBox1);
+                    RequestsHandler.HandleData(data_request, VideoBox);
                 }
             }
 
@@ -138,17 +144,17 @@ namespace Client
             {
                 ArpDatagram arp = packet.Ethernet.Arp;
 
-                if (MethodExt.GetValidMac(arp.TargetHardwareAddress) == PacketManager.MacAddress && first) // my mac, and this is the first time answering 
+                if (MethodExt.GetValidMac(arp.TargetHardwareAddress) == PacketManager.MacAddress && handledArp)  // my mac, and this is the first time answering 
                 {
                     if ((arp.SenderProtocolIpV4Address.ToString() == ConfigManager.IP) || (arp.SenderProtocolIpV4Address.ToString() == PacketManager.DefaultGateway)) // mac from server
                     {
                         // After client got the server's mac, it sends the first induction message
                         server_mac = MethodExt.GetValidMac(arp.SenderHardwareAddress);
-                        Console.WriteLine("Server MAC Found: " + server_mac);
+                        Console.WriteLine($"[Client] Server MAC Found: {server_mac}\n");
                         client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.LocalIp, myPort);
 
                         RequestsHandler.HandleArp(server_mac, myPort, client_socket_id);
-                        first = false;
+                        handledArp = false;
                     }
                 }
             }
@@ -175,7 +181,7 @@ namespace Client
                             KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
                             Packet keepAlive_confirm = keepAlive_response.Check(server_socket_id);
                             PacketManager.SendPacket(keepAlive_confirm);
-                            Debug.WriteLine("[SEND] Keep-Alive Confirm");
+                            Debug.WriteLine("[SEND] Keep-Alive Confirm\n--------------------\n");
                         }
                     }
                 }

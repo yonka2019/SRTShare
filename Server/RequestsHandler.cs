@@ -21,7 +21,7 @@ namespace Server
 
             if (Program.SRTSockets.ContainsKey(client_id))
             {
-                Console.WriteLine($"Got a Shutdown Request from: {Program.SRTSockets[client_id].SocketAddress.IPAddress}.");
+                Console.WriteLine($"[Shutdown] Got shutdown request from: {Program.SRTSockets[client_id].SocketAddress.IPAddress}\n");
 
                 Program.Dispose(client_id);
             }
@@ -36,6 +36,8 @@ namespace Server
         /// <param name="datagram">The transport layer</param>
         internal static void HandleInduction(Packet packet, Handshake handshake_request)
         {
+            Console.WriteLine($"[Handshake] Got Induction: {handshake_request}\n");
+
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
 
             HandshakeRequest handshake_response = new HandshakeRequest
@@ -47,8 +49,6 @@ namespace Server
             IpV4Address peer_ip = new IpV4Address(PacketManager.LocalIp);
             Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
             PacketManager.SendPacket(handshake_packet);
-
-            Console.WriteLine("\n\nInduction [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
         }
 
         /// <summary>
@@ -59,6 +59,8 @@ namespace Server
         /// <param name="datagram">The transport layer</param>
         internal static void HandleConclusion(Packet packet, Handshake handshake_request)
         {
+            Console.WriteLine($"[Handshake] Got Conclusion: {handshake_request}\n");
+
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
 
             HandshakeRequest handshake_response = new HandshakeRequest
@@ -68,13 +70,11 @@ namespace Server
             Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
             PacketManager.SendPacket(handshake_packet);
 
-            Console.WriteLine("\n\nConclusion [Client -> Server]:\n" + handshake_request + "\n--------------------\n\n");
-
             // ADD NEW SOCKET TO LIST 
             SClient currentClient = new SClient(handshake_request.PEER_IP, datagram.SourcePort, packet.Ethernet.Source, handshake_request.SOCKET_ID, handshake_request.MTU);
 
             KeepAliveManager kaManager = new KeepAliveManager(currentClient);
-            DataManager dataManager = new DataManager(currentClient);
+            VideoManager dataManager = new VideoManager(currentClient);
 
             Program.SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(currentClient,
                 kaManager, dataManager));

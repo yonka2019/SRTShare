@@ -1,9 +1,7 @@
 ﻿using Newtonsoft.Json;
-using PcapDotNet.Packets.Ethernet;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace SRTLibrary
 {

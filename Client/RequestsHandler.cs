@@ -34,7 +34,7 @@ namespace Client
                 Packet shutdown_packet = shutdown_response.Exit();
                 PacketManager.SendPacket(shutdown_packet);
 
-                MessageBox.Show("Wrong cookie - Exiting...", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Bad cookie - Exiting...", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -55,7 +55,7 @@ namespace Client
             PacketManager.SendPacket(handshake_packet);
         }
 
-        internal static void HandleData(Data.SRTHeader data_request, PictureBox pictureBoxDisplayIn)
+        internal static void HandleData(Data.SRTHeader data_request, Cyotek.Windows.Forms.ImageBox pictureBoxDisplayIn)
         {
             ImageDisplay.ProduceImage(data_request, pictureBoxDisplayIn);
         }

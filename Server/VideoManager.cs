@@ -1,20 +1,22 @@
-﻿using PcapDotNet.Base;
-using PcapDotNet.Packets;
+﻿using PcapDotNet.Packets;
+using PcapDotNet.Packets.Ip;
 using SRTLibrary;
 using SRTLibrary.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Server
 {
-
-    internal class DataManager
+    internal class VideoManager
     {
         private static class Win32Native
         {
@@ -32,7 +34,7 @@ namespace Server
         private static ulong dataSent = 0;
 #endif
 
-        internal DataManager(SClient client)
+        internal VideoManager(SClient client)
         {
             this.client = client;
             connected = true;
@@ -66,7 +68,7 @@ namespace Server
                 MemoryStream mStream = GetJpegStream(bmp);
                 List<byte> stream = mStream.ToArray().ToList();
 
-                DataRequest dataRequest = new DataRequest(
+            DataRequest dataRequest = new DataRequest(
                                 PacketManager.BuildBaseLayers(PacketManager.MacAddress, client.MacAddress.ToString(), PacketManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
                 List<Packet> data_packets = dataRequest.SplitToPackets(stream, time_stamp: 0, u_dest_socket_id, (int)client.MTU);
@@ -107,7 +109,7 @@ namespace Server
             MemoryStream stream = new MemoryStream();
             Encoder myEncoder = Encoder.Quality;
 
-            ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
+            ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Png);
             EncoderParameters myEncoderParameters = new EncoderParameters(1);
 
             EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, 50L);

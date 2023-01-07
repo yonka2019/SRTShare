@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Windows.Forms;
+using static System.Net.Mime.MediaTypeNames;
 using Data = SRTLibrary.SRTManager.ProtocolFields.Data;
 
 namespace Client
@@ -14,13 +14,13 @@ namespace Client
 
         // check if need to be async
 
-        internal static void ProduceImage(Data.SRTHeader data_request, PictureBox pictureBoxDisplayIn)
+        internal static void ProduceImage(Data.SRTHeader data_request, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
         {
             if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.FIRST)
             {
                 if (lastDataPosition == (ushort)Data.PositionFlags.MIDDLE)
                 {
-                    ShowImage(false, pictureBoxDisplayIn);
+                    ShowImage(false, imageBoxDisplayIn);
                     allChunks.Clear();
                 }
                 allChunks.AddRange(data_request.DATA);
@@ -29,7 +29,7 @@ namespace Client
             else if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.LAST)
             {
                 allChunks.AddRange(data_request.DATA);
-                ShowImage(true, pictureBoxDisplayIn);
+                ShowImage(true, imageBoxDisplayIn);
                 allChunks.Clear();
             }
 
@@ -41,7 +41,7 @@ namespace Client
             lastDataPosition = data_request.PACKET_POSITION_FLAG;
         }
 
-        private static void ShowImage(bool allChunksReceived, PictureBox pictureBoxDisplayIn)
+        private static void ShowImage(bool allChunksReceived, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
         {
 #if DEBUG
             if (allChunksReceived)
@@ -54,11 +54,11 @@ namespace Client
             {
                 try
                 {
-                    pictureBoxDisplayIn.Image = new Bitmap(Image.FromStream(ms));
+                    imageBoxDisplayIn.Image = System.Drawing.Image.FromStream(ms);
                 }
                 catch
                 {
-                    Debug.WriteLine("[IMAGE] ERROR: Can't build image at all");
+                    Debug.WriteLine("[IMAGE] ERROR: Can't build image at all\n--------------------\n");
                 }
             }
         }

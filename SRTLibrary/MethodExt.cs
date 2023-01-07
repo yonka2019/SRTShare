@@ -1,11 +1,9 @@
-﻿using PcapDotNet.Base;
-using PcapDotNet.Packets;
+﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace SRTLibrary
 {
@@ -70,7 +68,7 @@ namespace SRTLibrary
                     {
                         if (packet.Ethernet.Arp.IsValid)
                         {
-                            if(packet.Ethernet.Arp.TargetProtocolAddress.Count == 4 && packet.Ethernet.Arp.SenderProtocolAddress.Count == 4)
+                            if (packet.Ethernet.Arp.TargetProtocolAddress.Count == 4 && packet.Ethernet.Arp.SenderProtocolAddress.Count == 4)
                             {
                                 if (packet.Ethernet.Arp.TargetHardwareAddress.Count == 6 && packet.Ethernet.Arp.SenderHardwareAddress.Count == 6)
                                 {

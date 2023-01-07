@@ -178,7 +178,7 @@ namespace SRTLibrary
                     1000))                                  // read timeout
             {
 #if DEBUG
-                Console.WriteLine($"[LISTENING] {callback.Method.Name}");
+                Console.WriteLine($"# [LISTENING] {callback.Method.Name}\n");
 #endif
                 communicator.ReceivePackets(0, callback);
             }

@@ -1,5 +1,4 @@
-﻿using PcapDotNet.Base;
-using PcapDotNet.Packets;
+﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.Transport;
 using SRTLibrary;
 using SRTLibrary.SRTManager.ProtocolFields.Control;
@@ -37,7 +36,7 @@ namespace Server
         /// <param name="packet">New given packet</param>
         private static void HandlePacket(Packet packet)
         {
-            if (packet.IsValidUDP(ConfigManager.PORT))  // UDP Packet
+            if (packet.IsValidUDP(ConfigManager.PORT))  // UDP Packet addressed to server
             {
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
@@ -48,10 +47,10 @@ namespace Server
                     {
                         Handshake handshake_request = new Handshake(payload);
 
-                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION)  // [client -> server] (SRT) Induction
+                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION)  // (SRT) Induction
                             RequestsHandler.HandleInduction(packet, handshake_request);
 
-                        else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION)  // [client -> server] (SRT) Conclusion
+                        else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION)  // (SRT) Conclusion
                         {
                             RequestsHandler.HandleConclusion(packet, handshake_request);
                             SRTSockets[handshake_request.SOCKET_ID].KeepAlive.StartCheck();  // start keep-alive checking
@@ -85,8 +84,7 @@ namespace Server
         /// <param name="socket_id">socket id who lost connection</param>
         internal static void LostConnection(uint socket_id)
         {
-            Console.WriteLine($"[{SRTSockets[socket_id].SocketAddress.IPAddress}] is dead");
-            SRTSockets[socket_id].Data.StopVideo();
+            Console.WriteLine($"[Keep-Alive] {SRTSockets[socket_id].SocketAddress.IPAddress} is dead, disposing resources..\n");
             Dispose(socket_id);
         }
 
@@ -96,15 +94,17 @@ namespace Server
         /// <param name="client_id">client id who need to be cleaned</param>
         internal static void Dispose(uint client_id)
         {
+            SRTSockets[client_id].Data.StopVideo();
+
             if (SRTSockets.ContainsKey(client_id))
             {
                 string removedIp = SRTSockets[client_id].SocketAddress.IPAddress.ToString();
 
                 SRTSockets.Remove(client_id);
-                Console.WriteLine($"Client [{removedIp}] was removed.");
+                Console.WriteLine($"[Server] Client [{removedIp}] was removed\n");
             }
             else
-                Console.WriteLine($"Client [{SRTSockets[client_id].SocketAddress.IPAddress}] wasn't found.");
+                Console.WriteLine($"[Server] Client [{SRTSockets[client_id].SocketAddress.IPAddress}] wasn't found\n");
         }
     }
 }

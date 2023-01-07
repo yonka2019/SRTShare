@@ -22,7 +22,7 @@ namespace SRTLibrary
 
             if (!sameSubnet)
                 to_ip = PacketManager.DefaultGateway;  // not in the same gateway -> get getway mac (via arp) and send the packet to him.
-            
+
 
             return PacketBuilder.Build(
             DateTime.Now,

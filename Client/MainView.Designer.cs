@@ -29,29 +29,38 @@
         private void InitializeComponent()
         {
             this.panel1 = new System.Windows.Forms.Panel();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.VideoBox = new Cyotek.Windows.Forms.ImageBox();
             this.panel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.pictureBox1);
+            this.panel1.Controls.Add(this.VideoBox);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(927, 445);
             this.panel1.TabIndex = 0;
             // 
-            // pictureBox1
+            // VideoBox
             // 
-            this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pictureBox1.Location = new System.Drawing.Point(0, 0);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(927, 445);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox1.TabIndex = 0;
-            this.pictureBox1.TabStop = false;
+            this.VideoBox.AllowDoubleClick = true;
+            this.VideoBox.AllowUnfocusedMouseWheel = true;
+            this.VideoBox.AllowZoom = false;
+            this.VideoBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.VideoBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.VideoBox.Font = new System.Drawing.Font("Arial Black", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.VideoBox.GridColor = System.Drawing.SystemColors.ControlLight;
+            this.VideoBox.GridColorAlternate = System.Drawing.SystemColors.ControlLight;
+            this.VideoBox.GridDisplayMode = Cyotek.Windows.Forms.ImageBoxGridDisplayMode.Image;
+            this.VideoBox.ImageBorderColor = System.Drawing.SystemColors.ControlLight;
+            this.VideoBox.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.High;
+            this.VideoBox.Location = new System.Drawing.Point(0, 0);
+            this.VideoBox.Name = "VideoBox";
+            this.VideoBox.ShortcutsEnabled = false;
+            this.VideoBox.Size = new System.Drawing.Size(927, 445);
+            this.VideoBox.TabIndex = 1;
+            this.VideoBox.Text = "Waiting for connection..";
             // 
             // MainView
             // 
@@ -62,7 +71,6 @@
             this.Name = "MainView";
             this.Text = "MainView";
             this.panel1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -70,7 +78,7 @@
         #endregion
 
         private System.Windows.Forms.Panel panel1;
-        internal System.Windows.Forms.PictureBox pictureBox1;
+        private Cyotek.Windows.Forms.ImageBox VideoBox;
     }
 }
 

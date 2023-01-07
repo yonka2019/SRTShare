@@ -56,7 +56,7 @@ namespace Server
         internal void ConfirmStatus()  // reset timeout seconds
         {
             timeoutSeconds = 0;
-            System.Console.WriteLine($"[{Program.SRTSockets[client.SocketId].SocketAddress.IPAddress}] is still alive");
+            System.Console.WriteLine($"[Keep-Alive] {Program.SRTSockets[client.SocketId].SocketAddress.IPAddress} is alive\n");
         }
 
         /// <summary>

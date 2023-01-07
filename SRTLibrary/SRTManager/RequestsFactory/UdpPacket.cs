@@ -31,10 +31,10 @@ namespace SRTLibrary.SRTManager.RequestsFactory
         /// <summary>
         /// The function builds and returns a packet based on the existing layers
         /// </summary>
-        /// <returns>Pacekt object</returns>
+        /// <returns>Packet object</returns>
         protected Packet BuildPacket()
         {
-            return new PacketBuilder(workingLayers).Build(DateTime.Now);
+            return new PacketBuilder(workingLayers).Build(DateTime.MinValue);
         }
     }
 }
