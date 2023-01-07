@@ -46,7 +46,6 @@
             // 
             this.VideoBox.AllowDoubleClick = true;
             this.VideoBox.AllowUnfocusedMouseWheel = true;
-            this.VideoBox.AllowZoom = false;
             this.VideoBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.VideoBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.VideoBox.Font = new System.Drawing.Font("Arial Black", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));

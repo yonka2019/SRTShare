@@ -71,53 +71,10 @@ namespace Server
                 MemoryStream mStream = GetJpegStream(bmp);
                 List<byte> stream = mStream.ToArray().ToList();
 
-                //if (count == 10)
-                //{
-                //    using (MemoryStream ms = new MemoryStream(stream.ToArray()))
-                //    {
-                //        // Read the bytes from the memory stream
-                //        byte[] bytes = ms.ToArray();
-
-                //        // Save the image to a file
-                //        File.WriteAllBytes("imageStream.png", bytes);
-                //    }
-                //    //
-
-                //    hi = true;
-                //}
-
                 DataRequest dataRequest = new DataRequest(
                                 PacketManager.BuildBaseLayers(PacketManager.MacAddress, client.MacAddress.ToString(), PacketManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
-
                 List<Packet> data_packets = dataRequest.SplitToPackets(stream, time_stamp: 0, u_dest_socket_id, (int)client.MTU);
-
-                //if(count == 10)
-                //{
-                //    List<byte> bData = new List<byte>();
-
-                //    foreach (Packet p in data_packets)
-                //    {
-                //        SRTLibrary.SRTManager.ProtocolFields.Data.SRTHeader data_request = new SRTLibrary.SRTManager.ProtocolFields.Data.SRTHeader(p.Ethernet.IpV4.Udp.Payload.ToArray());
-
-                //        bData.AddRange(data_request.DATA);
-                //    }
-
-                //    using (MemoryStream ms = new MemoryStream(bData.ToArray()))
-                //    {
-                //        // Read the bytes from the memory stream
-                //        byte[] bytes = ms.ToArray();
-
-                //        // Save the image to a file
-                //        File.WriteAllBytes("image.png", bytes);
-                //    }
-                //    //
-
-                //    //
-
-                //    hello = true;
-                //}
-
 
                 foreach (Packet packet in data_packets)
                 {
