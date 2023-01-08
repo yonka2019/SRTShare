@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Compression;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace SRTManager.ProtocolFields.Data
+namespace SRTLibrary.SRTManager.ProtocolFields.Data
 {
     public class SRTHeader
     {
@@ -14,7 +14,6 @@ namespace SRTManager.ProtocolFields.Data
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        /// 
         public SRTHeader(uint sequence_number, PositionFlags packet_position_flag, EncryptionFlags encryption_flag, bool is_retransmitted, uint message_number, uint time_stamp, uint dest_socket_id, List<byte> data)
         {
             IS_CONTROL_PACKET = false; byteFields.Add(BitConverter.GetBytes(IS_CONTROL_PACKET));
@@ -30,7 +29,6 @@ namespace SRTManager.ProtocolFields.Data
             DEST_SOCKET_ID = dest_socket_id; byteFields.Add(BitConverter.GetBytes(DEST_SOCKET_ID));
             DATA = data; byteFields.Add(DATA.ToArray());
         }
-
 
         /// <summary>
         /// Byte[] -> Fields (To extract)
@@ -56,7 +54,6 @@ namespace SRTManager.ProtocolFields.Data
             }
         }
 
-
         /// <summary>
         /// The function checks if it's a data packet
         /// </summary>
@@ -66,7 +63,6 @@ namespace SRTManager.ProtocolFields.Data
         {
             return !BitConverter.ToBoolean(data, 0);
         }
-
 
         /// <summary>
         /// 8 bit (1 bytes). The control packet has this flag set to

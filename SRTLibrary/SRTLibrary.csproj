@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="PcapDotNet.Base, Version=1.0.4.25027, Culture=neutral, PublicKeyToken=06a20bc2fabb1931, processorArchitecture=MSIL">
       <HintPath>..\packages\Pcap.Net.x86.1.0.4.1\lib\net45\PcapDotNet.Base.dll</HintPath>
     </Reference>
@@ -57,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ARPManager.cs" />
+    <Compile Include="ConfigManager.cs" />
     <Compile Include="MethodExt.cs" />
     <Compile Include="PacketManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -64,6 +68,7 @@
     <Compile Include="SRTManager\ProtocolFields\Data\DataFlags.cs" />
     <Compile Include="SRTManager\ProtocolFields\Data\SRTHeader.cs" />
     <Compile Include="SRTManager\ProtocolManager.cs" />
+    <Compile Include="SRTManager\RequestsFactory\DataRequest.cs" />
     <Compile Include="SRTManager\SClient.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\ControlType.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\Handshake.cs" />

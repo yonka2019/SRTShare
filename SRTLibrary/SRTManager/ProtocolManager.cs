@@ -13,19 +13,16 @@ namespace SRTLibrary
         /// <param name="port">Client's port</param>
         /// <param name="current_time">Current time</param>
         /// <returns></returns>
-        public static uint GenerateCookie(string ip, ushort port, DateTime current_time)
+        public static uint GenerateCookie(string ip, ushort port)
         {
             string textToEncrypt = "";
             textToEncrypt += ip + "&"; // add ip
-            textToEncrypt += port.ToString() + "&"; // add port
-            textToEncrypt += $"{current_time.Minute}.{current_time.Hour}.{current_time.Day}.{current_time.Month}.{current_time.Year}"; // add current time
-
+            textToEncrypt += port.ToString(); // add port
             return Md5Encrypt(textToEncrypt); // return the encrypted cookie
         }
 
-
         /// <summary>
-        /// The function gtenerates a socket id for the handshake
+        /// The function generates a socket id for the handshake
         /// </summary>
         /// <param name="ip">Client's ip</param>
         /// <param name="port">Client's port</param>
@@ -38,7 +35,6 @@ namespace SRTLibrary
 
             return Md5Encrypt(textToEncrypt); // return the encrypted cookie
         }
-
 
         /// <summary>
         /// The function encrypts the given text
@@ -55,6 +51,5 @@ namespace SRTLibrary
             //get hash result after compute it  
             return BitConverter.ToUInt32(md5.Hash, 0);
         }
-
     }
 }

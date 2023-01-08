@@ -1,5 +1,4 @@
 ﻿using PcapDotNet.Packets;
-
 using SRTControl = SRTLibrary.SRTManager.ProtocolFields.Control;
 
 namespace SRTLibrary.SRTManager.RequestsFactory
@@ -7,7 +6,6 @@ namespace SRTLibrary.SRTManager.RequestsFactory
     public class ShutDownRequest : UdpPacket
     {
         public ShutDownRequest(params ILayer[] layers) : base(layers) { }
-
 
         /// <summary>
         /// The function creates a shutdown packet

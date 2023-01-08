@@ -1,13 +1,12 @@
 ﻿using PcapDotNet.Packets;
-
 using SRTControl = SRTLibrary.SRTManager.ProtocolFields.Control;
+
 
 namespace SRTLibrary.SRTManager.RequestsFactory
 {
     public class KeepAliveRequest : UdpPacket
     {
         public KeepAliveRequest(params ILayer[] layers) : base(layers) { }
-
 
         /// <summary>
         /// The function creates a keep alive packet

@@ -2,6 +2,8 @@
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace SRTLibrary
 {
@@ -20,7 +22,6 @@ namespace SRTLibrary
             return reversedIpAddress;
         }
 
-
         /// <summary>
         /// The function converts a mac address to byte array
         /// </summary>
@@ -37,7 +38,6 @@ namespace SRTLibrary
             return byted;
         }
 
-
         /// <summary>
         /// The function converts an ip address to byte array
         /// </summary>
@@ -53,7 +53,6 @@ namespace SRTLibrary
             return byted;
         }
 
-
         /// <summary>
         /// The function checks if it's a valid arp packet
         /// </summary>
@@ -61,9 +60,28 @@ namespace SRTLibrary
         /// <returns>True if valid, false if not</returns>
         public static bool IsValidARP(this Packet packet)
         {
-            return packet.Ethernet.Arp != null && packet.Ethernet.Arp.IsValid && packet.Ethernet.Arp.TargetProtocolIpV4Address != null;
+            if (packet != null)
+            {
+                if (packet.Ethernet != null)
+                {
+                    if (packet.Ethernet.Arp != null)
+                    {
+                        if (packet.Ethernet.Arp.IsValid)
+                        {
+                            if (packet.Ethernet.Arp.TargetProtocolAddress.Count == 4 && packet.Ethernet.Arp.SenderProtocolAddress.Count == 4)
+                            {
+                                if (packet.Ethernet.Arp.TargetHardwareAddress.Count == 6 && packet.Ethernet.Arp.SenderHardwareAddress.Count == 6)
+                                {
+                                    if (packet.Ethernet.Arp.TargetProtocolIpV4Address != null && packet.Ethernet.Arp.SenderProtocolIpV4Address != null)
+                                        return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
         }
-
 
         /// <summary>
         /// The function checks if it's a valid udp packet
@@ -72,9 +90,55 @@ namespace SRTLibrary
         /// <returns>True if valid, false if not</returns>
         public static bool IsValidUDP(this Packet packet, ushort destPort, ushort sourcePort = 0)
         {
-            return sourcePort == 0
-                ? packet.Ethernet.IpV4.Udp != null && packet.Ethernet.IpV4.Udp.DestinationPort == destPort
-                : packet.Ethernet.IpV4.Udp != null && packet.Ethernet.IpV4.Udp.SourcePort == sourcePort && packet.Ethernet.IpV4.Udp.DestinationPort == destPort;
+            if (packet != null)
+            {
+                if (packet.Ethernet != null)
+                {
+                    if (packet.Ethernet.IpV4 != null)
+                    {
+                        if (packet.Ethernet.IpV4.Udp != null)
+                        {
+                            if (packet.Ethernet.IpV4.Udp.DestinationPort == destPort && (sourcePort == 0 || packet.Ethernet.IpV4.Udp.SourcePort == sourcePort))
+                                return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Convert byted mac to valid mac with (AA:BB:CC:DD:EE:FF)
+        /// </summary>
+        /// <param name="mac">byted mac collection to be converted</param>
+        /// <returns>valid mac in the next format: 'AA:BB:CC:DD:EE:FF'</returns>
+        public static string GetValidMac(ReadOnlyCollection<byte> mac)
+        {
+            return BitConverter.ToString(mac.ToArray()).Replace("-", ":");
+        }
+
+        /// <summary>
+        /// Check if the given ip is the same subnet with the gateway
+        /// </summary>
+        /// <param name="ip">ip to check</param>
+        /// <param name="subnet">subnet mask of the LAN</param>
+        /// <param name="gateway">gateway of the active LAN interface</param>
+        /// <returns>true if the ip is in the same subnet with the LAN gateway</returns>
+        public static bool IsInSubnet(this IpV4Address ip, string subnet, string gateway)
+        {
+            int[] sIp = Array.ConvertAll(ip.ToString().Split('.'), i => int.Parse(i));
+            int[] sSubnet = Array.ConvertAll(subnet.ToString().Split('.'), i => int.Parse(i));
+            int[] sGateway = Array.ConvertAll(gateway.ToString().Split('.'), i => int.Parse(i));
+
+            for (int i = 0; i < 4; i++)
+            {
+                if (sSubnet[i] == 255)
+                {
+                    if (sIp[i] != sGateway[i])
+                        return false;
+                }
+            }
+            return true;
         }
     }
 }

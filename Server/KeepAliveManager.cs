@@ -3,7 +3,6 @@ using SRTLibrary;
 using SRTLibrary.SRTManager.RequestsFactory;
 using System.Threading;
 using System.Timers;
-using SRTRequest = SRTLibrary.SRTManager.RequestsFactory;
 
 namespace Server
 {
@@ -17,7 +16,6 @@ namespace Server
 
         internal delegate void Notify(uint socket_id);
         internal event Notify LostConnection;
-
 
         internal KeepAliveManager(SClient client)
         {
@@ -43,17 +41,14 @@ namespace Server
             }
         }
 
-
         /// <summary>
         /// The function starts the thread responsible for keep-alive sending
         /// </summary>
         internal void StartCheck()
         {
             Thread kaChecker = new Thread(new ParameterizedThreadStart(KeepAliveChecker));  // create thread of keep-alive checker
-
             kaChecker.Start(client.SocketId);
         }
-
 
         /// <summary>
         /// The function confirms the keep-alive message (resets the timer)
@@ -61,9 +56,8 @@ namespace Server
         internal void ConfirmStatus()  // reset timeout seconds
         {
             timeoutSeconds = 0;
-            System.Console.WriteLine($"[{client.SocketId}] is still alive");
+            System.Console.WriteLine($"[Keep-Alive] {Program.SRTSockets[client.SocketId].SocketAddress.IPAddress} is alive\n");
         }
-
 
         /// <summary>
         /// The function sends keep-alive packets every 3 seconds while the client is connected
@@ -76,15 +70,14 @@ namespace Server
 
             while (connected)
             {
-                KeepAliveRequest keepAlive_request = new SRTRequest.KeepAliveRequest
-                                (PacketManager.BuildBaseLayers(PacketManager.macAddress, client.MacAddress.ToString(), PacketManager.localIp, client.IPAddress.ToString(), PacketManager.SERVER_PORT, client.Port));
+                KeepAliveRequest keepAlive_request = new KeepAliveRequest
+                                (PacketManager.BuildBaseLayers(PacketManager.MacAddress, client.MacAddress.ToString(), PacketManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
                 Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
                 PacketManager.SendPacket(keepAlive_packet);
 
-                Thread.Sleep(3000);  // 3 second wait
+                Thread.Sleep(3000);  // 3 second wait between the keep-alives
             }
         }
     }
 }
-
