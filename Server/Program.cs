@@ -4,6 +4,7 @@ using SRTLibrary;
 using SRTLibrary.SRTManager.ProtocolFields.Control;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 
@@ -22,12 +23,29 @@ namespace Server
 
         private static void Main()
         {
+            AppDomain.CurrentDomain.UnhandledException += UnhandledException;
             _ = ConfigManager.IP;
 
             new Thread(() => { PacketManager.ReceivePackets(0, HandlePacket); }).Start(); // always listen for any new connections
 
             PacketManager.PrintInterfaceData();
             PacketManager.PrintServerData();
+        }
+
+        private static void UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Exception ex = (Exception)e.ExceptionObject;
+
+            if (ex is FileNotFoundException || ex.InnerException is FileNotFoundException)
+            {
+                Console.WriteLine("[ERROR] File PcapDotNet.Core.dll couldn't be found or one of its dependencies. Make sure you have installed:\n" +
+                    "- .NET Framework 4.5\n" +
+                    "- WinPcap\n" +
+                    "- Microsoft Visual C++ 2013..\n");
+                
+                Console.ReadKey();
+                Environment.Exit(-1);
+            }
         }
 
         /// <summary>

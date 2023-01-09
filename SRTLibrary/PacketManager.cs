@@ -33,7 +33,7 @@ namespace SRTLibrary
 
         public static void PrintInterfaceData()
         {
-            Console.WriteLine($"####################\n[!] SELECTED INTERFACE: {PacketManager.Device.Description}\n" +
+            Console.WriteLine($"####################\n[!] SELECTED INTERFACE: {Device.Description}\n" +
                             $"* Local IP: {LocalIp}\n" +
                             $"* Public IP: {PublicIp}\n" +
                             $"* MAC: {MacAddress}\n" +

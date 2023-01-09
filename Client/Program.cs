@@ -1,5 +1,6 @@
 ﻿using SRTLibrary;
 using System;
+using System.IO;
 using System.Net.NetworkInformation;
 using System.Windows.Forms;
 
@@ -15,6 +16,7 @@ namespace Client
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            AppDomain.CurrentDomain.UnhandledException += UnhandledException;
 
             _ = ConfigManager.IP;
 
@@ -24,6 +26,15 @@ namespace Client
             TestConnection();
 
             Application.Run(new MainView());
+        }
+
+        private static void UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            MessageBox.Show("File PcapDotNet.Core.dll couldn't be found or one of its dependencies. Make sure you have installed:\n" +
+                "- .NET Framework 4.5\n" +
+                "- WinPcap\n" +
+                "- Microsoft Visual C++ 2013\n", "Libraries issue", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Environment.Exit(-1);
         }
 
         /// <summary>
