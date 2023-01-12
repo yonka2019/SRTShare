@@ -73,7 +73,7 @@ namespace Server
                 KeepAliveRequest keepAlive_request = new KeepAliveRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.MacAddress, client.MacAddress.ToString(), PacketManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
-                Packet keepAlive_packet = keepAlive_request.Check(u_dest_socket_id);
+                Packet keepAlive_packet = keepAlive_request.Alive(u_dest_socket_id);
                 PacketManager.SendPacket(keepAlive_packet);
 
                 Thread.Sleep(3000);  // 3 second wait between the keep-alives
