@@ -32,7 +32,7 @@ namespace SRTShareLib
 
                 for (int i = 0; i < newLines; i++)
                 {
-                    Console.Write('\n');  // print all of them
+                    Console.WriteLine();  // print each of them (\n)
                 }
             }
             else
@@ -57,7 +57,7 @@ namespace SRTShareLib
 
                 for (int i = 0; i < newLines; i++)
                 {
-                    Console.Write('\n');  // print all of them
+                    Console.WriteLine();  // print each of them (\n)
                 }
             }
             else

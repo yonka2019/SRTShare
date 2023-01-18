@@ -8,10 +8,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
-
+using CConsole = SRTShareLib.CColorManager;  // Colored Console
 using Control = SRTShareLib.SRTManager.ProtocolFields.Control;
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
-using CConsole = SRTShareLib.CColorManager;  // Colored Console
 
 namespace Client
 {
