@@ -218,10 +218,7 @@ namespace Client
         /// <returns>Adapted ip according the connection type</returns>
         internal static string GetAdaptedPeerIp()
         {
-            if (externalConnection)  // if external connection use public ip as peer ip (sender ip)
-                return PacketManager.PublicIp;
-            else
-                return PacketManager.LocalIp;
+            return externalConnection ? PacketManager.PublicIp : PacketManager.LocalIp;
         }
     }
 }
