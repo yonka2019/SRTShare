@@ -62,10 +62,13 @@ namespace Client
             ImageDisplay.ProduceImage(data_request, pictureBoxDisplayIn);
         }
 
+        /// <summary>
+        /// Handle server shutdown (only ctrl+c event)
+        /// </summary>
         internal static void HandleShutDown()
         {
             CConsole.WriteLine("[Shutdown] Server stopped", MessageType.txtError);
-            MessageBox.Show("Server have been stopped", "Server Stop", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Server have been stopped", "Server Stopped", MessageBoxButtons.OK, MessageBoxIcon.Error);
             Environment.Exit(0);
         }
     }
