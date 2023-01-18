@@ -2,6 +2,7 @@
 using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Transport;
 using SRTShareLib;
+using SRTShareLib.SRTManager.ProtocolFields.Control;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Diagnostics;
@@ -106,20 +107,20 @@ namespace Client
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (Control.SRTHeader.IsControl(payload))  // (SRT) Control
+                if (SRTHeader.IsControl(payload))  // (SRT) Control
                 {
-                    if (Control.Handshake.IsHandshake(payload))  // (SRT) Handshake
+                    if (Handshake.IsHandshake(payload))  // (SRT) Handshake
                     {
-                        Control.Handshake handshake_request = new Control.Handshake(payload);
+                        Handshake handshake_request = new Handshake(payload);
 
                         server_socket_id = handshake_request.SOCKET_ID;  // as first packet, we are setting the socket id to know it for the future
 
-                        if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.INDUCTION)  // (SRT) Induction
+                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION)  // (SRT) Induction
                         {
                             serverAlive = true;
                             RequestsHandler.HandleInduction(handshake_request);
                         }
-                        else if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.CONCLUSION)
+                        else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION)
                         {
                             Invoke((MethodInvoker)delegate
                             {
@@ -129,6 +130,8 @@ namespace Client
 
                         }
                     }
+                    else if (Shutdown.IsShutdown(payload))  // (SRT) Shutdown
+                        RequestsHandler.HandleShutDown();
                 }
 
                 else if (Data.SRTHeader.IsData(payload))
@@ -172,9 +175,9 @@ namespace Client
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (Control.SRTHeader.IsControl(payload))  // (SRT) Control
+                if (SRTHeader.IsControl(payload))  // (SRT) Control
                 {
-                    if (Control.KeepAlive.IsKeepAlive(payload))
+                    if (KeepAlive.IsKeepAlive(payload))
                     {
                         Debug.WriteLine("[GOT] Keep-Alive");
                         if (alive) // if client still alive, it will send a keep-alive response
@@ -198,8 +201,8 @@ namespace Client
             if (server_mac != null)
             {
                 // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
-                ShutDownRequest shutdown_response = new ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, server_mac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
-                Packet shutdown_packet = shutdown_response.Exit(server_socket_id);
+                ShutdownRequest shutdown_request = new ShutdownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, server_mac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
+                Packet shutdown_packet = shutdown_request.Shutdown(server_socket_id);
                 PacketManager.SendPacket(shutdown_packet);
             }
 

@@ -2,6 +2,7 @@
 using PcapDotNet.Packets.Transport;
 using SRTShareLib;
 using SRTShareLib.SRTManager.ProtocolFields.Control;
+using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,7 +20,8 @@ namespace Server
 
         private static void Main()
         {
-            AppDomain.CurrentDomain.UnhandledException += UnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += UnhandledException;  // to handle libraries missing
+            Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CancelKeyPress);  // to handle server shutdown (ONLY CTRL + C)
 
             _ = ConfigManager.IP;
 
@@ -120,6 +122,19 @@ namespace Server
             }
             else
                 CConsole.WriteLine($"[Server] Client [{SRTSockets[client_id].SocketAddress.IPAddress}] wasn't found\n", MessageType.txtError);
+        }
+
+        /// <summary>
+        /// This function executes when the server turned off (ONLY CTRL + C)
+        /// </summary>
+        static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            foreach (SRTSocket socket in SRTSockets.Values)  // send to each client shutdown message
+            {
+                ShutdownRequest shutdown_request = new ShutdownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), PacketManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
+                Packet shutdown_packet = shutdown_request.Shutdown();
+                PacketManager.SendPacket(shutdown_packet);
+            }
         }
     }
 }

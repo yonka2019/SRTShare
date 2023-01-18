@@ -5,6 +5,8 @@ using SRTShareLib.SRTManager.RequestsFactory;
 using System.Windows.Forms;
 using Control = SRTShareLib.SRTManager.ProtocolFields.Control;
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
+using CConsole = SRTShareLib.CColorManager;
+using System;
 
 namespace Client
 {
@@ -30,8 +32,8 @@ namespace Client
             else
             {
                 // Exit the prgram and send a shutdwon request
-                ShutDownRequest shutdown_response = new ShutDownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
-                Packet shutdown_packet = shutdown_response.Exit();
+                ShutdownRequest shutdown_response = new ShutdownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+                Packet shutdown_packet = shutdown_response.Shutdown();
                 PacketManager.SendPacket(shutdown_packet);
 
                 MessageBox.Show("Bad cookie - Stopping", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -58,6 +60,13 @@ namespace Client
         internal static void HandleData(Data.SRTHeader data_request, Cyotek.Windows.Forms.ImageBox pictureBoxDisplayIn)
         {
             ImageDisplay.ProduceImage(data_request, pictureBoxDisplayIn);
+        }
+
+        internal static void HandleShutDown()
+        {
+            CConsole.WriteLine("[Shutdown] Server stopped", MessageType.txtError);
+            MessageBox.Show("Server have been stopped", "Server Stop", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Environment.Exit(0);
         }
     }
 }

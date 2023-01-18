@@ -77,7 +77,7 @@
     <Compile Include="SRTManager\ProtocolFields\Control\SRTHeader.cs" />
     <Compile Include="SRTManager\RequestsFactory\HandshakeRequest.cs" />
     <Compile Include="SRTManager\RequestsFactory\KeepAliveRequest.cs" />
-    <Compile Include="SRTManager\RequestsFactory\ShutDownRequest.cs" />
+    <Compile Include="SRTManager\RequestsFactory\ShutdownRequest.cs" />
     <Compile Include="SRTManager\RequestsFactory\UdpPacket.cs" />
   </ItemGroup>
   <ItemGroup>
