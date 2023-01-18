@@ -38,7 +38,7 @@ namespace Client
                 "- .NET Framework 4.5\n" +
                 "- WinPcap\n" +
                 "- Microsoft Visual C++ 2013\n", "Libraries issue", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            Environment.Exit(-1);
+                Environment.Exit(-1);
             }
         }
 
