@@ -129,12 +129,15 @@ namespace Server
         /// </summary>
         static void Console_CtrlCKeyPressed(object sender, ConsoleCancelEventArgs e)
         {
+            CConsole.WriteLine("[Server] Shutting down...", MessageType.bgError);
+
             foreach (SRTSocket socket in SRTSockets.Values)  // send to each client shutdown message
             {
                 ShutdownRequest shutdown_request = new ShutdownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), PacketManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
                 Packet shutdown_packet = shutdown_request.Shutdown();
                 PacketManager.SendPacket(shutdown_packet);
             }
+            Environment.Exit(Environment.ExitCode);
         }
     }
 }
