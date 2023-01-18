@@ -145,22 +145,22 @@ namespace Client
             {
                 ArpDatagram arp = packet.Ethernet.Arp;
 
-                if (MethodExt.GetValidMac(arp.TargetHardwareAddress) == PacketManager.MacAddress && handledArp)  // my mac, and this is the first time answering 
+                if (MethodExt.GetFormattedMac(arp.TargetHardwareAddress) == PacketManager.MacAddress && handledArp)  // my mac, and this is the first time answering 
                 {
                     if ((arp.SenderProtocolIpV4Address.ToString() == ConfigManager.IP) || (arp.SenderProtocolIpV4Address.ToString() == PacketManager.DefaultGateway)) // mac from server
                     {
-                        // After client got the server's mac, it sends the first induction message
-                        server_mac = MethodExt.GetValidMac(arp.SenderHardwareAddress);
+                        // After client got the server's mac, send the first induction message
+                        server_mac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
                         Console.WriteLine($"[Client] Server/Gateway MAC Found: {server_mac}\n");
-                        client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.LocalIp, myPort);
+                        client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.PublicIp, myPort);
 
                         RequestsHandler.HandleArp(server_mac, myPort, client_socket_id);
                         handledArp = false;
                     }
                 }
             }
-
         }
+
         /// <summary>
         /// Callback function invoked by Pcap.Net for every keep alive packets
         /// </summary>

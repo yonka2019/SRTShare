@@ -16,12 +16,12 @@ namespace Client
         /// <param name="handshake_request">Handshake object</param>
         internal static void HandleInduction(Control.Handshake handshake_request)
         {
-            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(PacketManager.LocalIp, MainView.myPort))
+            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(PacketManager.PublicIp, MainView.myPort))
             {
                 HandshakeRequest handshake_response = new HandshakeRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
 
                 // client -> server (conclusion)
-                IpV4Address peer_ip = new IpV4Address(PacketManager.LocalIp);
+                IpV4Address peer_ip = new IpV4Address(PacketManager.PublicIp);
 
                 Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: true, MainView.client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
                 PacketManager.SendPacket(handshake_packet);
@@ -49,8 +49,8 @@ namespace Client
             HandshakeRequest handshake = new HandshakeRequest
                     (PacketManager.BuildBaseLayers(PacketManager.MacAddress, server_mac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
 
-            IpV4Address peer_ip = new IpV4Address(PacketManager.LocalIp);
-            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.LocalIp, myPort), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0);
+            IpV4Address peer_ip = new IpV4Address(PacketManager.PublicIp);
+            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(PacketManager.PublicIp, myPort), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0);
 
             PacketManager.SendPacket(handshake_packet);
         }

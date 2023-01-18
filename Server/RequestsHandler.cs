@@ -46,8 +46,8 @@ namespace Server
             string client_ip = handshake_request.PEER_IP.ToString();
             uint cookie = ProtocolManager.GenerateCookie(client_ip, datagram.SourcePort); // need to save cookie somewhere
 
-            IpV4Address peer_ip = new IpV4Address(PacketManager.LocalIp);
-            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
+            IpV4Address peer_ip = new IpV4Address(PacketManager.PublicIp);
+            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID); 
             PacketManager.SendPacket(handshake_packet);
         }
 
@@ -88,7 +88,7 @@ namespace Server
         internal static void HandleArp(Packet packet)
         {
             ArpDatagram arp = packet.Ethernet.Arp;
-            Packet arpReply = ARPManager.Reply(MethodExt.GetValidMac(arp.SenderHardwareAddress), arp.SenderProtocolIpV4Address.ToString());
+            Packet arpReply = ARPManager.Reply(MethodExt.GetFormattedMac(arp.SenderHardwareAddress), arp.SenderProtocolIpV4Address.ToString());
             PacketManager.SendPacket(arpReply);
         }
     }
