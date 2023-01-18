@@ -21,7 +21,7 @@ namespace Server
         private static void Main()
         {
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;  // to handle libraries missing
-            Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CancelKeyPress);  // to handle server shutdown (ONLY CTRL + C)
+            Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CtrlCKeyPressed);  // to handle server shutdown (ONLY CTRL + C)
 
             _ = ConfigManager.IP;
 
@@ -127,7 +127,7 @@ namespace Server
         /// <summary>
         /// This function executes when the server turned off (ONLY CTRL + C)
         /// </summary>
-        static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        static void Console_CtrlCKeyPressed(object sender, ConsoleCancelEventArgs e)
         {
             foreach (SRTSocket socket in SRTSockets.Values)  // send to each client shutdown message
             {
