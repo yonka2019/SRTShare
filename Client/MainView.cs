@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
-using Control = SRTShareLib.SRTManager.ProtocolFields.Control;
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace Client
@@ -130,7 +129,7 @@ namespace Client
 
                         }
                     }
-                    else if (Shutdown.IsShutdown(payload))  // (SRT) Shutdown
+                    else if (Shutdown.IsShutdown(payload))  // (SRT) Server Shutdown ! [HANDLES ONLY CTRL + C EVENT ON SERVER SIDE] !
                         RequestsHandler.HandleShutDown();
                 }
 
