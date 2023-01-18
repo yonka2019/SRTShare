@@ -127,6 +127,7 @@ namespace Client
                                 VideoBox.Text = "";
                             });
                             CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
+                            VideoBox.Update();
                         }
                     }
                 }
