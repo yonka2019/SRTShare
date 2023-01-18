@@ -3,7 +3,9 @@ using System;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace SRTLibrary
+using CConsole = SRTShareLib.CColorManager;
+
+namespace SRTShareLib
 {
     /// <summary>
     /// This class manage the server IP/PORT according the information which stored in the settings.json 
@@ -25,8 +27,8 @@ namespace SRTLibrary
                 configDirectory = UpDirTo(Directory.GetCurrentDirectory(), CONFIG_NAME);
                 if (configDirectory == null)
                 {
-                    Console.WriteLine("[ERROR] Can't find config file (or maybe he is duplicated at the same directory?)\n" +
-                        "You can create your own config file, press [C] key to create it, or any another key to exit");
+                    CConsole.WriteLine("[ERROR] Can't find config file (or maybe he is duplicated at the same directory?)\n" +
+                        "You can create your own config file, press [C] key to create it, or any another key to exit", MessageType.txtWarning);
 
                     if (Console.ReadKey().Key == ConsoleKey.C)
                     {
@@ -111,7 +113,7 @@ namespace SRTLibrary
 
                 if (!ipGood)
                 {
-                    Console.WriteLine("Bad IP\n");
+                    CConsole.WriteLine("Bad IP\n", MessageType.txtError);
                 }
             }
 
@@ -135,7 +137,7 @@ namespace SRTLibrary
 
                 if (!portGood)
                 {
-                    Console.WriteLine("Bad port\n");
+                    CConsole.WriteLine("Bad port\n", MessageType.txtError);
                 }
             }
             Console.WriteLine("# --- ---- ---- ----- ---- ---- --- #\n");
@@ -165,6 +167,6 @@ namespace SRTLibrary
     {
         Client,
         Server,
-        SRTLibrary
+        SRTShareLib
     }
 }

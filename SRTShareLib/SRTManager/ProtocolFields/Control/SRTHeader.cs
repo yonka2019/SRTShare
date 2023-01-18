@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SRTLibrary.SRTManager.ProtocolFields.Control
+namespace SRTShareLib.SRTManager.ProtocolFields.Control
 {
     public class SRTHeader
     {

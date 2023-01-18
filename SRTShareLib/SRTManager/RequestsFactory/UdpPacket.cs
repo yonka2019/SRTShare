@@ -1,7 +1,7 @@
 ﻿using PcapDotNet.Packets;
 using System;
 
-namespace SRTLibrary.SRTManager.RequestsFactory
+namespace SRTShareLib.SRTManager.RequestsFactory
 {
     public class UdpPacket
     {

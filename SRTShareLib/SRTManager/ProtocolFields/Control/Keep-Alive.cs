@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SRTLibrary.SRTManager.ProtocolFields.Control
+namespace SRTShareLib.SRTManager.ProtocolFields.Control
 {
     public class KeepAlive : SRTHeader
     {

@@ -1,4 +1,4 @@
-﻿using SRTLibrary;
+﻿using SRTShareLib;
 using System;
 using System.Net.NetworkInformation;
 using System.Windows.Forms;

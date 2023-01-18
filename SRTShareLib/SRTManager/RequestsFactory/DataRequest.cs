@@ -1,10 +1,10 @@
 ﻿using PcapDotNet.Packets;
 using System;
 using System.Collections.Generic;
-using SRTData = SRTLibrary.SRTManager.ProtocolFields.Data;
+using SRTData = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 
-namespace SRTLibrary.SRTManager.RequestsFactory
+namespace SRTShareLib.SRTManager.RequestsFactory
 {
     public class DataRequest : UdpPacket
     {

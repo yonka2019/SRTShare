@@ -1,7 +1,7 @@
 ﻿using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 
-namespace SRTLibrary
+namespace SRTShareLib
 {
     public class SClient  // SRT Client object
     {

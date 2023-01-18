@@ -4,7 +4,7 @@ using System.IO.Compression;
 using System.IO;
 using System.Linq;
 
-namespace SRTLibrary.SRTManager.ProtocolFields.Data
+namespace SRTShareLib.SRTManager.ProtocolFields.Data
 {
     public class SRTHeader
     {

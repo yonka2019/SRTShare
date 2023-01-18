@@ -1,8 +1,10 @@
 ﻿using PcapDotNet.Packets;
-using SRTLibrary;
-using SRTLibrary.SRTManager.RequestsFactory;
+using SRTShareLib;
+using SRTShareLib.SRTManager.RequestsFactory;
 using System.Threading;
 using System.Timers;
+
+using CConsole = SRTShareLib.CColorManager;
 
 namespace Server
 {
@@ -56,7 +58,7 @@ namespace Server
         internal void ConfirmStatus()  // reset timeout seconds
         {
             timeoutSeconds = 0;
-            System.Console.WriteLine($"[Keep-Alive] {Program.SRTSockets[client.SocketId].SocketAddress.IPAddress} is alive\n");
+            CConsole.WriteLine($"[Keep-Alive] {Program.SRTSockets[client.SocketId].SocketAddress.IPAddress} is alive\n", MessageType.txtSuccess);
         }
 
         /// <summary>

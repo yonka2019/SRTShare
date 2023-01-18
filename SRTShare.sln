@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{EDB0A67A-C1B8-4EC2-A71B-017654DB4CD2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SRTLibrary", "SRTLibrary\SRTLibrary.csproj", "{15441E3C-00E3-4644-A71B-3D949EEEE2DC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SRTShareLib", "SRTShareLib\SRTShareLib.csproj", "{15441E3C-00E3-4644-A71B-3D949EEEE2DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

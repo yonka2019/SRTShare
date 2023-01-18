@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace SRTLibrary
+namespace SRTShareLib
 {
     public class ProtocolManager
     {

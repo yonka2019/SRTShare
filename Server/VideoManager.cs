@@ -1,6 +1,6 @@
 ﻿using PcapDotNet.Packets;
-using SRTLibrary;
-using SRTLibrary.SRTManager.RequestsFactory;
+using SRTShareLib;
+using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;
 using System.Drawing;

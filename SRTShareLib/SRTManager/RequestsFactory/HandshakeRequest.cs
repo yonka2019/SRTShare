@@ -1,9 +1,9 @@
 ﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.IpV4;
-using SRTLibrary.SRTManager.ProtocolFields.Control;
-using SRTControl = SRTLibrary.SRTManager.ProtocolFields.Control;
+using SRTShareLib.SRTManager.ProtocolFields.Control;
+using SRTControl = SRTShareLib.SRTManager.ProtocolFields.Control;
 
-namespace SRTLibrary.SRTManager.RequestsFactory
+namespace SRTShareLib.SRTManager.RequestsFactory
 {
     public class HandshakeRequest : UdpPacket
     {

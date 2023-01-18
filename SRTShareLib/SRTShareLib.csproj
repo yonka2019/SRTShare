@@ -7,8 +7,8 @@
     <ProjectGuid>{15441E3C-00E3-4644-A71B-3D949EEEE2DC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SRTLibrary</RootNamespace>
-    <AssemblyName>SRTLibrary</AssemblyName>
+    <RootNamespace>SRTShareLib</RootNamespace>
+    <AssemblyName>SRTShareLib</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ARPManager.cs" />
+    <Compile Include="CColorManager.cs" />
     <Compile Include="ConfigManager.cs" />
     <Compile Include="MethodExt.cs" />
     <Compile Include="PacketManager.cs" />

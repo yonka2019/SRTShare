@@ -11,7 +11,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace SRTLibrary
+using CConsole = SRTShareLib.CColorManager;
+
+namespace SRTShareLib
 {
     public static class PacketManager
     {
@@ -66,7 +68,7 @@ namespace SRTLibrary
             }
             catch
             {
-                Console.WriteLine("[ERROR] Can't find local IP");  // there is no valid NI (Network Interface)
+                CConsole.WriteLine("[ERROR] Can't find local IP", MessageType.bgError);  // there is no valid NI (Network Interface)
                 Console.ReadKey();
                 Environment.Exit(-1);
             }
@@ -109,7 +111,7 @@ namespace SRTLibrary
 
             if (publicIp == null)  // still null
             {
-                Console.WriteLine("[ERROR] Can't find public IP");  // =(
+                CConsole.WriteLine("[ERROR] Can't find public IP", MessageType.bgError);  // =(
                 Console.ReadKey();
                 Environment.Exit(-1);
             }
@@ -146,14 +148,14 @@ namespace SRTLibrary
 
             if (allDevices.Count == 0)
             {
-                Console.WriteLine("[ERROR] No interfaces found");
+                CConsole.WriteLine("[ERROR] No interfaces found", MessageType.bgError);
                 Console.ReadKey();
                 Environment.Exit(0);
             }
 
             if (selectDeviceIndex == -1)
             {
-                Console.WriteLine($"[ERROR] There is no interface which matches with the local ip address");
+                CConsole.WriteLine($"[ERROR] There is no interface which matches with the local ip address", MessageType.txtError);
                 Console.ReadKey();
                 Environment.Exit(0);
             }
@@ -190,7 +192,7 @@ namespace SRTLibrary
                     1000))                                  // read timeout
             {
 #if DEBUG
-                Console.WriteLine($"# [LISTENING] {callback.Method.Name}\n");
+                CConsole.WriteLine($"# [LISTENING] {callback.Method.Name}\n", MessageType.txtInfo);
 #endif
                 communicator.ReceivePackets(0, callback);
             }

@@ -1,10 +1,10 @@
 ﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.IpV4;
-using SRTLibrary;
-using SRTLibrary.SRTManager.RequestsFactory;
+using SRTShareLib;
+using SRTShareLib.SRTManager.RequestsFactory;
 using System.Windows.Forms;
-using Control = SRTLibrary.SRTManager.ProtocolFields.Control;
-using Data = SRTLibrary.SRTManager.ProtocolFields.Data;
+using Control = SRTShareLib.SRTManager.ProtocolFields.Control;
+using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace Client
 {
@@ -34,7 +34,7 @@ namespace Client
                 Packet shutdown_packet = shutdown_response.Exit();
                 PacketManager.SendPacket(shutdown_packet);
 
-                MessageBox.Show("Bad cookie - Exiting...", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Bad cookie - Stopping", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

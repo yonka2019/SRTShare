@@ -147,9 +147,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SRTLibrary\SRTLibrary.csproj">
+    <ProjectReference Include="..\SRTShareLib\SRTShareLib.csproj">
       <Project>{15441e3c-00e3-4644-a71b-3d949eeee2dc}</Project>
-      <Name>SRTLibrary</Name>
+      <Name>SRTShareLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

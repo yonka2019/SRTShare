@@ -5,7 +5,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace SRTLibrary
+namespace SRTShareLib
 {
     public static class MethodExt
     {

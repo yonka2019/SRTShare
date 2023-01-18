@@ -1,18 +1,14 @@
 ﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.Transport;
-using SRTLibrary;
-using SRTLibrary.SRTManager.ProtocolFields.Control;
+using SRTShareLib;
+using SRTShareLib.SRTManager.ProtocolFields.Control;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 
-/*
- * PACKET STRUCTURE:
- * // [PACKET ID (CHUNK NUMBER)]  [TOTAL CHUNKS NUMBER]  [DATA / LAST DATA] //
- * //       [2 BYTES]                   [2 BYTES]          [>=1000 BYTES]   //
- */
+using CConsole = SRTShareLib.CColorManager;  // Colored Console
 
 namespace Server
 {
@@ -39,10 +35,10 @@ namespace Server
 
             if (ex is FileNotFoundException || ex.InnerException is FileNotFoundException)
             {
-                Console.WriteLine("[ERROR] File PcapDotNet.Core.dll couldn't be found or one of its dependencies. Make sure you have installed:\n" +
+                CConsole.WriteLine("[ERROR] File PcapDotNet.Core.dll couldn't be found or one of its dependencies. Make sure you have installed:\n" +
                     "- .NET Framework 4.5\n" +
                     "- WinPcap\n" +
-                    "- Microsoft Visual C++ 2013..\n");
+                    "- Microsoft Visual C++ 2013..\n", MessageType.txtError);
 
                 Console.ReadKey();
                 Environment.Exit(-1);
@@ -103,7 +99,7 @@ namespace Server
         /// <param name="socket_id">socket id who lost connection</param>
         internal static void LostConnection(uint socket_id)
         {
-            Console.WriteLine($"[Keep-Alive] {SRTSockets[socket_id].SocketAddress.IPAddress} is dead, disposing resources..\n");
+            CConsole.WriteLine($"[Keep-Alive] {SRTSockets[socket_id].SocketAddress.IPAddress} is dead, disposing resources..\n", MessageType.bgError);
             Dispose(socket_id);
         }
 
@@ -120,10 +116,10 @@ namespace Server
                 string removedIp = SRTSockets[client_id].SocketAddress.IPAddress.ToString();
 
                 SRTSockets.Remove(client_id);
-                Console.WriteLine($"[Server] Client [{removedIp}] was removed\n");
+                CConsole.WriteLine($"[Server] Client [{removedIp}] was removed\n", MessageType.txtError);
             }
             else
-                Console.WriteLine($"[Server] Client [{SRTSockets[client_id].SocketAddress.IPAddress}] wasn't found\n");
+                CConsole.WriteLine($"[Server] Client [{SRTSockets[client_id].SocketAddress.IPAddress}] wasn't found\n", MessageType.txtError);
         }
     }
 }

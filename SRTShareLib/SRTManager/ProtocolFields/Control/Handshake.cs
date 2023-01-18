@@ -2,7 +2,7 @@
 using PcapDotNet.Packets.IpV4;
 using System;
 
-namespace SRTLibrary.SRTManager.ProtocolFields.Control
+namespace SRTShareLib.SRTManager.ProtocolFields.Control
 {
     public class Handshake : SRTHeader
     {

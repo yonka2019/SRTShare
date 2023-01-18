@@ -1,21 +1,17 @@
 ﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Transport;
-using SRTLibrary;
-using SRTLibrary.SRTManager.RequestsFactory;
+using SRTShareLib;
+using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
-using Control = SRTLibrary.SRTManager.ProtocolFields.Control;
-using Data = SRTLibrary.SRTManager.ProtocolFields.Data;
 
-/*
- * PACKET STRUCTURE:
- * // [PACKET ID (CHUNK NUMBER)]  [TOTAL CHUNKS NUMBER]  [DATA / LAST DATA] //
- * //       [2 BYTES]                   [2 BYTES]          [>=1000 BYTES]   //
- */
+using Control = SRTShareLib.SRTManager.ProtocolFields.Control;
+using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
+using CConsole = SRTShareLib.CColorManager;  // Colored Console
 
 namespace Client
 {
@@ -67,7 +63,7 @@ namespace Client
             externalConnection = !sameSubnet;
 
             if (!sameSubnet)
-                Console.WriteLine("[Client] External server address\n");
+                CConsole.WriteLine("[Client] External server address\n", MessageType.txtWarning);
 
             ResponseCheck();
         }
@@ -130,7 +126,7 @@ namespace Client
                             {
                                 VideoBox.Text = "";
                             });
-                            Console.WriteLine("[Handshake completed] Starting video display\n");
+                            CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
                         }
                     }
                 }
@@ -155,7 +151,7 @@ namespace Client
                     {
                         // After client got the server's mac, send the first induction message
                         server_mac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
-                        Console.WriteLine($"[Client] Server/Gateway MAC Found: {server_mac}\n");
+                        CConsole.WriteLine($"[Client] Server/Gateway MAC Found: {server_mac}\n", MessageType.txtSuccess);
                         client_socket_id = ProtocolManager.GenerateSocketId(GetAdaptedPeerIp(), myPort);
 
                         RequestsHandler.HandleArp(server_mac, myPort, client_socket_id);
