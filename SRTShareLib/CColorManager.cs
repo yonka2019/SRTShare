@@ -21,17 +21,64 @@ namespace SRTShareLib
         {
             Console.BackgroundColor = colorTypes[mType].Background;
             Console.ForegroundColor = colorTypes[mType].Foreground;
-            Console.Write(str);
-            Console.ResetColor();
 
+            if (str.EndsWith("\n"))  // given string ends with new line char
+            {
+                int newLines = CountNewLines(str);
+
+                str = str.Replace("\n", "");  // remove them
+                Console.Write(str);  // print without them
+                Console.ResetColor();  // remove colors
+
+                for (int i = 0; i < newLines; i++)
+                {
+                    Console.Write('\n');  // print all of them
+                }
+            }
+            else
+            {
+                Console.Write(str);
+                Console.ResetColor();
+            }
         }
 
         public static void WriteLine(string str, MessageType mType)
         {
             Console.BackgroundColor = colorTypes[mType].Background;
             Console.ForegroundColor = colorTypes[mType].Foreground;
-            Console.WriteLine(str);
-            Console.ResetColor();
+
+            if (str.EndsWith("\n"))  // given string ends with new line char
+            {
+                int newLines = CountNewLines(str);
+
+                str = str.Replace("\n", "");  // remove them
+                Console.Write(str);  // print without them
+                Console.ResetColor();  // remove colors
+
+                for (int i = 0; i < newLines; i++)
+                {
+                    Console.Write('\n');  // print all of them
+                }
+            }
+            else
+            {
+                Console.Write(str);
+                Console.ResetColor();
+            }
+
+            Console.WriteLine();  // '\n' because method is WriteLine
+        }
+
+        private static int CountNewLines(string str)
+        {
+            int count = 0;
+
+            for (int i = str.Length - 1; i >= 0; i--)
+            {
+                if (str[i] == '\n')
+                    count++;
+            }
+            return count;
         }
 
         private static void SetValues()

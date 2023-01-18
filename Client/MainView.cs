@@ -128,10 +128,6 @@ namespace Client
                             });
                             CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
 
-                            Invoke((MethodInvoker)delegate
-                            {
-                                VideoBox.Update();  // control control from another thread
-                            });
                         }
                     }
                 }
