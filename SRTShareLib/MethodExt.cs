@@ -5,7 +5,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace SRTLibrary
+namespace SRTShareLib
 {
     public static class MethodExt
     {
@@ -112,7 +112,7 @@ namespace SRTLibrary
         /// </summary>
         /// <param name="mac">byted mac collection to be converted</param>
         /// <returns>valid mac in the next format: 'AA:BB:CC:DD:EE:FF'</returns>
-        public static string GetValidMac(ReadOnlyCollection<byte> mac)
+        public static string GetFormattedMac(ReadOnlyCollection<byte> mac)
         {
             return BitConverter.ToString(mac.ToArray()).Replace("-", ":");
         }

@@ -5,7 +5,7 @@ using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using System;
 
-namespace SRTLibrary
+namespace SRTShareLib
 {
     public class ARPManager
     {

@@ -11,7 +11,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace SRTLibrary
+using CConsole = SRTShareLib.CColorManager;
+
+namespace SRTShareLib
 {
     public static class PacketManager
     {
@@ -33,7 +35,7 @@ namespace SRTLibrary
 
         public static void PrintInterfaceData()
         {
-            Console.WriteLine($"####################\n[!] SELECTED INTERFACE: {PacketManager.Device.Description}\n" +
+            Console.WriteLine($"####################\n[!] SELECTED INTERFACE: {Device.Description}\n" +
                             $"* Local IP: {LocalIp}\n" +
                             $"* Public IP: {PublicIp}\n" +
                             $"* MAC: {MacAddress}\n" +
@@ -41,7 +43,7 @@ namespace SRTLibrary
                             $"* Mask: {Mask}\n" +
                             $"####################\n\n");
         }
-        
+
         public static void PrintServerData()
         {
             Console.WriteLine($"####################\n[!] SERVER SETTINGS (from {ConfigManager.CONFIG_NAME})\n" +
@@ -66,45 +68,57 @@ namespace SRTLibrary
             }
             catch
             {
-                Console.WriteLine("[ERROR] Can't find local IP");  // there is no valid NI (Network Interface)
+                CConsole.WriteLine("[ERROR] Can't find local IP", MessageType.bgError);  // there is no valid NI (Network Interface)
                 Console.ReadKey();
-                Environment.Exit(0);
+                Environment.Exit(-1);
             }
 
             return localAddress.ToString();
         }
 
-#region https://stackoverflow.com/questions/3253701/get-public-external-ip-address
+        #region https://stackoverflow.com/questions/3253701/get-public-external-ip-address
         private static string GetActivePublicIp()
         {
+            int errorCounter = 0;
+            string publicIp = null;
             string checkIpURL = @"http://checkip.dyndns.org";
 
             string response;
             string[] a;
             string a2;
             string[] a3;
-            string a4;
 
-            try
+            while (publicIp == null && errorCounter < 3)  // 3 tries
             {
-                WebRequest req = WebRequest.Create(checkIpURL);
-                WebResponse resp = req.GetResponse();
-                System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
+                try
+                {
+                    WebRequest req = WebRequest.Create(checkIpURL);
+                    WebResponse resp = req.GetResponse();
+                    System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
 
-                response = sr.ReadToEnd().Trim();
-                a = response.Split(':');
-                a2 = a[1].Substring(1);
-                a3 = a2.Split('<');
-                a4 = a3[0];
+                    response = sr.ReadToEnd().Trim();
+                    a = response.Split(':');
+                    a2 = a[1].Substring(1);
+                    a3 = a2.Split('<');
+                    publicIp = a3[0];
+                }
+                catch
+                {
+                    errorCounter++;
+                    publicIp = null;
+                }
             }
-            catch
+
+            if (publicIp == null)  // still null
             {
-                return "ERROR";
+                CConsole.WriteLine("[ERROR] Can't find public IP", MessageType.bgError);  // =(
+                Console.ReadKey();
+                Environment.Exit(-1);
             }
 
-            return a4;
+            return publicIp;
         }
-#endregion
+        #endregion
 
         /// <summary>
         /// The function auto selects the device where all the messages will be sent to
@@ -134,14 +148,14 @@ namespace SRTLibrary
 
             if (allDevices.Count == 0)
             {
-                Console.WriteLine("[ERROR] No interfaces found");
+                CConsole.WriteLine("[ERROR] No interfaces found", MessageType.bgError);
                 Console.ReadKey();
                 Environment.Exit(0);
             }
 
             if (selectDeviceIndex == -1)
             {
-                Console.WriteLine($"[ERROR] There is no interface which matches with the local ip address");
+                CConsole.WriteLine($"[ERROR] There is no interface which matches with the local ip address", MessageType.txtError);
                 Console.ReadKey();
                 Environment.Exit(0);
             }
@@ -178,7 +192,7 @@ namespace SRTLibrary
                     1000))                                  // read timeout
             {
 #if DEBUG
-                Console.WriteLine($"# [LISTENING] {callback.Method.Name}\n");
+                CConsole.WriteLine($"# [LISTENING] {callback.Method.Name}\n", MessageType.txtInfo);
 #endif
                 communicator.ReceivePackets(0, callback);
             }

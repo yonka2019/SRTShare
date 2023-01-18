@@ -1,17 +1,15 @@
 ﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.Transport;
-using SRTLibrary;
-using SRTLibrary.SRTManager.ProtocolFields.Control;
+using SRTShareLib;
+using SRTShareLib.SRTManager.ProtocolFields.Control;
+using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 
-/*
- * PACKET STRUCTURE:
- * // [PACKET ID (CHUNK NUMBER)]  [TOTAL CHUNKS NUMBER]  [DATA / LAST DATA] //
- * //       [2 BYTES]                   [2 BYTES]          [>=1000 BYTES]   //
- */
+using CConsole = SRTShareLib.CColorManager;  // Colored Console
 
 namespace Server
 {
@@ -22,12 +20,31 @@ namespace Server
 
         private static void Main()
         {
+            AppDomain.CurrentDomain.UnhandledException += UnhandledException;  // to handle libraries missing
+            Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CtrlCKeyPressed);  // to handle server shutdown (ONLY CTRL + C)
+
             _ = ConfigManager.IP;
 
             new Thread(() => { PacketManager.ReceivePackets(0, HandlePacket); }).Start(); // always listen for any new connections
 
             PacketManager.PrintInterfaceData();
             PacketManager.PrintServerData();
+        }
+
+        private static void UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Exception ex = (Exception)e.ExceptionObject;
+
+            if (ex is FileNotFoundException || ex.InnerException is FileNotFoundException)
+            {
+                CConsole.WriteLine("[ERROR] File PcapDotNet.Core.dll couldn't be found or one of its dependencies. Make sure you have installed:\n" +
+                    "- .NET Framework 4.5\n" +
+                    "- WinPcap\n" +
+                    "- Microsoft Visual C++ 2013..\n", MessageType.txtError);
+
+                Console.ReadKey();
+                Environment.Exit(-1);
+            }
         }
 
         /// <summary>
@@ -84,7 +101,7 @@ namespace Server
         /// <param name="socket_id">socket id who lost connection</param>
         internal static void LostConnection(uint socket_id)
         {
-            Console.WriteLine($"[Keep-Alive] {SRTSockets[socket_id].SocketAddress.IPAddress} is dead, disposing resources..\n");
+            CConsole.WriteLine($"[Keep-Alive] {SRTSockets[socket_id].SocketAddress.IPAddress} is dead, disposing resources..\n", MessageType.bgError);
             Dispose(socket_id);
         }
 
@@ -101,10 +118,26 @@ namespace Server
                 string removedIp = SRTSockets[client_id].SocketAddress.IPAddress.ToString();
 
                 SRTSockets.Remove(client_id);
-                Console.WriteLine($"[Server] Client [{removedIp}] was removed\n");
+                CConsole.WriteLine($"[Server] Client [{removedIp}] was removed\n", MessageType.txtError);
             }
             else
-                Console.WriteLine($"[Server] Client [{SRTSockets[client_id].SocketAddress.IPAddress}] wasn't found\n");
+                CConsole.WriteLine($"[Server] Client [{SRTSockets[client_id].SocketAddress.IPAddress}] wasn't found\n", MessageType.txtError);
+        }
+
+        /// <summary>
+        /// This function executes when the server turned off (ONLY CTRL + C)
+        /// </summary>
+        static void Console_CtrlCKeyPressed(object sender, ConsoleCancelEventArgs e)
+        {
+            CConsole.WriteLine("[Server] Shutting down...", MessageType.bgError);
+
+            foreach (SRTSocket socket in SRTSockets.Values)  // send to each client shutdown message
+            {
+                ShutdownRequest shutdown_request = new ShutdownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), PacketManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
+                Packet shutdown_packet = shutdown_request.Shutdown();
+                PacketManager.SendPacket(shutdown_packet);
+            }
+            Environment.Exit(Environment.ExitCode);
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using static System.Net.Mime.MediaTypeNames;
-using Data = SRTLibrary.SRTManager.ProtocolFields.Data;
+using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace Client
 {

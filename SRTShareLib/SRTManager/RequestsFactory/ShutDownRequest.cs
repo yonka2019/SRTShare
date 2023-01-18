@@ -1,18 +1,18 @@
 ﻿using PcapDotNet.Packets;
-using SRTControl = SRTLibrary.SRTManager.ProtocolFields.Control;
+using SRTControl = SRTShareLib.SRTManager.ProtocolFields.Control;
 
-namespace SRTLibrary.SRTManager.RequestsFactory
+namespace SRTShareLib.SRTManager.RequestsFactory
 {
-    public class ShutDownRequest : UdpPacket
+    public class ShutdownRequest : UdpPacket
     {
-        public ShutDownRequest(params ILayer[] layers) : base(layers) { }
+        public ShutdownRequest(params ILayer[] layers) : base(layers) { }
 
         /// <summary>
         /// The function creates a shutdown packet
         /// </summary>
         /// <param name="dest_socket_id">Destination socket id</param>
         /// <returns>A shutdown packet</returns>
-        public Packet Exit(uint dest_socket_id = 0)
+        public Packet Shutdown(uint dest_socket_id = 0)
         {
             GetPayloadLayer() = PacketManager.BuildPLayer(new SRTControl.Shutdown(dest_socket_id).GetByted());
             return BuildPacket();

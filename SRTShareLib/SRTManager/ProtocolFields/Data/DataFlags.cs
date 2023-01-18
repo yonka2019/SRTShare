@@ -1,4 +1,4 @@
-﻿namespace SRTLibrary.SRTManager.ProtocolFields.Data
+﻿namespace SRTShareLib.SRTManager.ProtocolFields.Data
 {
     public enum PositionFlags : ushort
     {
