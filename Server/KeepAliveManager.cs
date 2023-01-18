@@ -1,6 +1,7 @@
 ﻿using PcapDotNet.Packets;
 using SRTShareLib;
 using SRTShareLib.SRTManager.RequestsFactory;
+using System;
 using System.Threading;
 using System.Timers;
 
@@ -10,6 +11,9 @@ namespace Server
 {
     internal class KeepAliveManager
     {
+        private const int TIMEOUT_SECONDS = 5;
+        private const int KA_REFRESH_SECONDS = 3;
+
         private readonly SClient client;
         private int timeoutSeconds;
         private bool connected;
@@ -25,7 +29,7 @@ namespace Server
             timeoutSeconds = 0;
             connected = true;
 
-            timer = new System.Timers.Timer(1000);
+            timer = new System.Timers.Timer(1000);  // 1 second timeout
             timer.Elapsed += Timer_Elapsed;
         }
 
@@ -33,7 +37,7 @@ namespace Server
         {
             timeoutSeconds++;
 
-            if (timeoutSeconds == 5)  // KEEP-ALIVE TIMED-OUT
+            if (timeoutSeconds == TIMEOUT_SECONDS)  // KEEP-ALIVE TIMED-OUT
             {
                 LostConnection.Invoke(client.SocketId);
                 connected = false;
@@ -58,7 +62,7 @@ namespace Server
         internal void ConfirmStatus()  // reset timeout seconds
         {
             timeoutSeconds = 0;
-            CConsole.WriteLine($"[Keep-Alive] {Program.SRTSockets[client.SocketId].SocketAddress.IPAddress} is alive\n", MessageType.txtSuccess);
+            CConsole.WriteLine($"[{DateTime.Now:HH:mm:ss}] [Keep-Alive] {Program.SRTSockets[client.SocketId].SocketAddress.IPAddress} is alive\n", MessageType.txtSuccess);
         }
 
         /// <summary>
@@ -78,7 +82,7 @@ namespace Server
                 Packet keepAlive_packet = keepAlive_request.Alive(u_dest_socket_id);
                 PacketManager.SendPacket(keepAlive_packet);
 
-                Thread.Sleep(3000);  // 3 second wait between the keep-alives
+                Thread.Sleep(KA_REFRESH_SECONDS * 1000);
             }
         }
     }
