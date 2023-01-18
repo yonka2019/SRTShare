@@ -68,7 +68,7 @@ namespace SRTLibrary
             {
                 Console.WriteLine("[ERROR] Can't find local IP");  // there is no valid NI (Network Interface)
                 Console.ReadKey();
-                Environment.Exit(0);
+                Environment.Exit(-1);
             }
 
             return localAddress.ToString();
@@ -77,32 +77,44 @@ namespace SRTLibrary
         #region https://stackoverflow.com/questions/3253701/get-public-external-ip-address
         private static string GetActivePublicIp()
         {
+            int errorCounter = 0;
+            string publicIp = null;
             string checkIpURL = @"http://checkip.dyndns.org";
 
             string response;
             string[] a;
             string a2;
             string[] a3;
-            string a4;
 
-            try
+            while (publicIp == null && errorCounter < 3)  // 3 tries
             {
-                WebRequest req = WebRequest.Create(checkIpURL);
-                WebResponse resp = req.GetResponse();
-                System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
+                try
+                {
+                    WebRequest req = WebRequest.Create(checkIpURL);
+                    WebResponse resp = req.GetResponse();
+                    System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
 
-                response = sr.ReadToEnd().Trim();
-                a = response.Split(':');
-                a2 = a[1].Substring(1);
-                a3 = a2.Split('<');
-                a4 = a3[0];
+                    response = sr.ReadToEnd().Trim();
+                    a = response.Split(':');
+                    a2 = a[1].Substring(1);
+                    a3 = a2.Split('<');
+                    publicIp = a3[0];
+                }
+                catch
+                {
+                    errorCounter++;
+                    publicIp = null;
+                }
             }
-            catch
+
+            if (publicIp == null)  // still null
             {
-                return "ERROR";
+                Console.WriteLine("[ERROR] Can't find public IP");  // =(
+                Console.ReadKey();
+                Environment.Exit(-1);
             }
 
-            return a4;
+            return publicIp;
         }
         #endregion
 
