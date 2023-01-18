@@ -151,7 +151,7 @@ namespace Client
                     {
                         // After client got the server's mac, it sends the first induction message
                         server_mac = MethodExt.GetValidMac(arp.SenderHardwareAddress);
-                        Console.WriteLine($"[Client] Server MAC Found: {server_mac}\n");
+                        Console.WriteLine($"[Client] Server/Gateway MAC Found: {server_mac}\n");
                         client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.LocalIp, myPort);
 
                         RequestsHandler.HandleArp(server_mac, myPort, client_socket_id);
