@@ -32,8 +32,10 @@ namespace Client
         internal static uint client_socket_id = 0;  // the server sends this value
         private static uint server_socket_id = 0;  // we getting know this value on the indoction that the server returns to us
 
-        private bool handledArp = true;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
+        private bool handledArp = false;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
         private bool alive = true;
+
+        internal static bool externalConnection;
 
 #if DEBUG
         private static ulong dataReceived = 0;
@@ -61,6 +63,8 @@ namespace Client
 
             Packet arpRequest = ARPManager.Request(ConfigManager.IP, out bool sameSubnet); // search for server's mac
             PacketManager.SendPacket(arpRequest);
+
+            externalConnection = !sameSubnet;
 
             if (!sameSubnet)
                 Console.WriteLine("[Client] External server address\n");
@@ -145,7 +149,7 @@ namespace Client
             {
                 ArpDatagram arp = packet.Ethernet.Arp;
 
-                if (MethodExt.GetFormattedMac(arp.TargetHardwareAddress) == PacketManager.MacAddress && handledArp)  // my mac, and this is the first time answering 
+                if (MethodExt.GetFormattedMac(arp.TargetHardwareAddress) == PacketManager.MacAddress && !handledArp)  // my mac, and this is the first time answering 
                 {
                     if ((arp.SenderProtocolIpV4Address.ToString() == ConfigManager.IP) || (arp.SenderProtocolIpV4Address.ToString() == PacketManager.DefaultGateway)) // mac from server
                     {
@@ -155,7 +159,7 @@ namespace Client
                         client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.PublicIp, myPort);
 
                         RequestsHandler.HandleArp(server_mac, myPort, client_socket_id);
-                        handledArp = false;
+                        handledArp = true;
                     }
                 }
             }
