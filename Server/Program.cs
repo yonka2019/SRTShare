@@ -24,6 +24,7 @@ namespace Server
         private static void Main()
         {
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;
+
             _ = ConfigManager.IP;
 
             new Thread(() => { PacketManager.ReceivePackets(0, HandlePacket); }).Start(); // always listen for any new connections

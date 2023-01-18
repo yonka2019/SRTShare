@@ -179,7 +179,7 @@ namespace Client
                         Debug.WriteLine("[GOT] Keep-Alive");
                         if (alive) // if client still alive, it will send a keep-alive response
                         {
-                            KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+                            KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
                             Packet keepAlive_confirm = keepAlive_response.Alive(server_socket_id);
                             PacketManager.SendPacket(keepAlive_confirm);
                             Debug.WriteLine("[SEND] Keep-Alive Confirm\n--------------------\n");

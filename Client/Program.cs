@@ -1,6 +1,5 @@
 ﻿using SRTLibrary;
 using System;
-using System.IO;
 using System.Net.NetworkInformation;
 using System.Windows.Forms;
 

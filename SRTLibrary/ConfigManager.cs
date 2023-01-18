@@ -82,11 +82,17 @@ namespace SRTLibrary
             // get IP
             while (!ipGood)
             {
-                Console.Write("* If your server in the same subnet with the client\n" +
-                    "put here the internal ip (LAN), either, put the external one (WAN).\n" +
-                    "* If you are creating config for the server, put here your own IP (lan/wan).\n" +
-                    ">> Server IP: ");
+                Console.WriteLine("* If you are server-side, put here your own LOCAL IP (LAN) even if you are using external connection\n[OR] you can input \"my\" to auto-set your local ip.\n");
+                Console.WriteLine("* If you are client-side, If your server in the same subnet with the client\n" +
+                    "put here the local ip of the server (LAN), either, put the public one (WAN).");
+
+                Console.Write(">> Server IP: ");
                 ip = Console.ReadLine();
+
+                if (ip.ToLower() == "my")
+                {
+                    ip = PacketManager.LocalIp;  // auto set local ip
+                }
 
                 Match ipMatch = ipRegex.Match(ip);  // 1st check [num.num.num.num]
                 ipGood = ipMatch.Success;
@@ -114,9 +120,11 @@ namespace SRTLibrary
             // get Port
             while (!portGood)
             {
-                Console.Write("* If you are creating config for the server, put here any unused port.\n" +
-                    ">> Server Port: ");
+                Console.WriteLine("* If you are server-side, put here any unused port.");
+
+                Console.Write(">> Server Port: ");
                 port = Console.ReadLine();  // add regex check
+
                 portGood = portRegex.IsMatch(port);  // 1st check [num]
 
                 if (portGood)
@@ -152,5 +160,11 @@ namespace SRTLibrary
             string upDirName = upDir.FullName;
             return Directory.GetFiles(upDirName, settingsFileName).Length != 1 ? UpDirTo(upDirName, settingsFileName) : upDirName;
         }
+    }
+    public enum App
+    {
+        Client,
+        Server,
+        SRTLibrary
     }
 }
