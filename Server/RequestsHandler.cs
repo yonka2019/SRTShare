@@ -66,7 +66,7 @@ namespace Server
             HandshakeRequest handshake_response = new HandshakeRequest
                                 (PacketManager.BuildBaseLayers(PacketManager.MacAddress, packet.Ethernet.Source.ToString(), PacketManager.LocalIp, packet.IpV4.Source.ToString(), ConfigManager.PORT, datagram.SourcePort));
 
-            IpV4Address peer_ip = new IpV4Address(PacketManager.LocalIp);
+            IpV4Address peer_ip = new IpV4Address(PacketManager.PublicIp);
             Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
             PacketManager.SendPacket(handshake_packet);
 

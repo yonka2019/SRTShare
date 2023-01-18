@@ -3,7 +3,7 @@ using PcapDotNet.Packets.IpV4;
 
 namespace SRTLibrary
 {
-    public class SClient
+    public class SClient  // SRT Client object
     {
         public IpV4Address IPAddress { get; set; }
         public ushort Port { get; set; }

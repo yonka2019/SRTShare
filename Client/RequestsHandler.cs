@@ -16,13 +16,13 @@ namespace Client
         /// <param name="handshake_request">Handshake object</param>
         internal static void HandleInduction(Control.Handshake handshake_request)
         {
-            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(GetAdaptedPeerIp(), MainView.myPort))
+            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(MainView.GetAdaptedPeerIp(), MainView.myPort))
             {
                 HandshakeRequest handshake_response = new HandshakeRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
 
                 // client -> server (conclusion)
 
-                IpV4Address peer_ip = new IpV4Address(GetAdaptedPeerIp());
+                IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedPeerIp());
                 Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: true, MainView.client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
                 PacketManager.SendPacket(handshake_packet);
 
@@ -49,8 +49,8 @@ namespace Client
             HandshakeRequest handshake = new HandshakeRequest
                     (PacketManager.BuildBaseLayers(PacketManager.MacAddress, server_mac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
 
-            IpV4Address peer_ip = new IpV4Address(GetAdaptedPeerIp());
-            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(GetAdaptedPeerIp(), myPort), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0);
+            IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedPeerIp());
+            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(MainView.GetAdaptedPeerIp(), myPort), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0);
 
             PacketManager.SendPacket(handshake_packet);
         }
@@ -58,18 +58,6 @@ namespace Client
         internal static void HandleData(Data.SRTHeader data_request, Cyotek.Windows.Forms.ImageBox pictureBoxDisplayIn)
         {
             ImageDisplay.ProduceImage(data_request, pictureBoxDisplayIn);
-        }
-
-        /// <summary>
-        /// If the connection is external (the server outside client's subnet) so use the public ip as peer ip (peer ip is the packet sender IP according SRT docs)
-        /// </summary>
-        /// <returns>Adapted ip according the connection type</returns>
-        internal static string GetAdaptedPeerIp()
-        {
-            if (MainView.externalConnection)  // if external connection use public ip as peer ip (sender ip)
-                return PacketManager.PublicIp;
-            else
-                return PacketManager.LocalIp;
         }
     }
 }

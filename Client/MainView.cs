@@ -156,7 +156,7 @@ namespace Client
                         // After client got the server's mac, send the first induction message
                         server_mac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
                         Console.WriteLine($"[Client] Server/Gateway MAC Found: {server_mac}\n");
-                        client_socket_id = ProtocolManager.GenerateSocketId(PacketManager.PublicIp, myPort);
+                        client_socket_id = ProtocolManager.GenerateSocketId(GetAdaptedPeerIp(), myPort);
 
                         RequestsHandler.HandleArp(server_mac, myPort, client_socket_id);
                         handledArp = true;
@@ -210,6 +210,18 @@ namespace Client
             alive = false;
             Environment.Exit(0);
             base.OnClosed(e);
+        }
+
+        /// <summary>
+        /// If the connection is external (the server outside client's subnet) so use the public ip as peer ip (peer ip is the packet sender IP according SRT docs)
+        /// </summary>
+        /// <returns>Adapted ip according the connection type</returns>
+        internal static string GetAdaptedPeerIp()
+        {
+            if (externalConnection)  // if external connection use public ip as peer ip (sender ip)
+                return PacketManager.PublicIp;
+            else
+                return PacketManager.LocalIp;
         }
     }
 }
