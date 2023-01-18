@@ -86,7 +86,7 @@ namespace Client
                 if (duration <= 0)
                 {
                     timer.Stop();
-                    if (!serverAlive)  // still null after 3 seconds
+                    if (!serverAlive)  // still null after 5 seconds
                     {
                         MessageBox.Show("Server isn't responding to [SRT: Induction] request..", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Environment.Exit(-1);
