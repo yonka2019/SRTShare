@@ -122,7 +122,8 @@ namespace Client
                         }
                         else if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.CONCLUSION)
                         {
-                            Invoke((MethodInvoker)delegate {
+                            Invoke((MethodInvoker)delegate
+                            {
                                 VideoBox.Text = "";
                             });
                             Console.WriteLine("[Handshake completed] Starting video display\n");

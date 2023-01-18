@@ -41,7 +41,7 @@ namespace SRTLibrary
                             $"* Mask: {Mask}\n" +
                             $"####################\n\n");
         }
-        
+
         public static void PrintServerData()
         {
             Console.WriteLine($"####################\n[!] SERVER SETTINGS (from {ConfigManager.CONFIG_NAME})\n" +
@@ -74,7 +74,7 @@ namespace SRTLibrary
             return localAddress.ToString();
         }
 
-#region https://stackoverflow.com/questions/3253701/get-public-external-ip-address
+        #region https://stackoverflow.com/questions/3253701/get-public-external-ip-address
         private static string GetActivePublicIp()
         {
             string checkIpURL = @"http://checkip.dyndns.org";
@@ -104,7 +104,7 @@ namespace SRTLibrary
 
             return a4;
         }
-#endregion
+        #endregion
 
         /// <summary>
         /// The function auto selects the device where all the messages will be sent to

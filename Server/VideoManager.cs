@@ -1,18 +1,14 @@
 ﻿using PcapDotNet.Packets;
-using PcapDotNet.Packets.Ip;
 using SRTLibrary;
 using SRTLibrary.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Server
 {
