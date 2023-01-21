@@ -4,64 +4,61 @@ using System.Security.Cryptography;
 
 namespace SRTShareLib.SRTManager
 {
-    public class EncryptionManager
+    public class ASE128 : IEncryption
     {
-        public class AES256 : IEncryption
+        public EncryptionType Type => EncryptionType.AES128;
+
+        public byte[] Encrypt(byte[] data, byte[] Key, byte[] IV)
         {
-            public EncryptionType Type => EncryptionType.AES256;
+            byte[] encrypted;
 
-            public byte[] Encrypt(byte[] data, byte[] Key, byte[] IV)
+            // Create a new AesManaged.    
+            using (AesManaged aes = new AesManaged())
             {
-                byte[] encrypted;
-
-                // Create a new AesManaged.    
-                using (AesManaged aes = new AesManaged())
+                // Create encryptor    
+                ICryptoTransform encryptor = aes.CreateEncryptor(Key, IV);
+                // Create MemoryStream    
+                using (MemoryStream ms = new MemoryStream())
                 {
-                    // Create encryptor    
-                    ICryptoTransform encryptor = aes.CreateEncryptor(Key, IV);
-                    // Create MemoryStream    
-                    using (MemoryStream ms = new MemoryStream())
+                    // Create crypto stream using the CryptoStream class. This class is the key to encryption    
+                    // and encrypts and decrypts data from any given stream. In this case, we will pass a memory stream    
+                    // to encrypt    
+                    using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
                     {
-                        // Create crypto stream using the CryptoStream class. This class is the key to encryption    
-                        // and encrypts and decrypts data from any given stream. In this case, we will pass a memory stream    
-                        // to encrypt    
-                        using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
+                        cs.Write(data, 0, data.Length);
+                        encrypted = ms.ToArray();
+                    }
+                }
+            }
+            // Return encrypted data    
+            return encrypted;
+        }
+
+        public byte[] Decrypt(byte[] data, byte[] Key, byte[] IV)
+        {
+            byte[] decrypted;
+
+            // Create AesManaged    
+            using (AesManaged aes = new AesManaged())
+            {
+                // Create a decryptor    
+                ICryptoTransform decryptor = aes.CreateDecryptor(Key, IV);
+                // Create the streams used for decryption.    
+                using (MemoryStream ms = new MemoryStream(data))
+                {
+                    // Create crypto stream    
+                    using (CryptoStream cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (MemoryStream outputStream = new MemoryStream())
                         {
-                            cs.Write(data, 0, data.Length);
-                            encrypted = ms.ToArray();
+                            cs.CopyTo(outputStream);
+                            decrypted = outputStream.ToArray();
                         }
                     }
                 }
-                // Return encrypted data    
-                return encrypted;
             }
-
-            public byte[] Decrypt(byte[] data, byte[] Key, byte[] IV)
-            {
-                byte[] decrypted;
-
-                // Create AesManaged    
-                using (AesManaged aes = new AesManaged())
-                {
-                    // Create a decryptor    
-                    ICryptoTransform decryptor = aes.CreateDecryptor(Key, IV);
-                    // Create the streams used for decryption.    
-                    using (MemoryStream ms = new MemoryStream(data))
-                    {
-                        // Create crypto stream    
-                        using (CryptoStream cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
-                        {
-                            using (MemoryStream outputStream = new MemoryStream())
-                            {
-                                cs.CopyTo(outputStream);
-                                decrypted = outputStream.ToArray();
-                            }
-                        }
-                    }
-                }
-                // Return decrypted data
-                return decrypted;
-            }
+            // Return decrypted data
+            return decrypted;
         }
     }
 }
