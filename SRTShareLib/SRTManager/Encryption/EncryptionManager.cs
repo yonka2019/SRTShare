@@ -1,18 +1,19 @@
-﻿using System.IO;
-using SRTShareLib.SRTManager.Encryption;
+﻿using SRTShareLib.SRTManager.Encryption;
+using System.IO;
 using System.Security.Cryptography;
 
 namespace SRTShareLib.SRTManager
 {
     public class EncryptionManager
     {
-        private class AES : IEncryption
+        public class AES256 : IEncryption
         {
             public EncryptionType Type => EncryptionType.AES256;
 
-            public byte[] Encrypt(string plainText, byte[] Key, byte[] IV)
+            public byte[] Encrypt(byte[] data, byte[] Key, byte[] IV)
             {
                 byte[] encrypted;
+
                 // Create a new AesManaged.    
                 using (AesManaged aes = new AesManaged())
                 {
@@ -26,9 +27,7 @@ namespace SRTShareLib.SRTManager
                         // to encrypt    
                         using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
                         {
-                            // Create StreamWriter and write data to a stream    
-                            using (StreamWriter sw = new StreamWriter(cs))
-                                sw.Write(plainText);
+                            cs.Write(data, 0, data.Length);
                             encrypted = ms.ToArray();
                         }
                     }
@@ -37,27 +36,31 @@ namespace SRTShareLib.SRTManager
                 return encrypted;
             }
 
-            public byte[] Decrypt(byte[] cipherText, byte[] Key, byte[] IV)
+            public byte[] Decrypt(byte[] data, byte[] Key, byte[] IV)
             {
-                string plaintext = null;
+                byte[] decrypted;
+
                 // Create AesManaged    
                 using (AesManaged aes = new AesManaged())
                 {
                     // Create a decryptor    
                     ICryptoTransform decryptor = aes.CreateDecryptor(Key, IV);
                     // Create the streams used for decryption.    
-                    using (MemoryStream ms = new MemoryStream(cipherText))
+                    using (MemoryStream ms = new MemoryStream(data))
                     {
                         // Create crypto stream    
                         using (CryptoStream cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
                         {
-                            // Read crypto stream    
-                            using (StreamReader reader = new StreamReader(cs))
-                                plaintext = reader.ReadToEnd();
+                            using (MemoryStream outputStream = new MemoryStream())
+                            {
+                                cs.CopyTo(outputStream);
+                                decrypted = outputStream.ToArray();
+                            }
                         }
                     }
                 }
-                return null;
+                // Return decrypted data
+                return decrypted;
             }
         }
     }

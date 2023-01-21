@@ -3,8 +3,7 @@
     public interface IEncryption
     {
         EncryptionType Type { get; }
-        byte[] Encrypt(string plainText, byte[] Key, byte[] IV);
-        byte[] Decrypt(byte[] cipherText, byte[] Key, byte[] IV);
-
+        byte[] Encrypt(byte[] data, byte[] Key, byte[] IV);
+        byte[] Decrypt(byte[] data, byte[] Key, byte[] IV);
     }
 }
