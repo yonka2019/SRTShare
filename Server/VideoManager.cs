@@ -27,7 +27,7 @@ namespace Server
         private bool connected;
 
 #if DEBUG
-        private static ulong dataSent = 0;
+        private static ulong dataSent = 0;  // count data sent packets (included chunks)
 #endif
 
         internal VideoManager(SClient client)

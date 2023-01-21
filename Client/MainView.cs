@@ -20,20 +20,17 @@ namespace Client
         private readonly Thread pRecvKAThread;
         private readonly Random rnd = new Random();
 
-        private bool serverAlive = false;
+        private bool serverAlive = false;  // for icmp request - answer check
+        private static uint server_sid = 0;  // we getting know this value on the indoction that the server returns to us (SID -> Socket ID)
+        private bool handledArp = false;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
 
         internal static ushort myPort;
-        internal static string server_mac = null;
-        internal static uint client_socket_id = 0;  // the server sends this value
-        private static uint server_socket_id = 0;  // we getting know this value on the indoction that the server returns to us
-
-        private bool handledArp = false;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
-        private bool alive = true;
-
+        internal static uint client_sid = 0;  // the server sends this value on the induction answer (SID -> Socket ID)
+        internal static string serverMac = null;
         internal static bool externalConnection;
 
 #if DEBUG
-        private static ulong dataReceived = 0;
+        private static ulong dataReceived = 0;  // count data packets received (included chunks)
 #endif
 
         public MainView()
@@ -42,21 +39,22 @@ namespace Client
 
             myPort = (ushort)rnd.Next(1, 50000);
 
-            //  start receiving packets
+            // start receiving packets
             pRecvThread = new Thread(() =>
             {
                 PacketManager.ReceivePackets(0, PacketHandler);
             });
             pRecvThread.Start();
 
-            //  start receiving keep-alive packets
+            // start receiving keep-alive packets
             pRecvKAThread = new Thread(() =>
             {
                 PacketManager.ReceivePackets(0, KeepAliveHandler);
             });
             pRecvKAThread.Start();
 
-            Packet arpRequest = ARPManager.Request(ConfigManager.IP, out bool sameSubnet); // search for server's mac
+            Packet arpRequest = ARPManager.Request(ConfigManager.IP, out bool sameSubnet);  // search for server's mac (when answer will be received -
+                                                                                            // the client will automatically send SRT induction request
             PacketManager.SendPacket(arpRequest);
 
             externalConnection = !sameSubnet;
@@ -112,7 +110,7 @@ namespace Client
                     {
                         Handshake handshake_request = new Handshake(payload);
 
-                        server_socket_id = handshake_request.SOCKET_ID;  // as first packet, we are setting the socket id to know it for the future
+                        server_sid = handshake_request.SOCKET_ID;  // as first packet, we are setting the socket id to know it for the future
 
                         if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION)  // (SRT) Induction
                         {
@@ -152,11 +150,11 @@ namespace Client
                     if ((arp.SenderProtocolIpV4Address.ToString() == ConfigManager.IP) || (arp.SenderProtocolIpV4Address.ToString() == PacketManager.DefaultGateway)) // mac from server
                     {
                         // After client got the server's mac, send the first induction message
-                        server_mac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
-                        CConsole.WriteLine($"[Client] Server/Gateway MAC Found: {server_mac}\n", MessageType.txtSuccess);
-                        client_socket_id = ProtocolManager.GenerateSocketId(GetAdaptedPeerIp(), myPort);
+                        serverMac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
+                        CConsole.WriteLine($"[Client] Server/Gateway MAC Found: {serverMac}\n", MessageType.txtSuccess);
+                        client_sid = ProtocolManager.GenerateSocketId(GetAdaptedPeerIp(), myPort);
 
-                        RequestsHandler.HandleArp(server_mac, myPort, client_socket_id);
+                        RequestsHandler.HandleArp(serverMac, myPort, client_sid);
                         handledArp = true;
                     }
                 }
@@ -179,13 +177,10 @@ namespace Client
                     if (KeepAlive.IsKeepAlive(payload))
                     {
                         Debug.WriteLine("[GOT] Keep-Alive");
-                        if (alive) // if client still alive, it will send a keep-alive response
-                        {
-                            KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
-                            Packet keepAlive_confirm = keepAlive_response.Alive(server_socket_id);
-                            PacketManager.SendPacket(keepAlive_confirm);
-                            Debug.WriteLine("[SEND] Keep-Alive Confirm\n--------------------\n");
-                        }
+                        KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.serverMac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
+                        Packet keepAlive_confirm = keepAlive_response.Alive(server_sid);
+                        PacketManager.SendPacket(keepAlive_confirm);
+                        Debug.WriteLine("[SEND] Keep-Alive Confirm\n--------------------\n");
                     }
                 }
             }
@@ -197,15 +192,14 @@ namespace Client
         /// <param name="e"></param>
         protected override void OnClosed(EventArgs e)
         {
-            if (server_mac != null)
+            if (serverMac != null)
             {
                 // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
-                ShutdownRequest shutdown_request = new ShutdownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, server_mac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
-                Packet shutdown_packet = shutdown_request.Shutdown(server_socket_id);
+                ShutdownRequest shutdown_request = new ShutdownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, serverMac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
+                Packet shutdown_packet = shutdown_request.Shutdown(server_sid);
                 PacketManager.SendPacket(shutdown_packet);
             }
 
-            alive = false;
             Environment.Exit(0);
             base.OnClosed(e);
         }

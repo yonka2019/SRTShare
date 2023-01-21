@@ -1,7 +1,6 @@
 ﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.IpV4;
 using SRTShareLib.SRTManager.ProtocolFields.Control;
-using SRTControl = SRTShareLib.SRTManager.ProtocolFields.Control;
 
 namespace SRTShareLib.SRTManager.RequestsFactory
 {

@@ -27,14 +27,12 @@ namespace Server
             }
         }
 
-
         /// <summary>
         /// The function handles what happens after getting an induction message from a client
         /// </summary>
         /// <param name="packet">Given packet</param>
         /// <param name="handshake_request">The handshake object</param>
-        /// <param name="datagram">The transport layer</param>
-        internal static void HandleInduction(Packet packet, Handshake handshake_request)
+        internal static void HandleInduction(Packet packet, Handshake handshake_request)  // [SERVER] -> [CLIENT]
         {
             Console.WriteLine($"[Handshake] Got Induction: {handshake_request}\n");
 
@@ -47,7 +45,7 @@ namespace Server
             uint cookie = ProtocolManager.GenerateCookie(client_ip, datagram.SourcePort); // need to save cookie somewhere
 
             IpV4Address peer_ip = new IpV4Address(PacketManager.PublicIp);
-            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID); 
+            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID);
             PacketManager.SendPacket(handshake_packet);
         }
 
@@ -56,8 +54,7 @@ namespace Server
         /// </summary>
         /// <param name="packet">Given packet</param>
         /// <param name="handshake_request">The handshake object</param>
-        /// <param name="datagram">The transport layer</param>
-        internal static void HandleConclusion(Packet packet, Handshake handshake_request)
+        internal static void HandleConclusion(Packet packet, Handshake handshake_request)  // [SERVER] -> [CLIENT]
         {
             Console.WriteLine($"[Handshake] Got Conclusion: {handshake_request}\n");
 
@@ -67,15 +64,14 @@ namespace Server
                                 (PacketManager.BuildBaseLayers(PacketManager.MacAddress, packet.Ethernet.Source.ToString(), PacketManager.LocalIp, packet.Ethernet.IpV4.Source.ToString(), ConfigManager.PORT, datagram.SourcePort));
 
             IpV4Address peer_ip = new IpV4Address(PacketManager.PublicIp);
-            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID); // ***need to change peer id***
+            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID);
             PacketManager.SendPacket(handshake_packet);
 
-            // ADD NEW SOCKET TO LIST 
             SClient currentClient = new SClient(handshake_request.PEER_IP, datagram.SourcePort, packet.Ethernet.Source, handshake_request.SOCKET_ID, handshake_request.MTU);
-
             KeepAliveManager kaManager = new KeepAliveManager(currentClient);
             VideoManager dataManager = new VideoManager(currentClient);
 
+            // add client to sockets list
             Program.SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(currentClient,
                 kaManager, dataManager));
             kaManager.LostConnection += Program.LostConnection;

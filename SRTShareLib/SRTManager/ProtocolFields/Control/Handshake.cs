@@ -34,8 +34,8 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             TYPE = BitConverter.ToUInt32(data, 31);  // [31 32 33 34] (4 bytes)
             SOCKET_ID = BitConverter.ToUInt32(data, 35);  // [35 36 37 38] (4 bytes)
             SYN_COOKIE = BitConverter.ToUInt32(data, 39);  // [39 40 41 42] (4 bytes)
-            PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 43)); // [43 44 45 46]
-            PEER_IP = new IpV4Address(MethodExt.ReverseIp(PEER_IP.ToString()));
+            PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 43));  // [43 44 45 46]
+            PEER_IP = new IpV4Address(MethodExt.ReverseIp(PEER_IP.ToString())); // Reverse the ip because the little/big endian
         }
 
 
@@ -82,7 +82,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// number of sent packets for which an ACK control packet has not yet
         /// been received).
         /// </summary>
-        public uint MFW => 8192; // Maximum Flow Windows Size
+        public uint MFW => 8192;  // Maximum Flow Windows Size
 
         /// <summary>
         /// 32 bits (4 bytes). This field indicates the handshake packet
@@ -110,7 +110,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// </summary>
         public IpV4Address PEER_IP { get; set; }
 
-        public enum Extension // Extension Field
+        public enum Extension  // Extension Field
         {
             HSREQ = 0x00000001,
             KMREQ = 0x00000002,
@@ -126,7 +126,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             INDUCTION = 0x00000001
         }
 
-        public enum Encryption // Encryption Field
+        public enum Encryption  // Encryption Field
         {
             None = 0,
             AES128 = 2,
