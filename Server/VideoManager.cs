@@ -1,5 +1,6 @@
 ﻿using PcapDotNet.Packets;
 using SRTShareLib;
+using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;
@@ -68,7 +69,7 @@ namespace Server
                 List<byte> stream = mStream.ToArray().ToList();
 
                 DataRequest dataRequest = new DataRequest(
-                                PacketManager.BuildBaseLayers(PacketManager.MacAddress, client.MacAddress.ToString(), PacketManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
+                                OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
                 List<Packet> data_packets = dataRequest.SplitToPackets(stream, time_stamp: 0, u_dest_socket_id, (int)client.MTU);
 

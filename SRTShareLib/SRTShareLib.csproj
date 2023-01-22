@@ -63,11 +63,13 @@
     <Compile Include="CColorManager.cs" />
     <Compile Include="ConfigManager.cs" />
     <Compile Include="MethodExt.cs" />
-    <Compile Include="PacketManager.cs" />
+    <Compile Include="PcapManager\NetworkManager.cs" />
+    <Compile Include="PcapManager\OSIManager.cs" />
+    <Compile Include="PcapManager\PacketManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SRTManager\Encryption\AES128.cs" />
     <Compile Include="SRTManager\Encryption\EncryptionManager.cs" />
     <Compile Include="SRTManager\Encryption\EncryptionType.cs" />
-    <Compile Include="SRTManager\Encryption\IEncryption.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\Keep-Alive.cs" />
     <Compile Include="SRTManager\ProtocolFields\Data\DataFlags.cs" />
     <Compile Include="SRTManager\ProtocolFields\Data\SRTHeader.cs" />

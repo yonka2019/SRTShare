@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SRTShareLib.PcapManager;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -77,7 +78,7 @@ namespace SRTShareLib
 
             Console.Clear();
 
-            PacketManager.PrintInterfaceData();
+            NetworkManager.PrintInterfaceData();
 
             Console.WriteLine($"# --- Creating config ({CONFIG_NAME}) --- #\n");
 
@@ -93,7 +94,7 @@ namespace SRTShareLib
 
                 if (ip.ToLower() == "my")
                 {
-                    ip = PacketManager.LocalIp;  // auto set local ip
+                    ip = NetworkManager.LocalIp;  // auto set local ip
                 }
 
                 Match ipMatch = ipRegex.Match(ip);  // 1st check [num.num.num.num]

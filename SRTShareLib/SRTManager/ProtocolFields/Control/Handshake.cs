@@ -1,5 +1,6 @@
 ﻿using PcapDotNet.Core.Extensions;
 using PcapDotNet.Packets.IpV4;
+using SRTShareLib.PcapManager;
 using System;
 
 namespace SRTShareLib.SRTManager.ProtocolFields.Control
@@ -13,7 +14,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             INTIAL_PSN = intial_psn; byteFields.Add(BitConverter.GetBytes(INTIAL_PSN));
 
             // (.Mtu - 100; explanation) To avoid errors with sending, because this field used to set fixed size of splitted data packet, while the real mtu that the interface provides refers the whole size of the packet which get sent, and with the whole srt packet and all layers in will much more
-            MTU = (uint)PacketManager.Device.GetNetworkInterface().GetIPProperties().GetIPv4Properties().Mtu - 100; byteFields.Add(BitConverter.GetBytes(MTU));
+            MTU = (uint)NetworkManager.Device.GetNetworkInterface().GetIPProperties().GetIPv4Properties().Mtu - 100; byteFields.Add(BitConverter.GetBytes(MTU));
             byteFields.Add(BitConverter.GetBytes(MFW));
             TYPE = type; byteFields.Add(BitConverter.GetBytes(TYPE));
             SOCKET_ID = source_socket_id; byteFields.Add(BitConverter.GetBytes(SOCKET_ID));

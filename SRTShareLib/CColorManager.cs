@@ -69,6 +69,11 @@ namespace SRTShareLib
             Console.WriteLine();  // '\n' because method is WriteLine
         }
 
+        /// <summary>
+        /// Counts the \n in the given string to remove them later, and restore them with WriteLINE function
+        /// </summary>
+        /// <param name="str">String to search in</param>
+        /// <returns>number of \n in the given string</returns>
         private static int CountNewLines(string str)
         {
             int count = 0;

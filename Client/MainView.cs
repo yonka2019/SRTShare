@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using SRTShareLib.PcapManager;
+
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
@@ -145,9 +147,9 @@ namespace Client
             {
                 ArpDatagram arp = packet.Ethernet.Arp;
 
-                if (MethodExt.GetFormattedMac(arp.TargetHardwareAddress) == PacketManager.MacAddress && !handledArp)  // my mac, and this is the first time answering 
+                if (MethodExt.GetFormattedMac(arp.TargetHardwareAddress) == NetworkManager.MacAddress && !handledArp)  // my mac, and this is the first time answering 
                 {
-                    if ((arp.SenderProtocolIpV4Address.ToString() == ConfigManager.IP) || (arp.SenderProtocolIpV4Address.ToString() == PacketManager.DefaultGateway)) // mac from server
+                    if ((arp.SenderProtocolIpV4Address.ToString() == ConfigManager.IP) || (arp.SenderProtocolIpV4Address.ToString() == NetworkManager.DefaultGateway)) // mac from server
                     {
                         // After client got the server's mac, send the first induction message
                         serverMac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
@@ -177,7 +179,7 @@ namespace Client
                     if (KeepAlive.IsKeepAlive(payload))
                     {
                         Debug.WriteLine("[GOT] Keep-Alive");
-                        KeepAliveRequest keepAlive_response = new KeepAliveRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.serverMac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
+                        KeepAliveRequest keepAlive_response = new KeepAliveRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
                         Packet keepAlive_confirm = keepAlive_response.Alive(server_sid);
                         PacketManager.SendPacket(keepAlive_confirm);
                         Debug.WriteLine("[SEND] Keep-Alive Confirm\n--------------------\n");
@@ -195,7 +197,7 @@ namespace Client
             if (serverMac != null)
             {
                 // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
-                ShutdownRequest shutdown_request = new ShutdownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, serverMac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
+                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
                 Packet shutdown_packet = shutdown_request.Shutdown(server_sid);
                 PacketManager.SendPacket(shutdown_packet);
             }
@@ -210,7 +212,7 @@ namespace Client
         /// <returns>Adapted ip according the connection type</returns>
         internal static string GetAdaptedPeerIp()
         {
-            return externalConnection ? PacketManager.PublicIp : PacketManager.LocalIp;
+            return externalConnection ? NetworkManager.PublicIp : NetworkManager.LocalIp;
         }
     }
 }

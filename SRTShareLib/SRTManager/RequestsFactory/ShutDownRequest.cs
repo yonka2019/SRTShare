@@ -1,4 +1,5 @@
 ﻿using PcapDotNet.Packets;
+using SRTShareLib.PcapManager;
 using SRTControl = SRTShareLib.SRTManager.ProtocolFields.Control;
 
 namespace SRTShareLib.SRTManager.RequestsFactory
@@ -14,7 +15,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
         /// <returns>A shutdown packet</returns>
         public Packet Shutdown(uint dest_socket_id = 0)
         {
-            GetPayloadLayer() = PacketManager.BuildPLayer(new SRTControl.Shutdown(dest_socket_id).GetByted());
+            GetPayloadLayer() = OSIManager.BuildPLayer(new SRTControl.Shutdown(dest_socket_id).GetByted());
             return BuildPacket();
         }
     }

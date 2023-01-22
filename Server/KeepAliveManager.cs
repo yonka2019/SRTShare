@@ -1,5 +1,6 @@
 ﻿using PcapDotNet.Packets;
 using SRTShareLib;
+using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Threading;
@@ -77,7 +78,7 @@ namespace Server
             while (connected)
             {
                 KeepAliveRequest keepAlive_request = new KeepAliveRequest
-                                (PacketManager.BuildBaseLayers(PacketManager.MacAddress, client.MacAddress.ToString(), PacketManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
+                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
                 Packet keepAlive_packet = keepAlive_request.Alive(u_dest_socket_id);
                 PacketManager.SendPacket(keepAlive_packet);

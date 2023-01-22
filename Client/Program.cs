@@ -1,4 +1,5 @@
 ﻿using SRTShareLib;
+using SRTShareLib.PcapManager;
 using System;
 using System.IO;
 using System.Net.NetworkInformation;
@@ -20,8 +21,8 @@ namespace Client
 
             _ = ConfigManager.IP;
 
-            PacketManager.PrintInterfaceData();
-            PacketManager.PrintServerData();
+            NetworkManager.PrintInterfaceData();
+            NetworkManager.PrintServerData();
 
             TestConnection();
 

@@ -1,4 +1,5 @@
 ﻿using PcapDotNet.Packets;
+using SRTShareLib.PcapManager;
 using System;
 using System.Collections.Generic;
 using SRTData = SRTShareLib.SRTManager.ProtocolFields.Data;
@@ -34,7 +35,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
 
                 // Create the SRT packet header and payload
                 srt_packet_data = new SRTData.SRTHeader(sequence_number: 0, packetPositionFlag, SRTData.EncryptionFlags.NOT_ENCRYPTED, is_retransmitted: false, message_number: messageNumber, time_stamp, dest_socket_id, packet_data);
-                GetPayloadLayer() = PacketManager.BuildPLayer(srt_packet_data.GetByted());
+                GetPayloadLayer() = OSIManager.BuildPLayer(srt_packet_data.GetByted());
 
                 packets.Add(BuildPacket());  // Add the packet to the list of packets
 

@@ -1,64 +1,29 @@
-﻿using SRTShareLib.SRTManager.Encryption;
-using System.IO;
-using System.Security.Cryptography;
-
-namespace SRTShareLib.SRTManager
+﻿namespace SRTShareLib.SRTManager.Encryption
 {
-    public class ASE128 : IEncryption
+    public class EncryptionManager
     {
-        public EncryptionType Type => EncryptionType.AES128;
-
-        public byte[] Encrypt(byte[] data, byte[] Key, byte[] IV)
+        public static byte[] Encrypt(byte[] data, byte[] Key, byte[] IV, EncryptionType encryption)
         {
-            byte[] encrypted;
-
-            // Create a new AesManaged.    
-            using (AesManaged aes = new AesManaged())
+            switch (encryption)
             {
-                // Create encryptor    
-                ICryptoTransform encryptor = aes.CreateEncryptor(Key, IV);
-                // Create MemoryStream    
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    // Create crypto stream using the CryptoStream class. This class is the key to encryption    
-                    // and encrypts and decrypts data from any given stream. In this case, we will pass a memory stream    
-                    // to encrypt    
-                    using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
-                    {
-                        cs.Write(data, 0, data.Length);
-                        encrypted = ms.ToArray();
-                    }
-                }
+                case EncryptionType.AES128:
+                    return AES128.Encrypt(data, Key, IV);
+
+                default:
+                    return null;
             }
-            // Return encrypted data    
-            return encrypted;
         }
 
-        public byte[] Decrypt(byte[] data, byte[] Key, byte[] IV)
+        public static byte[] Decrypt(byte[] data, byte[] Key, byte[] IV, EncryptionType encryption)
         {
-            byte[] decrypted;
-
-            // Create AesManaged    
-            using (AesManaged aes = new AesManaged())
+            switch (encryption)
             {
-                // Create a decryptor    
-                ICryptoTransform decryptor = aes.CreateDecryptor(Key, IV);
-                // Create the streams used for decryption.    
-                using (MemoryStream ms = new MemoryStream(data))
-                {
-                    // Create crypto stream    
-                    using (CryptoStream cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
-                    {
-                        using (MemoryStream outputStream = new MemoryStream())
-                        {
-                            cs.CopyTo(outputStream);
-                            decrypted = outputStream.ToArray();
-                        }
-                    }
-                }
+                case EncryptionType.AES128:
+                    return AES128.Decrypt(data, Key, IV);
+
+                default:
+                    return null;
             }
-            // Return decrypted data
-            return decrypted;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.Transport;
 using SRTShareLib;
+using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.ProtocolFields.Control;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
@@ -27,8 +28,12 @@ namespace Server
 
             new Thread(() => { PacketManager.ReceivePackets(0, HandlePacket); }).Start(); // always listen for any new connections
 
-            PacketManager.PrintInterfaceData();
-            PacketManager.PrintServerData();
+            // when server is being shutdown with the CTRL+C (break) the server will
+            // have couple of seconds to send a "shutdown" message to the clients to notify them
+            CConsole.WriteLine("[!] To shutdown server use only CTRL + C\n", MessageType.txtError);
+
+            NetworkManager.PrintInterfaceData();
+            NetworkManager.PrintServerData();
         }
 
         private static void UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -90,7 +95,7 @@ namespace Server
 
             else if (packet.IsValidARP())  // ARP Packet
             {
-                if (packet.Ethernet.Arp.TargetProtocolIpV4Address.ToString() == PacketManager.LocalIp)  // the arp was for the server
+                if (packet.Ethernet.Arp.TargetProtocolIpV4Address.ToString() == NetworkManager.LocalIp)  // the arp was for the server
                     RequestsHandler.HandleArp(packet);
             }
         }
@@ -133,7 +138,7 @@ namespace Server
 
             foreach (SRTSocket socket in SRTSockets.Values)  // send to each client shutdown message
             {
-                ShutdownRequest shutdown_request = new ShutdownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), PacketManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
+                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
                 Packet shutdown_packet = shutdown_request.Shutdown();
                 PacketManager.SendPacket(shutdown_packet);
             }
