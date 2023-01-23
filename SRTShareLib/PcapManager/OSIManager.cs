@@ -6,6 +6,7 @@ using SRTShareLib.SRTManager;
 using SRTShareLib.SRTManager.Encryption;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace SRTShareLib.PcapManager
@@ -110,15 +111,36 @@ namespace SRTShareLib.PcapManager
         }
 
         /// <summary>
-        /// The function converts a byte list into encrypted payload layer
+        /// The function converts a byte list into ENCRYPTED payload layer
         /// </summary>
-        /// <param name="data">Data to convert</param>
-        /// <returns>Payload layer object (ENCRYPTED BYTES)</returns>
-        public static PayloadLayer BuildPLayer(List<byte[]> data, EncryptionType encryption)  // Encryption enabled
+        /// <param name="data">data to convert</param>
+        /// <param name="encryptionType">encryption type to encrypt the data</param>
+        /// <param name="layers">current layers in using</param>
+        /// <returns>Payload layer object (encrypted bytes)</returns>
+        public static PayloadLayer BuildEPLayer(List<byte[]> data, EncryptionType encryptionType, ILayer[] layers)
         {
+            byte[] key;
+            byte[] IV;
+
+            IpV4Layer ipLayer = (IpV4Layer)layers[1];
+            UdpLayer udpLayer = (UdpLayer)layers[2];
+
+            string dstIp = ipLayer.Destination.ToString();
+            ushort dstPort = ushort.Parse(udpLayer.DestinationPort.ToString());
+
+            string keyToHash = $"{dstIp}&{dstPort}";
+            string sidToHash = $"{ProtocolManager.GenerateSocketId(dstIp, dstPort)}";
+
+            using (MD5 md5 = MD5.Create())
+            {
+                key =  md5.ComputeHash(Encoding.UTF8.GetBytes(keyToHash));
+                IV = md5.ComputeHash(Encoding.UTF8.GetBytes(sidToHash));
+            }
+
             byte[] bytedData = ConcatBytes(data);
-            // byte[] encryptedData = EncryptionManager.Encrypt(data, Key, IV, encryption) - need to be done..
-            return BuildPLayer(bytedData);
+            byte[] encryptedData = EncryptionManager.Decrypt(bytedData, key, IV, encryptionType);
+
+            return BuildPLayer(encryptedData);
         }
 
         /// <summary>

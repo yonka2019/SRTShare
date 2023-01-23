@@ -6,6 +6,9 @@ namespace SRTShareLib.SRTManager
 {
     internal static class AES128
     {
+        /// <summary>
+        /// Type of the encryption
+        /// </summary>
         internal static EncryptionType Type => EncryptionType.AES128;
 
         internal static byte[] Encrypt(byte[] data, byte[] Key, byte[] IV)

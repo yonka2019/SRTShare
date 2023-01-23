@@ -29,6 +29,15 @@ namespace SRTShareLib.SRTManager.RequestsFactory
         }
 
         /// <summary>
+        /// The function returns the whole layers (in a layers array)
+        /// </summary>
+        /// <returns>Layers array</returns>
+        protected ILayer[] GetLayers()
+        {
+            return workingLayers;
+        }
+
+        /// <summary>
         /// The function builds and returns a packet based on the existing layers
         /// </summary>
         /// <returns>Packet object</returns>
