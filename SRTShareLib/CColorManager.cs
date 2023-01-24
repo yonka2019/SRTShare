@@ -8,6 +8,8 @@ namespace SRTShareLib
         private static readonly ConsoleColor defaultBackground;
         private static readonly ConsoleColor defaultForeground;  // foreground <=> text
 
+        private static Object _lock = new Object();
+
         private static Dictionary<MessageType, CColor> colorTypes;
 
         static CColorManager()
@@ -19,54 +21,60 @@ namespace SRTShareLib
 
         public static void Write(string str, MessageType mType)
         {
-            Console.BackgroundColor = colorTypes[mType].Background;
-            Console.ForegroundColor = colorTypes[mType].Foreground;
-
-            if (str.EndsWith("\n"))  // given string ends with new line char
+            lock (_lock)
             {
-                int newLines = CountNewLines(str);
+                Console.BackgroundColor = colorTypes[mType].Background;
+                Console.ForegroundColor = colorTypes[mType].Foreground;
 
-                str = str.Replace("\n", "");  // remove them
-                Console.Write(str);  // print without them
-                Console.ResetColor();  // remove colors
-
-                for (int i = 0; i < newLines; i++)
+                if (str.EndsWith("\n"))  // given string ends with new line char
                 {
-                    Console.WriteLine();  // print each of them (\n)
+                    int newLines = CountNewLines(str);
+
+                    str = str.Replace("\n", "");  // remove them
+                    Console.Write(str);  // print without them
+                    Console.ResetColor();  // remove colors
+
+                    for (int i = 0; i < newLines; i++)
+                    {
+                        Console.WriteLine();  // print each of them (\n)
+                    }
                 }
-            }
-            else
-            {
-                Console.Write(str);
-                Console.ResetColor();
+                else
+                {
+                    Console.Write(str);
+                    Console.ResetColor();
+                }
             }
         }
 
         public static void WriteLine(string str, MessageType mType)
         {
-            Console.BackgroundColor = colorTypes[mType].Background;
-            Console.ForegroundColor = colorTypes[mType].Foreground;
-
-            if (str.EndsWith("\n"))  // given string ends with new line char
+            lock (_lock)
             {
-                int newLines = CountNewLines(str);
+                Console.BackgroundColor = colorTypes[mType].Background;
+                Console.ForegroundColor = colorTypes[mType].Foreground;
 
-                str = str.Replace("\n", "");  // remove them
-                Console.Write(str);  // print without them
-                Console.ResetColor();  // remove colors
-
-                for (int i = 0; i < newLines; i++)
+                if (str.EndsWith("\n"))  // given string ends with new line char
                 {
-                    Console.WriteLine();  // print each of them (\n)
-                }
-            }
-            else
-            {
-                Console.Write(str);
-                Console.ResetColor();
-            }
+                    int newLines = CountNewLines(str);
 
-            Console.WriteLine();  // '\n' because method is WriteLine
+                    str = str.Replace("\n", "");  // remove them
+                    Console.Write(str);  // print without them
+                    Console.ResetColor();  // remove colors
+
+                    for (int i = 0; i < newLines; i++)
+                    {
+                        Console.WriteLine();  // print each of them (\n)
+                    }
+                }
+                else
+                {
+                    Console.Write(str);
+                    Console.ResetColor();
+                }
+
+                Console.WriteLine();  // '\n' because method is WriteLine
+            }
         }
 
         /// <summary>
