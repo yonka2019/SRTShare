@@ -67,6 +67,9 @@
   <PropertyGroup>
     <SignManifests>false</SignManifests>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Resources\icons8_tv.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Cyotek.Windows.Forms.ImageBox, Version=1.2.0.0, Culture=neutral, PublicKeyToken=58daa28b0b2de221, processorArchitecture=MSIL">
       <HintPath>..\packages\CyotekImageBox.2.0.0-beta.2\lib\net48\Cyotek.Windows.Forms.ImageBox.dll</HintPath>
@@ -151,6 +154,9 @@
       <Project>{15441e3c-00e3-4644-a71b-3d949eeee2dc}</Project>
       <Name>SRTShareLib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\icons8_tv.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

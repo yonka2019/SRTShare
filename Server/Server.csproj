@@ -40,6 +40,9 @@
   <PropertyGroup>
     <SignManifests>false</SignManifests>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Resources\icons8_tv_show.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="PcapDotNet.Base, Version=1.0.4.25027, Culture=neutral, PublicKeyToken=06a20bc2fabb1931, processorArchitecture=MSIL">
       <HintPath>..\packages\Pcap.Net.x86.1.0.4.1\lib\net45\PcapDotNet.Base.dll</HintPath>
@@ -80,6 +83,9 @@
       <Project>{15441e3c-00e3-4644-a71b-3d949eeee2dc}</Project>
       <Name>SRTShareLib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\icons8_tv_show.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

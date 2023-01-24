@@ -59,5 +59,15 @@ namespace Client.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon icons8_tv {
+            get {
+                object obj = ResourceManager.GetObject("icons8_tv", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
     }
 }
