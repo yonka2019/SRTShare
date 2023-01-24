@@ -21,6 +21,8 @@ namespace Server
 
         private static void Main()
         {
+            CConsole.WriteLine("\t-- SRT Server  --\n", MessageType.txtWarning);
+
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;  // to handle libraries missing
             Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CtrlCKeyPressed);  // to handle server shutdown (ONLY CTRL + C)
 
