@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace Server
 {
@@ -97,14 +98,26 @@ namespace Server
                 g.ReleaseHdc(hDC);
             }
 
+            // get the selected screen
+            Screen selectedScreen = Screen.AllScreens[Program.screenIndex];
+
+            int x = selectedScreen.Bounds.X;
+            int y = selectedScreen.Bounds.Y;
+            width = (Program.screenIndex == 0) ? width : selectedScreen.Bounds.Width; // screen 0 doesn't like selectedScreen.Bounds.Width/Height
+            height = (Program.screenIndex == 0) ? height : selectedScreen.Bounds.Height;
+
+
+            // create a new bitmap with the second screen's size
             Bitmap bmp = new Bitmap(width, height);
 
             using (Graphics g = Graphics.FromImage(bmp))
             {
-                g.CopyFromScreen(0, 0, 0, 0, bmp.Size);
+                // copy the second screen's contents to the bitmap
+                g.CopyFromScreen(x, y, 0, 0, bmp.Size);
                 return bmp;
             }
         }
+        
 
         private static MemoryStream GetJpegStream(Bitmap bmp)
         {
