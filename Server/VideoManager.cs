@@ -90,21 +90,25 @@ namespace Server
         {
             int width, height;
 
-            using (Graphics g = Graphics.FromHwnd(IntPtr.Zero))
-            {
-                IntPtr hDC = g.GetHdc();
-                width = Win32Native.GetDeviceCaps(hDC, Win32Native.DESKTOPHORZRES);
-                height = Win32Native.GetDeviceCaps(hDC, Win32Native.DESKTOPVERTRES);
-                g.ReleaseHdc(hDC);
-            }
+            //using (Graphics g = Graphics.FromHwnd(IntPtr.Zero))
+            //{
+            //    IntPtr hDC = g.GetHdc();
+            //    width = Win32Native.GetDeviceCaps(hDC, Win32Native.DESKTOPHORZRES);
+            //    height = Win32Native.GetDeviceCaps(hDC, Win32Native.DESKTOPVERTRES);
+            //    g.ReleaseHdc(hDC);
+            //}
 
             // get the selected screen
             Screen selectedScreen = Screen.AllScreens[Program.screenIndex];
 
             int x = selectedScreen.Bounds.X;
             int y = selectedScreen.Bounds.Y;
-            width = (Program.screenIndex == 0) ? width : selectedScreen.Bounds.Width; // screen 0 doesn't like selectedScreen.Bounds.Width/Height
-            height = (Program.screenIndex == 0) ? height : selectedScreen.Bounds.Height;
+
+            width = Convert.ToInt32(selectedScreen.Bounds.Size.Width.ToString(), 16);
+            height = Convert.ToInt32(selectedScreen.Bounds.Size.Height.ToString(), 16);
+
+            //width = (Program.screenIndex == 0) ? width : selectedScreen.Bounds.Width; // screen 0 doesn't like selectedScreen.Bounds.Width/Height
+            //height = (Program.screenIndex == 0) ? height : selectedScreen.Bounds.Height;
 
 
             // create a new bitmap with the second screen's size

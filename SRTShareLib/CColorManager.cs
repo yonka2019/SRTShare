@@ -19,6 +19,7 @@ namespace SRTShareLib
             SetValues();
         }
 
+        // support only '\n' in the END of the string "lala\n" - good ;; "la\nlala" - bad
         public static void Write(string str, MessageType mType)
         {
             lock (_lock)
@@ -46,7 +47,8 @@ namespace SRTShareLib
                 }
             }
         }
-
+        
+        // support only '\n' in the END of the string "lala\n" - good ;; "la\nlala" - bad
         public static void WriteLine(string str, MessageType mType)
         {
             lock (_lock)

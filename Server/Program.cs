@@ -19,7 +19,7 @@ namespace Server
         internal const uint SERVER_SOCKET_ID = 123;
         internal static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
 
-        internal static int screenIndex = 0;
+        internal static int screenIndex = 1;
         internal static Screen[] screens = Screen.AllScreens;
         internal static int screens_amount = 0;
 
@@ -28,8 +28,8 @@ namespace Server
         {
             screens_amount = screens.Length;
 
-            Thread keyListenerThread = new Thread(ListenForKeys);
-            keyListenerThread.Start();
+            //Thread keyListenerThread = new Thread(ListenForKeys);
+            //keyListenerThread.Start();
 
             CConsole.WriteLine("\t-- SRT Server  --\n", MessageType.txtWarning);
 
@@ -40,16 +40,20 @@ namespace Server
 
             new Thread(() => { PacketManager.ReceivePackets(0, HandlePacket); }).Start(); // always listen for any new connections
 
+            PrintGreeting();
+
+            NetworkManager.PrintInterfaceData();
+            NetworkManager.PrintServerData();
+        }
+
+        private static void PrintGreeting()
+        {
             // when server is being shutdown with the CTRL+C (break) the server will
             // have couple of seconds to send a "shutdown" message to the clients to notify them
             CConsole.WriteLine("[!] To shutdown server use only CTRL + C\n", MessageType.txtError);
 
-            NetworkManager.PrintInterfaceData();
-            NetworkManager.PrintServerData();
-
-            keyListenerThread.Join();
+            CConsole.WriteLine("[*] You can switch between the screens with the [<-] [->] keys arrow\n", MessageType.txtInfo);
         }
-
         private static void UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Exception ex = (Exception)e.ExceptionObject;
