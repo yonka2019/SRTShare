@@ -150,7 +150,6 @@ namespace Server
                     {
                         CConsole.WriteLine($"[Server] You can only move between ({1} - {screens.Length}) screens", MessageType.txtWarning);
                     }
-
                 }
                 else if (keyInfo.Key == ConsoleKey.RightArrow)
                 {
