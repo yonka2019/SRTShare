@@ -189,18 +189,27 @@ namespace Server
                     if (screenIndex > 0)
                     {
                         screenIndex--;
+                        CConsole.WriteLine($"Screen {screenIndex + 1} is shared.", MessageType.txtInfo);
                     }
 
-                    Console.WriteLine("Left arrow key pressed");
+                    else
+                    {
+                        CConsole.WriteLine($"You can only move between ({1} - {screens_amount}) screens", MessageType.txtWarning);
+                    }
+
                 }
                 else if (keyInfo.Key == ConsoleKey.RightArrow)
                 {
                     if (screenIndex + 1 < screens_amount)
                     {
                         screenIndex++;
+                        CConsole.WriteLine($"Screen {screenIndex + 1} is shared.", MessageType.txtInfo);
                     }
 
-                    Console.WriteLine("Right arrow key pressed");
+                    else
+                    {
+                        CConsole.WriteLine($"You can only move between ({1} - {screens_amount}) screens", MessageType.txtWarning);
+                    }
                 }
             }
         }
