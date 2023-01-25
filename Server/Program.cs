@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Windows.Forms;
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 
 namespace Server
@@ -19,18 +18,8 @@ namespace Server
         internal const uint SERVER_SOCKET_ID = 123;
         internal static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
 
-        internal static int screenIndex = 0;
-        internal static Screen[] screens = Screen.AllScreens;
-        internal static int screens_amount = 0;
-
-
         private static void Main()
         {
-            screens_amount = screens.Length;
-
-            //Thread keyListenerThread = new Thread(ListenForKeys);
-            //keyListenerThread.Start();
-
             CConsole.WriteLine("\t-- SRT Server  --\n", MessageType.txtWarning);
 
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;  // to handle libraries missing
@@ -161,61 +150,6 @@ namespace Server
                 PacketManager.SendPacket(shutdown_packet);
             }
             Environment.Exit(Environment.ExitCode);
-        }
-
-
-        static void form_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Right)
-            {
-                if(screenIndex + 1 < screens_amount)
-                {
-                    screenIndex++;
-                }
-            }
-
-            else if (e.KeyCode == Keys.Left)
-            {
-                if (screenIndex > 0)
-                {
-                    screenIndex--;
-                }
-            }
-        }
-
-        static void ListenForKeys()
-        {
-            while (true)
-            {
-                ConsoleKeyInfo keyInfo = Console.ReadKey();
-                if (keyInfo.Key == ConsoleKey.LeftArrow)
-                {
-                    if (screenIndex > 0)
-                    {
-                        screenIndex--;
-                        CConsole.WriteLine($"Screen {screenIndex + 1} is shared.", MessageType.txtInfo);
-                    }
-
-                    else
-                    {
-                        CConsole.WriteLine($"You can only move between ({1} - {screens_amount}) screens", MessageType.txtWarning);
-                    }
-
-                }
-                else if (keyInfo.Key == ConsoleKey.RightArrow)
-                {
-                    if (screenIndex + 1 < screens_amount)
-                    {
-                        screenIndex++;
-                        CConsole.WriteLine($"Screen {screenIndex + 1} is shared.", MessageType.txtInfo);
-                    }
-
-                    else
-                    {
-                        CConsole.WriteLine($"You can only move between ({1} - {screens_amount}) screens", MessageType.txtWarning);
-                    }
-                }
-            }
         }
     }
 }

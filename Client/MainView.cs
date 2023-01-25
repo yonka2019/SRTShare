@@ -182,6 +182,7 @@ namespace Client
                         KeepAliveRequest keepAlive_response = new KeepAliveRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
                         Packet keepAlive_confirm = keepAlive_response.Alive(server_sid);
                         PacketManager.SendPacket(keepAlive_confirm);
+
                         Debug.WriteLine("[SEND] Keep-Alive Confirm\n--------------------\n");
                     }
                 }

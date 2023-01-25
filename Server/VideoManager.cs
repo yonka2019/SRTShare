@@ -8,16 +8,16 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
+using CConsole = SRTShareLib.CColorManager;  // Colored Console
 
 namespace Server
 {
     internal class VideoManager
     {
-        [DllImport("user32.dll")]
-        public static extern bool SetProcessDPIAware();
+        private static int screenIndex;
+        private static Screen[] screens;
 
         private readonly SClient client;
         private bool connected;
@@ -28,6 +28,9 @@ namespace Server
 
         internal VideoManager(SClient client)
         {
+            screenIndex = 0;
+            screens = Screen.AllScreens;
+
             this.client = client;
             connected = true;
         }
@@ -37,8 +40,10 @@ namespace Server
         /// </summary>
         internal void StartVideo()
         {
+            Thread keyListenerThread = new Thread(KeysListener);
             Thread videoStarter = new Thread(new ParameterizedThreadStart(VideoInit));  // create thread of keep-alive checker
 
+            keyListenerThread.Start();
             videoStarter.Start(client.SocketId);
         }
 
@@ -53,8 +58,8 @@ namespace Server
         private void VideoInit(object dest_socket_id)
         {
             uint u_dest_socket_id = (uint)dest_socket_id;
-
             int count = 0;
+
             while (connected)
             {
                 Bitmap bmp = TakeScreenShot();
@@ -79,17 +84,16 @@ namespace Server
 
         private static Bitmap TakeScreenShot()
         {
-            SetProcessDPIAware();
             int width, height;
 
             // get the selected screen
-            Screen selectedScreen = Screen.AllScreens[Program.screenIndex];
+            Screen selectedScreen = Screen.AllScreens[screenIndex];
 
             int x = selectedScreen.Bounds.X;
             int y = selectedScreen.Bounds.Y;
 
-            width = Convert.ToInt32(selectedScreen.Bounds.Size.Width.ToString(), 16);
-            height = Convert.ToInt32(selectedScreen.Bounds.Size.Height.ToString(), 16);
+            width = selectedScreen.Bounds.Size.Width;
+            height = selectedScreen.Bounds.Size.Height;
 
             Bitmap bmp = new Bitmap(width, height);
 
@@ -99,7 +103,6 @@ namespace Server
                 return bmp;
             }
         }
-        
 
         private static MemoryStream GetJpegStream(Bitmap bmp)
         {
@@ -129,6 +132,41 @@ namespace Server
                 }
             }
             return null;
+        }
+
+        private static void KeysListener()
+        {
+            while (true)
+            {
+                ConsoleKeyInfo keyInfo = Console.ReadKey();
+                if (keyInfo.Key == ConsoleKey.LeftArrow)
+                {
+                    if (screenIndex > 0)
+                    {
+                        screenIndex--;
+                        CConsole.WriteLine($"Screen {screenIndex + 1} is shared.", MessageType.txtInfo);
+                    }
+
+                    else
+                    {
+                        CConsole.WriteLine($"You can only move between ({1} - {screens.Length}) screens", MessageType.txtWarning);
+                    }
+
+                }
+                else if (keyInfo.Key == ConsoleKey.RightArrow)
+                {
+                    if (screenIndex + 1 < screens.Length)
+                    {
+                        screenIndex++;
+                        CConsole.WriteLine($"Screen {screenIndex + 1} is shared.", MessageType.txtInfo);
+                    }
+
+                    else
+                    {
+                        CConsole.WriteLine($"You can only move between ({1} - {screens.Length}) screens", MessageType.txtWarning);
+                    }
+                }
+            }
         }
     }
 }
