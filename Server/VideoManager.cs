@@ -144,12 +144,11 @@ namespace Server
                     if (screenIndex > 0)
                     {
                         screenIndex--;
-                        CConsole.WriteLine($"Screen {screenIndex + 1} is shared.", MessageType.txtInfo);
+                        CConsole.WriteLine($"[Server] Screen {screenIndex + 1} is shared", MessageType.txtInfo);
                     }
-
                     else
                     {
-                        CConsole.WriteLine($"You can only move between ({1} - {screens.Length}) screens", MessageType.txtWarning);
+                        CConsole.WriteLine($"[Server] You can only move between ({1} - {screens.Length}) screens", MessageType.txtWarning);
                     }
 
                 }
@@ -158,12 +157,11 @@ namespace Server
                     if (screenIndex + 1 < screens.Length)
                     {
                         screenIndex++;
-                        CConsole.WriteLine($"Screen {screenIndex + 1} is shared.", MessageType.txtInfo);
+                        CConsole.WriteLine($"[Server] Screen {screenIndex + 1} is shared.", MessageType.txtInfo);
                     }
-
                     else
                     {
-                        CConsole.WriteLine($"You can only move between ({1} - {screens.Length}) screens", MessageType.txtWarning);
+                        CConsole.WriteLine($"[Server] You can only move between ({1} - {screens.Length}) screens", MessageType.txtWarning);
                     }
                 }
             }
