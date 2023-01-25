@@ -19,7 +19,7 @@ namespace Server
         internal const uint SERVER_SOCKET_ID = 123;
         internal static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
 
-        internal static int screenIndex = 1;
+        internal static int screenIndex = 0;
         internal static Screen[] screens = Screen.AllScreens;
         internal static int screens_amount = 0;
 

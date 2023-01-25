@@ -16,14 +16,8 @@ namespace Server
 {
     internal class VideoManager
     {
-        private static class Win32Native
-        {
-            public const int DESKTOPVERTRES = 0x75;
-            public const int DESKTOPHORZRES = 0x76;
-
-            [DllImport("gdi32.dll")]
-            public static extern int GetDeviceCaps(IntPtr hDC, int index);
-        }
+        [DllImport("user32.dll")]
+        public static extern bool SetProcessDPIAware();
 
         private readonly SClient client;
         private bool connected;
@@ -59,8 +53,6 @@ namespace Server
         private void VideoInit(object dest_socket_id)
         {
             uint u_dest_socket_id = (uint)dest_socket_id;
-            //bool hi = false;
-            //bool hello = false;
 
             int count = 0;
             while (connected)
@@ -81,22 +73,14 @@ namespace Server
                     Console.Title = $"Data sent {++dataSent}";
 #endif
                 }
-
                 count++;
             }
         }
 
         private static Bitmap TakeScreenShot()
         {
+            SetProcessDPIAware();
             int width, height;
-
-            //using (Graphics g = Graphics.FromHwnd(IntPtr.Zero))
-            //{
-            //    IntPtr hDC = g.GetHdc();
-            //    width = Win32Native.GetDeviceCaps(hDC, Win32Native.DESKTOPHORZRES);
-            //    height = Win32Native.GetDeviceCaps(hDC, Win32Native.DESKTOPVERTRES);
-            //    g.ReleaseHdc(hDC);
-            //}
 
             // get the selected screen
             Screen selectedScreen = Screen.AllScreens[Program.screenIndex];
@@ -107,16 +91,10 @@ namespace Server
             width = Convert.ToInt32(selectedScreen.Bounds.Size.Width.ToString(), 16);
             height = Convert.ToInt32(selectedScreen.Bounds.Size.Height.ToString(), 16);
 
-            //width = (Program.screenIndex == 0) ? width : selectedScreen.Bounds.Width; // screen 0 doesn't like selectedScreen.Bounds.Width/Height
-            //height = (Program.screenIndex == 0) ? height : selectedScreen.Bounds.Height;
-
-
-            // create a new bitmap with the second screen's size
             Bitmap bmp = new Bitmap(width, height);
 
             using (Graphics g = Graphics.FromImage(bmp))
             {
-                // copy the second screen's contents to the bitmap
                 g.CopyFromScreen(x, y, 0, 0, bmp.Size);
                 return bmp;
             }
