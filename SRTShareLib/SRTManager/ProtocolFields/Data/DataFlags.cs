@@ -11,7 +11,6 @@
     public enum EncryptionFlags : ushort
     {
         NOT_ENCRYPTED = 0x000b,
-        EVEN_KEY = 0x001b,
-        ODD_KEY = 0x010b,
+        ENCRYPTED = 0x001b
     }
 }

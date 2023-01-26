@@ -32,7 +32,6 @@ namespace Client
                 ShowImage(true, imageBoxDisplayIn);
                 allChunks.Clear();
             }
-
             else
             {
                 allChunks.AddRange(data_request.DATA);

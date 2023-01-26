@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Windows.Forms;
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 
 namespace Server
@@ -17,6 +18,9 @@ namespace Server
     {
         internal const uint SERVER_SOCKET_ID = 123;
         internal static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
+
+        public static int sharedScreenIndex { get; private set; }
+        private static Screen[] screens = Screen.AllScreens;
 
         private static void Main()
         {
@@ -33,8 +37,16 @@ namespace Server
 
             NetworkManager.PrintInterfaceData();
             NetworkManager.PrintServerData();
+
+            // server started up - no errors, handle key press (switch shared screen feature)
+            Thread pressedKeyListenerT = new Thread(KeyPressedListener);
+            pressedKeyListenerT.Start();
+
         }
 
+        /// <summary>
+        /// Prints greeting to server console
+        /// </summary>
         private static void PrintGreeting()
         {
             // when server is being shutdown with the CTRL+C (break) the server will
@@ -43,6 +55,10 @@ namespace Server
 
             CConsole.WriteLine("[*] You can switch between the screens with the [<-] [->] keys arrow\n", MessageType.txtInfo);
         }
+
+        /// <summary>
+        /// Handle unhandled exception (especially libraries missing)
+        /// </summary>
         private static void UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Exception ex = (Exception)e.ExceptionObject;
@@ -111,7 +127,7 @@ namespace Server
         /// If a client lost connection, this function will be called
         /// </summary>
         /// <param name="socket_id">socket id who lost connection</param>
-        internal static void LostConnection(uint socket_id)
+        internal static void Client_LostConnection(uint socket_id)
         {
             CConsole.WriteLine($"[Keep-Alive] {SRTSockets[socket_id].SocketAddress.IPAddress} is dead, disposing resources..\n", MessageType.bgError);
             Dispose(socket_id);
@@ -139,7 +155,7 @@ namespace Server
         /// <summary>
         /// This function executes when the server turned off (ONLY CTRL + C)
         /// </summary>
-        static void Console_CtrlCKeyPressed(object sender, ConsoleCancelEventArgs e)
+        private static void Console_CtrlCKeyPressed(object sender, ConsoleCancelEventArgs e)
         {
             CConsole.WriteLine("[Server] Shutting down...", MessageType.bgError);
 
@@ -149,7 +165,46 @@ namespace Server
                 Packet shutdown_packet = shutdown_request.Shutdown();
                 PacketManager.SendPacket(shutdown_packet);
             }
+
+            Console.ReadKey();
             Environment.Exit(Environment.ExitCode);
+        }
+
+
+        /// <summary>
+        /// Listenes the key press, for feature to switch between the screens via the -> <- buttons
+        /// </summary>
+        private static void KeyPressedListener()
+        {
+            while (true)
+            {
+                ConsoleKeyInfo keyInfo = Console.ReadKey();
+
+                if (keyInfo.Key == ConsoleKey.LeftArrow)
+                {
+                    if (sharedScreenIndex > 0)
+                    {
+                        sharedScreenIndex--;
+                        CConsole.WriteLine($"[Server] Screen {sharedScreenIndex + 1} is shared\n", MessageType.txtInfo);
+                    }
+                    else
+                    {
+                        CConsole.WriteLine($"[Server] You can only swith between ({1} - {screens.Length}) screens\n", MessageType.txtWarning);
+                    }
+                }
+                else if (keyInfo.Key == ConsoleKey.RightArrow)
+                {
+                    if (sharedScreenIndex + 1 < screens.Length)
+                    {
+                        sharedScreenIndex++;
+                        CConsole.WriteLine($"[Server] Screen {sharedScreenIndex + 1} is shared\n", MessageType.txtInfo);
+                    }
+                    else
+                    {
+                        CConsole.WriteLine($"[Server] You can only switch between ({1} - {screens.Length}) screens\n", MessageType.txtWarning);
+                    }
+                }
+            }
         }
     }
 }

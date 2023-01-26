@@ -70,7 +70,7 @@ namespace Server
         /// The function sends keep-alive packets every 3 seconds while the client is connected
         /// </summary>
         /// <param name="dest_socket_id"></param>
-        internal void KeepAliveChecker(object dest_socket_id)
+        private void KeepAliveChecker(object dest_socket_id)
         {
             uint u_dest_socket_id = (uint)dest_socket_id;
             timer.Start();

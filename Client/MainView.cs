@@ -2,6 +2,8 @@
 using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Transport;
 using SRTShareLib;
+using SRTShareLib.PcapManager;
+using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.ProtocolFields.Control;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
@@ -9,8 +11,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
-using SRTShareLib.PcapManager;
-
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
@@ -27,9 +27,12 @@ namespace Client
         private bool handledArp = false;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
 
         internal static ushort myPort;
-        internal static uint client_sid = 0;  // the server sends this value on the induction answer (SID -> Socket ID)
+        internal static uint client_sid = 0;  // the server sends this value on the induction answer (SID -> Socket ID) (MY SID)
         internal static string serverMac = null;
         internal static bool externalConnection;
+
+        internal const EncryptionType dataEncryption = EncryptionType.AES128;
+
 
 #if DEBUG
         private static ulong dataReceived = 0;  // count data packets received (included chunks)
@@ -65,6 +68,8 @@ namespace Client
                 CConsole.WriteLine("[Client] External server address\n", MessageType.txtWarning);
 
             ResponseCheck();
+
+            ServerAliveChecker.LostConnection += Server_LostConnection;  // subscribe the event to avoid unexpectable server shutdown
         }
 
         /// <summary>
@@ -133,8 +138,17 @@ namespace Client
                         RequestsHandler.HandleShutDown();
                 }
 
-                else if (Data.SRTHeader.IsData(payload))
+                if (dataEncryption != EncryptionType.None)
                 {
+                    byte[] key = EncryptionManager.CreateKey(packet.Ethernet.IpV4.Destination.ToString(), datagram.DestinationPort, dataEncryption);
+                    byte[] IV = EncryptionManager.CreateIV(client_sid.ToString());
+
+                    payload = EncryptionManager.TryDecrypt(payload, key, IV, dataEncryption);
+                }
+
+                if (Data.SRTHeader.IsData(payload))
+                {
+                    ServerAliveChecker.Check();
                     Data.SRTHeader data_request = new Data.SRTHeader(payload);
 #if DEBUG
                     Console.Title = $"Data received {++dataReceived}";
@@ -214,6 +228,18 @@ namespace Client
         internal static string GetAdaptedPeerIp()
         {
             return externalConnection ? NetworkManager.PublicIp : NetworkManager.LocalIp;
+        }
+
+        /// <summary>
+        /// If the server dies, notify the client and stop the session
+        /// </summary>
+        internal static void Server_LostConnection()
+        {
+            CConsole.WriteLine("[ERROR] Server isn't alive anymore", MessageType.bgError);
+
+            MessageBox.Show("Server isn't alive anymore", "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            Environment.Exit(-1);
         }
     }
 }

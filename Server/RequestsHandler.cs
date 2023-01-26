@@ -46,7 +46,7 @@ namespace Server
             uint cookie = ProtocolManager.GenerateCookie(client_ip, datagram.SourcePort); // need to save cookie somewhere
 
             IpV4Address peer_ip = new IpV4Address(NetworkManager.PublicIp);
-            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID);
+            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_FIELD);
             PacketManager.SendPacket(handshake_packet);
         }
 
@@ -65,17 +65,18 @@ namespace Server
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, packet.Ethernet.Source.ToString(), NetworkManager.LocalIp, packet.Ethernet.IpV4.Source.ToString(), ConfigManager.PORT, datagram.SourcePort));
 
             IpV4Address peer_ip = new IpV4Address(NetworkManager.PublicIp);
-            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID);
+            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_FIELD);
             PacketManager.SendPacket(handshake_packet);
 
-            SClient currentClient = new SClient(handshake_request.PEER_IP, datagram.SourcePort, packet.Ethernet.Source, handshake_request.SOCKET_ID, handshake_request.MTU);
+            SClient currentClient = new SClient(handshake_request.PEER_IP, datagram.SourcePort, packet.Ethernet.Source, handshake_request.SOCKET_ID, handshake_request.MTU, handshake_request.ENCRYPTION_FIELD);
             KeepAliveManager kaManager = new KeepAliveManager(currentClient);
             VideoManager dataManager = new VideoManager(currentClient);
 
             // add client to sockets list
             Program.SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(currentClient,
                 kaManager, dataManager));
-            kaManager.LostConnection += Program.LostConnection;
+
+            kaManager.LostConnection += Program.Client_LostConnection;
         }
 
         /// <summary>

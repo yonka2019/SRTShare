@@ -85,6 +85,11 @@ namespace SRTShareLib.PcapManager
         }
 
         #region https://stackoverflow.com/questions/4875968/concatenating-a-c-sharp-list-of-byte
+        /// <summary>
+        /// Concat all list of bytes[] into one big byte[] array
+        /// </summary>
+        /// <param name="data">list of bytes[]</param>
+        /// <returns>big byte[] array</returns>
         private static byte[] ConcatBytes(List<byte[]> data)
         {
             byte[] output = new byte[data.Sum(arr => arr.Length)];
@@ -119,26 +124,17 @@ namespace SRTShareLib.PcapManager
         /// <returns>Payload layer object (encrypted bytes)</returns>
         public static PayloadLayer BuildEPLayer(List<byte[]> data, EncryptionType encryptionType, ILayer[] layers)
         {
-            byte[] key;
-            byte[] IV;
-
             IpV4Layer ipLayer = (IpV4Layer)layers[1];
             UdpLayer udpLayer = (UdpLayer)layers[2];
 
             string dstIp = ipLayer.Destination.ToString();
             ushort dstPort = ushort.Parse(udpLayer.DestinationPort.ToString());
 
-            string keyToHash = $"{dstIp}&{dstPort}";
-            string sidToHash = $"{ProtocolManager.GenerateSocketId(dstIp, dstPort)}";
-
-            using (MD5 md5 = MD5.Create())
-            {
-                key =  md5.ComputeHash(Encoding.UTF8.GetBytes(keyToHash));
-                IV = md5.ComputeHash(Encoding.UTF8.GetBytes(sidToHash));
-            }
+            byte[] key = EncryptionManager.CreateKey(dstIp, dstPort, encryptionType);
+            byte[] IV = EncryptionManager.CreateIV(ProtocolManager.GenerateSocketId(dstIp, dstPort).ToString());
 
             byte[] bytedData = ConcatBytes(data);
-            byte[] encryptedData = EncryptionManager.Decrypt(bytedData, key, IV, encryptionType);
+            byte[] encryptedData = EncryptionManager.Encrypt(bytedData, key, IV, encryptionType);
 
             return BuildPLayer(encryptedData);
         }

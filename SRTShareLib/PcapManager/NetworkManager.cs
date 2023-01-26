@@ -66,6 +66,7 @@ namespace SRTShareLib.PcapManager
             {
                 CConsole.WriteLine("[ERROR] Can't find local IP", MessageType.bgError);  // there is no valid NI (Network Interface)
                 Console.WriteLine("Press any key to continue...");
+
                 Console.ReadKey();
                 Environment.Exit(-1);
             }
@@ -108,7 +109,8 @@ namespace SRTShareLib.PcapManager
 
             if (publicIp == null)  // still null
             {
-                CConsole.WriteLine("[ERROR] Can't find public IP (using only LAN supported connection)", MessageType.bgError); // no external connection, only LAN supported
+                CConsole.Write("[ERROR] Can't find public IP, ", MessageType.bgError); // no external connection, only LAN supported (public ip switched with the local ip)
+                CConsole.Write("using only LAN supported connection (public ip changed with local ip)", MessageType.txtError);
                 return LocalIp;
             }
 
@@ -145,6 +147,7 @@ namespace SRTShareLib.PcapManager
             if (allDevices.Count == 0)
             {
                 CConsole.WriteLine("[ERROR] No interfaces found", MessageType.bgError);
+
                 Console.ReadKey();
                 Environment.Exit(0);
             }
@@ -152,6 +155,7 @@ namespace SRTShareLib.PcapManager
             if (selectDeviceIndex == -1)
             {
                 CConsole.WriteLine($"[ERROR] There is no interface which matches with the local ip address", MessageType.txtError);
+
                 Console.ReadKey();
                 Environment.Exit(0);
             }
