@@ -31,8 +31,7 @@ namespace Client
         internal static string serverMac = null;
         internal static bool externalConnection;
 
-        internal const EncryptionType dataEncryption = EncryptionType.AES128;
-
+        internal const EncryptionType ENCRYPTION = EncryptionType.None;
 
 #if DEBUG
         private static ulong dataReceived = 0;  // count data packets received (included chunks)
@@ -138,12 +137,12 @@ namespace Client
                         RequestsHandler.HandleShutDown();
                 }
 
-                if (dataEncryption != EncryptionType.None)
+                if (ENCRYPTION != EncryptionType.None)
                 {
-                    byte[] key = EncryptionManager.CreateKey(packet.Ethernet.IpV4.Destination.ToString(), datagram.DestinationPort, dataEncryption);
+                    byte[] key = EncryptionManager.CreateKey(packet.Ethernet.IpV4.Destination.ToString(), datagram.DestinationPort, ENCRYPTION);
                     byte[] IV = EncryptionManager.CreateIV(client_sid.ToString());
 
-                    payload = EncryptionManager.TryDecrypt(payload, key, IV, dataEncryption);
+                    payload = EncryptionManager.TryDecrypt(payload, key, IV, ENCRYPTION);
                 }
 
                 if (Data.SRTHeader.IsData(payload))

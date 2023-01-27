@@ -53,7 +53,7 @@ namespace Client
                     (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
 
             IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedPeerIp());
-            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(MainView.GetAdaptedPeerIp(), myPort), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)MainView.dataEncryption);
+            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(MainView.GetAdaptedPeerIp(), myPort), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)MainView.ENCRYPTION);
 
             PacketManager.SendPacket(handshake_packet);
         }
