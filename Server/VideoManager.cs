@@ -4,7 +4,6 @@ using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -86,7 +85,7 @@ namespace Server
             int width, height;
 
             // get the selected screen
-            Screen selectedScreen = Screen.AllScreens[Program.sharedScreenIndex];
+            Screen selectedScreen = Screen.AllScreens[Program.SharedScreenIndex];
 
             int x = selectedScreen.Bounds.X;
             int y = selectedScreen.Bounds.Y;

@@ -137,7 +137,7 @@ namespace Client
                         RequestsHandler.HandleShutDown();
                 }
 
-                if (ENCRYPTION != EncryptionType.None)
+                if (ENCRYPTION != EncryptionType.None)  // even if code unreachble - DO NOT REMOVE IT! (dependent on encryption type)
                 {
                     byte[] key = EncryptionManager.CreateKey(packet.Ethernet.IpV4.Destination.ToString(), datagram.DestinationPort, ENCRYPTION);
                     byte[] IV = EncryptionManager.CreateIV(client_sid.ToString());

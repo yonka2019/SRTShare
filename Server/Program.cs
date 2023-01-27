@@ -19,8 +19,8 @@ namespace Server
         internal const uint SERVER_SOCKET_ID = 123;
         internal static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
 
-        public static int sharedScreenIndex { get; private set; }
-        private static Screen[] screens = Screen.AllScreens;
+        public static int SharedScreenIndex { get; private set; }
+        private static readonly Screen[] screens = Screen.AllScreens;
 
         private static void Main()
         {
@@ -182,10 +182,10 @@ namespace Server
 
                 if (keyInfo.Key == ConsoleKey.LeftArrow)
                 {
-                    if (sharedScreenIndex > 0)
+                    if (SharedScreenIndex > 0)
                     {
-                        sharedScreenIndex--;
-                        CConsole.WriteLine($"[Server] Screen {sharedScreenIndex + 1} is shared\n", MessageType.txtInfo);
+                        SharedScreenIndex--;
+                        CConsole.WriteLine($"[Server] Screen {SharedScreenIndex + 1} is shared\n", MessageType.txtInfo);
                     }
                     else
                     {
@@ -194,10 +194,10 @@ namespace Server
                 }
                 else if (keyInfo.Key == ConsoleKey.RightArrow)
                 {
-                    if (sharedScreenIndex + 1 < screens.Length)
+                    if (SharedScreenIndex + 1 < screens.Length)
                     {
-                        sharedScreenIndex++;
-                        CConsole.WriteLine($"[Server] Screen {sharedScreenIndex + 1} is shared\n", MessageType.txtInfo);
+                        SharedScreenIndex++;
+                        CConsole.WriteLine($"[Server] Screen {SharedScreenIndex + 1} is shared\n", MessageType.txtInfo);
                     }
                     else
                     {
