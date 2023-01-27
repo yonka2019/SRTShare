@@ -116,7 +116,7 @@ namespace Server
             ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
             EncoderParameters myEncoderParameters = new EncoderParameters(1);
 
-            EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, 10L);
+            EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, 50L);  // set qualiy 0 -> 100
             myEncoderParameters.Param[0] = myEncoderParameter;
 
             bmp.Save(stream, jpgEncoder, myEncoderParameters);
