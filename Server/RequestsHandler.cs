@@ -68,9 +68,9 @@ namespace Server
             Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_FIELD);
             PacketManager.SendPacket(handshake_packet);
 
-            SClient currentClient = new SClient(handshake_request.PEER_IP, datagram.SourcePort, packet.Ethernet.Source, handshake_request.SOCKET_ID, handshake_request.MTU, handshake_request.ENCRYPTION_FIELD);
+            SClient currentClient = new SClient(handshake_request.PEER_IP, datagram.SourcePort, packet.Ethernet.Source, handshake_request.SOCKET_ID, handshake_request.MTU);
             KeepAliveManager kaManager = new KeepAliveManager(currentClient);
-            VideoManager dataManager = new VideoManager(currentClient);
+            VideoManager dataManager = new VideoManager(currentClient, handshake_request.ENCRYPTION_FIELD);
 
             // add client to sockets list
             Program.SRTSockets.Add(handshake_request.SOCKET_ID, new SRTSocket(currentClient,

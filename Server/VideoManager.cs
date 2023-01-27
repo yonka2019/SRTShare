@@ -1,6 +1,7 @@
 ﻿using PcapDotNet.Packets;
 using SRTShareLib;
 using SRTShareLib.PcapManager;
+using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;
@@ -18,14 +19,20 @@ namespace Server
         private readonly SClient client;
         private bool connected;
 
+        private readonly EncryptionType EncryptionMethod;
+
+        internal bool VideoStage { get; private set; }
+
 #if DEBUG
         private static ulong dataSent = 0;  // count data sent packets (included chunks)
 #endif
 
-        internal VideoManager(SClient client)
+        internal VideoManager(SClient client, ushort EncryptionMethod)
         {
             this.client = client;
             connected = true;
+
+            this.EncryptionMethod = (EncryptionType)EncryptionMethod;
         }
 
         /// <summary>
@@ -35,6 +42,7 @@ namespace Server
         {
             Thread videoStarter = new Thread(new ParameterizedThreadStart(VideoInit));  // create thread of keep-alive checker
             videoStarter.Start(client.SocketId);
+            VideoStage = true;
         }
 
         /// <summary>
@@ -43,6 +51,7 @@ namespace Server
         internal void StopVideo()
         {
             connected = false;
+            VideoStage = false;
         }
 
         /// <summary>
@@ -63,7 +72,7 @@ namespace Server
                 DataRequest dataRequest = new DataRequest(
                                 OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
-                List<Packet> data_packets = dataRequest.SplitToPackets(stream, time_stamp: 0, u_dest_socket_id, (int)client.MTU, client.EncryptionMethod);
+                List<Packet> data_packets = dataRequest.SplitToPackets(stream, time_stamp: 0, u_dest_socket_id, (int)client.MTU, (ushort)EncryptionMethod);
 
                 foreach (Packet packet in data_packets)
                 {
