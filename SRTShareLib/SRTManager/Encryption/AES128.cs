@@ -1,5 +1,4 @@
-﻿using SRTShareLib.SRTManager.Encryption;
-using System.IO;
+﻿using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -74,7 +73,7 @@ namespace SRTShareLib.SRTManager.Encryption
         }
 
         /// <summary>
-        /// According the encryption policy, the IV generates accoridng the 'CLIENT_SOCKET_ID' field which is encrypted into hashed size 16 byte (128 bit) via MD5
+        /// According the encryption policy, the IV generates according the 'CLIENT_SOCKET_ID' field which is encrypted into hashed size 16 byte (128 bit) via MD5
         /// </summary>
         /// <returns>ready hashed iv to be used for encryption or decryption</returns>
         public static byte[] CreateIV(string socketId)

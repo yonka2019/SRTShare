@@ -110,18 +110,9 @@ namespace SRTShareLib.PcapManager
         /// <returns>Payload layer object (encrypted bytes)</returns>
         private static PayloadLayer BuildEPLayer(List<byte[]> data, EncryptionType encryptionType, ILayer[] layers)
         {
-            IpV4Layer ipLayer = (IpV4Layer)layers[1];
-            UdpLayer udpLayer = (UdpLayer)layers[2];
-
-            string dstIp = ipLayer.Destination.ToString();
-            ushort dstPort = ushort.Parse(udpLayer.DestinationPort.ToString());
-
-            byte[] key = EncryptionManager.CreateKey(dstIp, dstPort, encryptionType);
-            byte[] IV = EncryptionManager.CreateIV(ProtocolManager.GenerateSocketId(dstIp, dstPort).ToString());
-
             byte[] bytedData = ConcatBytes(data);
-            byte[] encryptedData = EncryptionManager.Encrypt(bytedData, key, IV, encryptionType);
-
+            byte[] encryptedData = EncryptionManager.Encrypt(encryptionType, bytedData, layers);
+            
             return BuildPLayer(encryptedData);
         }
 

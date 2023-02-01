@@ -33,7 +33,7 @@ namespace Client
         internal static string serverMac = null;
         internal static bool externalConnection;
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.AES128;  // SET ENCRYPTION HERE
+        internal const EncryptionType ENCRYPTION = EncryptionType.Sub;  // SET ENCRYPTION HERE
 
 #if DEBUG
         private static ulong dataReceived = 0;  // count data packets received (included chunks)
@@ -114,15 +114,19 @@ namespace Client
                     byte[] key = null;
                     byte[] IV = null;
 
-                    switch (ENCRYPTION)
+                    switch (ENCRYPTION)  // build the credentials according the requirements
                     {
                         case EncryptionType.AES128:
                             key = AES128.CreateKey(packet.Ethernet.IpV4.Destination.ToString(), datagram.DestinationPort);
                             IV = AES128.CreateIV(client_sid.ToString());
                             break;
 
-                        case EncryptionType.Sub128:
-                            byte[] key = 
+                        case EncryptionType.Sub:
+                            key = Substitution.CreateKey(packet.Ethernet.IpV4.Destination.ToString(), datagram.DestinationPort);
+                            break;
+
+                        default:
+                            throw new Exception($"'{ENCRYPTION}' This encryption method isn't supported yet");
                     }
 
                     payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, key, IV);
