@@ -111,10 +111,21 @@ namespace Client
                 if (videoStage && ENCRYPTION != EncryptionType.None)  // if video stage reached and the encryption enabled -
                                                                       // the server will send each packet encrypted (data/shutdown/keepalive)
                 {
-                    byte[] key = EncryptionManager.CreateKey(packet.Ethernet.IpV4.Destination.ToString(), datagram.DestinationPort, ENCRYPTION);
-                    byte[] IV = EncryptionManager.CreateIV(client_sid.ToString());
+                    byte[] key = null;
+                    byte[] IV = null;
 
-                    payload = EncryptionManager.TryDecrypt(payload, key, IV, ENCRYPTION);
+                    switch (ENCRYPTION)
+                    {
+                        case EncryptionType.AES128:
+                            key = AES128.CreateKey(packet.Ethernet.IpV4.Destination.ToString(), datagram.DestinationPort);
+                            IV = AES128.CreateIV(client_sid.ToString());
+                            break;
+
+                        case EncryptionType.Sub128:
+                            byte[] key = 
+                    }
+
+                    payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, key, IV);
                 }
 
                 if (Control.SRTHeader.IsControl(payload))  // (SRT) Control

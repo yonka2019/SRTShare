@@ -127,14 +127,6 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             INDUCTION = 0x00000001
         }
 
-        public enum Encryption  // Encryption Field
-        {
-            None = 0,
-            AES128 = 2,
-            AES192 = 3,
-            AES256 = 4
-        }
-
         public override string ToString()
         {
             string handshake = "";
@@ -144,7 +136,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             handshake += "Cookie: " + SYN_COOKIE + "\n";
             handshake += "Peer ip: " + PEER_IP.ToString() + "\n";
             handshake += "Handshake type: " + TYPE.ToString("X") + "\n";
-            handshake += "Encryption: " + ((Encryption)ENCRYPTION_FIELD).ToString();
+            handshake += "Encryption: " + ((Encryption.EncryptionType)ENCRYPTION_FIELD).ToString();
 
             return handshake;
         }

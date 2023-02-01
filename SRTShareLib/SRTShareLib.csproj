@@ -70,6 +70,7 @@
     <Compile Include="SRTManager\Encryption\AES128.cs" />
     <Compile Include="SRTManager\Encryption\EncryptionManager.cs" />
     <Compile Include="SRTManager\Encryption\EncryptionType.cs" />
+    <Compile Include="SRTManager\Encryption\Substitution.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\Keep-Alive.cs" />
     <Compile Include="SRTManager\ProtocolFields\Data\DataFlags.cs" />
     <Compile Include="SRTManager\ProtocolFields\Data\SRTHeader.cs" />
