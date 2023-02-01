@@ -4,7 +4,6 @@ using PcapDotNet.Packets.Transport;
 using SRTShareLib;
 using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.Encryption;
-using SRTShareLib.SRTManager.ProtocolFields.Control;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Diagnostics;
@@ -12,26 +11,29 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
+using Control = SRTShareLib.SRTManager.ProtocolFields.Control;
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace Client
 {
     public partial class MainView : Form
     {
-        private readonly Thread pRecvThread;
         private readonly Thread pRecvKAThread;
         private readonly Random rnd = new Random();
 
         private bool serverAlive = false;  // for icmp request - answer check
-        private static uint server_sid = 0;  // we getting know this value on the indoction that the server returns to us (SID -> Socket ID)
         private bool handledArp = false;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
 
+        private bool videoStage = false;  // when the client reaches the video stage, he knows that each packet from the server will be encrypted,
+                                          // so he should be ready to decrypt each received packet
+
+        internal static uint server_sid = 0;  // we getting know this value on the indoction that the server returns to us (SID -> Socket ID)
         internal static ushort myPort;
         internal static uint client_sid = 0;  // the server sends this value on the induction answer (SID -> Socket ID) (MY SID)
         internal static string serverMac = null;
         internal static bool externalConnection;
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.None;
+        internal const EncryptionType ENCRYPTION = EncryptionType.AES128;  // SET ENCRYPTION HERE
 
 #if DEBUG
         private static ulong dataReceived = 0;  // count data packets received (included chunks)
@@ -44,11 +46,7 @@ namespace Client
             myPort = (ushort)rnd.Next(1, 50000);
 
             // start receiving packets
-            pRecvThread = new Thread(() =>
-            {
-                PacketManager.ReceivePackets(0, PacketHandler);
-            });
-            pRecvThread.Start();
+            new Thread(() => { PacketManager.ReceivePackets(0, PacketHandler); }).Start();
 
             // start receiving keep-alive packets
             pRecvKAThread = new Thread(() =>
@@ -110,34 +108,8 @@ namespace Client
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (SRTHeader.IsControl(payload))  // (SRT) Control
-                {
-                    if (Handshake.IsHandshake(payload))  // (SRT) Handshake
-                    {
-                        Handshake handshake_request = new Handshake(payload);
-
-                        server_sid = handshake_request.SOCKET_ID;  // as first packet, we are setting the socket id to know it for the future
-
-                        if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION)  // (SRT) Induction
-                        {
-                            serverAlive = true;
-                            RequestsHandler.HandleInduction(handshake_request);
-                        }
-                        else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION)
-                        {
-                            Invoke((MethodInvoker)delegate
-                            {
-                                VideoBox.Text = "";
-                            });
-                            CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
-
-                        }
-                    }
-                    else if (Shutdown.IsShutdown(payload))  // (SRT) Server Shutdown ! [HANDLES ONLY CTRL + C EVENT ON SERVER SIDE] !
-                        RequestsHandler.HandleShutDown();
-                }
-
-                if (ENCRYPTION != EncryptionType.None)  // even if code unreachble - DO NOT REMOVE IT! (dependent on encryption type)
+                if (videoStage && ENCRYPTION != EncryptionType.None)  // if video stage reached and the encryption enabled -
+                                                                      // the server will send each packet encrypted (data/shutdown/keepalive)
                 {
                     byte[] key = EncryptionManager.CreateKey(packet.Ethernet.IpV4.Destination.ToString(), datagram.DestinationPort, ENCRYPTION);
                     byte[] IV = EncryptionManager.CreateIV(client_sid.ToString());
@@ -145,7 +117,34 @@ namespace Client
                     payload = EncryptionManager.TryDecrypt(payload, key, IV, ENCRYPTION);
                 }
 
-                if (Data.SRTHeader.IsData(payload))
+                if (Control.SRTHeader.IsControl(payload))  // (SRT) Control
+                {
+                    if (Control.Handshake.IsHandshake(payload))  // (SRT) Handshake
+                    {
+                        Control.Handshake handshake_request = new Control.Handshake(payload);
+
+                        server_sid = handshake_request.SOCKET_ID;  // as first packet, we are setting the socket id to know it for the future
+
+                        if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.INDUCTION)  // (SRT) Induction
+                        {
+                            serverAlive = true;
+                            RequestsHandler.HandleInduction(handshake_request);
+                        }
+                        else if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.CONCLUSION)
+                        {
+                            Invoke((MethodInvoker)delegate
+                            {
+                                VideoBox.Text = "";
+                            });
+                            CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
+                            videoStage = true;
+                        }
+                    }
+                    else if (Control.Shutdown.IsShutdown(payload))  // (SRT) Server Shutdown ! [HANDLES ONLY CTRL + C EVENT ON SERVER SIDE] !
+                        RequestsHandler.HandleShutDown();
+                }
+
+                else if (Data.SRTHeader.IsData(payload))
                 {
                     ServerAliveChecker.Check();
                     Data.SRTHeader data_request = new Data.SRTHeader(payload);
@@ -187,11 +186,12 @@ namespace Client
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
 
-                if (SRTHeader.IsControl(payload))  // (SRT) Control
+                if (Control.SRTHeader.IsControl(payload))  // (SRT) Control
                 {
-                    if (KeepAlive.IsKeepAlive(payload))
+                    if (Control.KeepAlive.IsKeepAlive(payload))
                     {
                         Debug.WriteLine("[GOT] Keep-Alive");
+
                         KeepAliveRequest keepAlive_response = new KeepAliveRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
                         Packet keepAlive_confirm = keepAlive_response.Alive(server_sid);
                         PacketManager.SendPacket(keepAlive_confirm);

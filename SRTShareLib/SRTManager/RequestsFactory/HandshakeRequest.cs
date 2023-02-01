@@ -34,7 +34,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
                 F_Handshake = new Handshake(version: 5, encryption_field, init_psn, type: (uint)Handshake.HandshakeType.INDUCTION, source_socket_id, dest_socket_id, cookie, p_ip);
             }
 
-            GetPayloadLayer() = OSIManager.BuildPLayer(F_Handshake.GetByted());  // set last payload layer as our srt packet
+            GetPayloadLayer() = OSIManager.BuildPLayer(F_Handshake.GetByted(), false);  // set last payload layer as our srt packet
 
             return BuildPacket();
         }
@@ -64,7 +64,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
                 F_Handshake = new Handshake(version: 5, encryption_field, init_psn, type: (uint)Handshake.HandshakeType.CONCLUSION, source_socket_id, dest_socket_id, 0, p_ip);
             }
 
-            GetPayloadLayer() = OSIManager.BuildPLayer(F_Handshake.GetByted());  // set last payload layer as our srt packet
+            GetPayloadLayer() = OSIManager.BuildPLayer(F_Handshake.GetByted(), false);  // set last payload layer as our srt packet
 
             return BuildPacket();
         }

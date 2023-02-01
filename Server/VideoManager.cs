@@ -19,9 +19,8 @@ namespace Server
         private readonly SClient client;
         private bool connected;
 
-        private readonly EncryptionType EncryptionMethod;
-
-        internal bool VideoStage { get; private set; }
+        public readonly EncryptionType EncryptionMethod;
+        public bool VideoStage { get; private set; }
 
 #if DEBUG
         private static ulong dataSent = 0;  // count data sent packets (included chunks)
@@ -85,8 +84,9 @@ namespace Server
             }
         }
 
+        // 'app.manifest' file for auto-scale screenshot - https://stackoverflow.com/questions/47015893/windows-screenshot-with-scaling
         /// <summary>
-        /// Screenshots current selected screen (supporting scale (125%, 150%..))
+        /// Screenshots current selected screen (supporting scale (125%, 150%..)
         /// </summary>
         /// <returns>Bitmap of the screenshot</returns>
         private Bitmap TakeScreenShot()

@@ -10,7 +10,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
          * EthernetLayer - Exist
          * InternetLayer - Exist
          * UDPLayer - Exist
-         * PayloadLayer (SRT Data) - Should be added
+         * PayloadLayer (SRT Packet) - Should be added
          */
 
         public UdpPacket(params ILayer[] layers)

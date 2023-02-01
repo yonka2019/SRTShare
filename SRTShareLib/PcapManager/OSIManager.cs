@@ -2,12 +2,9 @@
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
-using SRTShareLib.SRTManager;
 using SRTShareLib.SRTManager.Encryption;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace SRTShareLib.PcapManager
 {
@@ -71,20 +68,9 @@ namespace SRTShareLib.PcapManager
             };
         }
 
-        /// <summary>
-        /// The function converts a string into a payload layer
-        /// </summary>
-        /// <param name="data">string data</param>
-        /// <returns>Payload layer object</returns>
-        public static PayloadLayer BuildPLayer(string data = "")
-        {
-            return new PayloadLayer
-            {
-                Data = new Datagram(Encoding.ASCII.GetBytes(data))
-            };
-        }
+        #region Build Payload Layer functions
 
-        #region https://stackoverflow.com/questions/4875968/concatenating-a-c-sharp-list-of-byte
+        #region func ConcatBytes() - https://stackoverflow.com/questions/4875968/concatenating-a-c-sharp-list-of-byte
         /// <summary>
         /// Concat all list of bytes[] into one big byte[] array
         /// </summary>
@@ -109,7 +95,7 @@ namespace SRTShareLib.PcapManager
         /// </summary>
         /// <param name="data">Data to convert</param>
         /// <returns>Payload layer object</returns>
-        public static PayloadLayer BuildPLayer(List<byte[]> data)
+        private static PayloadLayer BuildPLayer(List<byte[]> data)
         {
             byte[] bytedData = ConcatBytes(data);
             return BuildPLayer(bytedData);
@@ -122,7 +108,7 @@ namespace SRTShareLib.PcapManager
         /// <param name="encryptionType">encryption type to encrypt the data</param>
         /// <param name="layers">current layers in using</param>
         /// <returns>Payload layer object (encrypted bytes)</returns>
-        public static PayloadLayer BuildEPLayer(List<byte[]> data, EncryptionType encryptionType, ILayer[] layers)
+        private static PayloadLayer BuildEPLayer(List<byte[]> data, EncryptionType encryptionType, ILayer[] layers)
         {
             IpV4Layer ipLayer = (IpV4Layer)layers[1];
             UdpLayer udpLayer = (UdpLayer)layers[2];
@@ -140,17 +126,40 @@ namespace SRTShareLib.PcapManager
         }
 
         /// <summary>
+        /// Smart build payload layer according the need, if the client reached stage mode and encryption enabled - every packet (not only data) should be send encrypted
+        /// on the other hand, if the client totally disabled encryption - the packets should be totally raw without any encryption on them.
+        /// </summary>
+        /// <param name="data">data to manage</param>
+        /// <param name="videoStage">current client stage (on video stage, or before)</param>
+        /// <param name="encryptionType">encryption type to use on video stage reaching</param>
+        /// <param name="layers">current built layers</param>
+        /// <returns>Payload layer object (according the need: enc/raw)</returns>
+        public static PayloadLayer BuildPLayer(List<byte[]> data, bool videoStage, EncryptionType encryptionType = EncryptionType.None, ILayer[] layers = null)
+        {
+            if (videoStage)
+            {
+                if (encryptionType != EncryptionType.None)  // No encryption setted
+                {
+                    return BuildEPLayer(data, encryptionType, layers);
+                }
+            }
+            // not video stage, surely encryption is disabled /// Encryption disabled (the both cases don't use totally any encryption)
+            return BuildPLayer(data);
+        }
+
+        /// <summary>
         /// The function converts a byte array into a payload layer
         /// </summary>
         /// <param name="data">Data to convert</param>
         /// <returns>Payload layer object</returns>
-        public static PayloadLayer BuildPLayer(byte[] data)
+        private static PayloadLayer BuildPLayer(byte[] data)
         {
             return new PayloadLayer
             {
                 Data = new Datagram(data)
             };
         }
+        #endregion
 
         /// <summary>
         /// The function builds all of the base layers (ehternet, ip, transport)

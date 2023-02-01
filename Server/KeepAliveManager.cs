@@ -19,7 +19,8 @@ namespace Server
         private int timeoutSeconds;
         private bool connected;
 
-        private static System.Timers.Timer timer;
+        private readonly System.Timers.Timer timer;
+        private Thread kaChecker;
 
         internal delegate void Notify(uint socket_id);
         internal event Notify LostConnection;
@@ -53,8 +54,15 @@ namespace Server
         /// </summary>
         internal void StartCheck()
         {
-            Thread kaChecker = new Thread(new ParameterizedThreadStart(KeepAliveChecker));  // create thread of keep-alive checker
+            kaChecker = new Thread(new ParameterizedThreadStart(KeepAliveChecker));  // create thread of keep-alive checker
             kaChecker.Start(client.SocketId);
+        }
+
+        internal void Disable()
+        {
+            timer.Stop();
+            timer.Dispose();
+            kaChecker.Abort();
         }
 
         /// <summary>

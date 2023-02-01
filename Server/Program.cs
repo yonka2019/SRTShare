@@ -2,6 +2,7 @@
 using PcapDotNet.Packets.Transport;
 using SRTShareLib;
 using SRTShareLib.PcapManager;
+using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.ProtocolFields.Control;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
@@ -17,10 +18,12 @@ namespace Server
     internal class Program
     {
         internal const uint SERVER_SOCKET_ID = 123;
-        internal static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
+        public static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
 
         public static int SharedScreenIndex { get; private set; }
         private static readonly Screen[] screens = Screen.AllScreens;
+
+        private static Thread pressedKeyListenerT;
 
         private static void Main()
         {
@@ -31,15 +34,15 @@ namespace Server
 
             _ = ConfigManager.IP;
 
-            new Thread(() => { PacketManager.ReceivePackets(0, HandlePacket); }).Start(); // always listen for any new connections
-
+            // always listen for any new connections
+            new Thread(() => { PacketManager.ReceivePackets(0, HandlePacket); }).Start();
             PrintGreeting();
 
             NetworkManager.PrintInterfaceData();
             NetworkManager.PrintServerData();
 
             // server started up - no errors, handle key press (switch shared screen feature)
-            Thread pressedKeyListenerT = new Thread(KeyPressedListener);
+            pressedKeyListenerT = new Thread(KeyPressedListener);
             pressedKeyListenerT.Start();
 
         }
@@ -130,14 +133,14 @@ namespace Server
         internal static void Client_LostConnection(uint socket_id)
         {
             CConsole.WriteLine($"[Keep-Alive] {SRTSockets[socket_id].SocketAddress.IPAddress} is dead, disposing resources..\n", MessageType.bgError);
-            Dispose(socket_id);
+            DisposeClient(socket_id);
         }
 
         /// <summary>
         /// On lost connection / shutdown, we need to dispose client resources and information
         /// </summary>
         /// <param name="client_id">client id who need to be cleaned</param>
-        internal static void Dispose(uint client_id)
+        internal static void DisposeClient(uint client_id)
         {
             SRTSockets[client_id].Data.StopVideo();
 
@@ -157,19 +160,25 @@ namespace Server
         /// </summary>
         private static void Console_CtrlCKeyPressed(object sender, ConsoleCancelEventArgs e)
         {
-            CConsole.WriteLine("[Server] Shutting down...", MessageType.bgError);
+            e.Cancel = true;
 
-            foreach (SRTSocket socket in SRTSockets.Values)  // send to each client shutdown message
+            CConsole.Write("[Server] Shutting down...", MessageType.bgError);
+            CConsole.WriteLine(" (Wait approx. ~5 seconds)", MessageType.txtError);
+            pressedKeyListenerT.Abort();
+
+            foreach (uint socketId in SRTSockets.Keys)  // send to each client shutdown message
             {
+                SRTSocket socket = SRTSockets[socketId];
+
+                socket.KeepAlive.Disable();
+                socket.Data.StopVideo();
+
                 ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
-                Packet shutdown_packet = shutdown_request.Shutdown();
+                Packet shutdown_packet = shutdown_request.Shutdown(socketId, InVideoStage(socketId), GetSocketEncryptionType(socketId));
                 PacketManager.SendPacket(shutdown_packet);
             }
-
-            Console.ReadKey();
-            Environment.Exit(Environment.ExitCode);
+            Environment.Exit(0);
         }
-
 
         /// <summary>
         /// Listenes the key press, for feature to switch between the screens via the -> <- buttons
@@ -205,6 +214,25 @@ namespace Server
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// returns true if the given socket id (client) in the video stage (server sending data)
+        /// </summary>
+        /// <param name="socketId">socket id (client)</param>
+        private static bool InVideoStage(uint socketId)
+        {
+            return SRTSockets[socketId].Data.VideoStage;
+        }
+
+        /// <summary>
+        /// returns the selected encryption type by the client at the handshake part
+        /// </summary>
+        /// <param name="socketId">socket id (client)</param>
+        /// <returns>chosen encryption method</returns>
+        private static EncryptionType GetSocketEncryptionType(uint socketId)
+        {
+            return SRTSockets[socketId].Data.EncryptionMethod;
         }
     }
 }

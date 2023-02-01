@@ -10,7 +10,8 @@ namespace Client
 
         private static int timeoutSeconds;
 
-        private static System.Timers.Timer timer;
+        private static readonly System.Timers.Timer timer;
+        private static Thread saChecker;
 
         internal delegate void Notify();
         internal static event Notify LostConnection;
@@ -45,13 +46,20 @@ namespace Client
             if (firstCheck)
             {
                 firstCheck = false;
-                Thread saChecker = new Thread(new ThreadStart(AliveChecker));  // create thread of keep-alive checker
+                saChecker = new Thread(new ThreadStart(AliveChecker));  // create thread of keep-alive checker
                 saChecker.Start();
             }
             else
             {
                 ConfirmStatus();
             }
+        }
+
+        internal static void Disable()
+        {
+            timer.Stop();
+            timer.Dispose();
+            saChecker.Abort();
         }
 
         internal static void ConfirmStatus()  // reset timeout seconds

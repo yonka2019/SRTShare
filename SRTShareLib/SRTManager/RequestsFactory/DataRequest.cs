@@ -41,10 +41,8 @@ namespace SRTShareLib.SRTManager.RequestsFactory
                     encryptionMethod == EncryptionType.None ? SRTData.EncryptionFlags.NOT_ENCRYPTED : SRTData.EncryptionFlags.ENCRYPTED,
                     is_retransmitted: false, message_number: messageNumber, time_stamp, dest_socket_id, packet_data);
 
-                if (encryptionMethod == EncryptionType.None)
-                    GetPayloadLayer() = OSIManager.BuildPLayer(srt_packet_data.GetByted());
-                else
-                    GetPayloadLayer() = OSIManager.BuildEPLayer(srt_packet_data.GetByted(), encryptionMethod, GetLayers());
+
+                GetPayloadLayer() = OSIManager.BuildPLayer(srt_packet_data.GetByted(), true, encryptionMethod, GetLayers());
 
                 packets.Add(BuildPacket());  // Add the packet to the list of packets
 

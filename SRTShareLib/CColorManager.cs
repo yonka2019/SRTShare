@@ -8,7 +8,7 @@ namespace SRTShareLib
         private static readonly ConsoleColor defaultBackground;
         private static readonly ConsoleColor defaultForeground;  // foreground <=> text
 
-        private static Object _lock = new Object();
+        private static readonly object _lock = new object();
 
         private static Dictionary<MessageType, CColor> colorTypes;
 
@@ -47,7 +47,7 @@ namespace SRTShareLib
                 }
             }
         }
-        
+
         // support only '\n' in the END of the string "lala\n" - good ;; "la\nlala" - bad
         public static void WriteLine(string str, MessageType mType)
         {
