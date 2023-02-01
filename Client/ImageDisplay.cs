@@ -42,13 +42,11 @@ namespace Client
             }
         }
 
-        private static void ShowImage(bool allChunksReceived, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
+        private static void ShowImage(bool lastChunkReceived, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
         {
 #if DEBUG
-            if (allChunksReceived)
-                Debug.WriteLine("[IMAGE] SUCCESS: Image fully built (but maybe middle packets get lost)\n--------------------\n");
-            else
-                Debug.WriteLine("[IMAGE] ERROR: LAST chunk missing (SHOWING IMAGE)\n--------------------\n");
+            if (!lastChunkReceived)
+                Debug.WriteLine("[IMAGE] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
 #endif
 
             using (MemoryStream ms = new MemoryStream(allChunks.ToArray()))
@@ -59,7 +57,7 @@ namespace Client
                 }
                 catch
                 {
-                    Debug.WriteLine("[IMAGE] ERROR: Can't build image\n--------------------\n");
+                    Debug.WriteLine("[IMAGE] ERROR: Can't build image\n");
                 }
             }
         }

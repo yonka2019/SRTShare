@@ -144,7 +144,7 @@ namespace Client
                         RequestsHandler.HandleShutDown();
                 }
 
-                else if (Data.SRTHeader.IsData(payload))
+                else if (Data.SRTHeader.IsData(payload))  // (SRT) Data (chunk of image)
                 {
                     ServerAliveChecker.Check();
                     Data.SRTHeader data_request = new Data.SRTHeader(payload);
@@ -190,13 +190,13 @@ namespace Client
                 {
                     if (Control.KeepAlive.IsKeepAlive(payload))
                     {
-                        Debug.WriteLine("[GOT] Keep-Alive");
+                        Debug.WriteLine("[KEEP-ALIVE] Received request\n");
 
                         KeepAliveRequest keepAlive_response = new KeepAliveRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
                         Packet keepAlive_confirm = keepAlive_response.Alive(server_sid);
                         PacketManager.SendPacket(keepAlive_confirm);
 
-                        Debug.WriteLine("[SEND] Keep-Alive Confirm\n--------------------\n");
+                        Debug.WriteLine("[KEEP-ALIVE] Sending confirm\n");
                     }
                 }
             }
@@ -236,7 +236,7 @@ namespace Client
         {
             CConsole.WriteLine("[ERROR] Server isn't alive anymore", MessageType.bgError);
 
-            MessageBox.Show("Server isn't alive anymore", "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Can't connect to server", "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             Environment.Exit(-1);
         }

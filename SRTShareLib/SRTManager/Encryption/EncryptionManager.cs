@@ -59,9 +59,9 @@ namespace SRTShareLib.SRTManager.Encryption
             {
                 return Decrypt(data, Key, IV, encryptionType);
             }
-            catch
+            catch (System.Exception e)
             {
-                System.Diagnostics.Debug.WriteLine("[ERROR] Bad decryption");
+                System.Diagnostics.Debug.WriteLine($"[CRYPTO] ERROR: Bad decryption ({e.Message})\n");  // cryptography issue
                 return data;
             }
         }
