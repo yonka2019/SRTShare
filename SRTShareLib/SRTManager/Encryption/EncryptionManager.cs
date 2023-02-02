@@ -12,9 +12,9 @@ namespace SRTShareLib.SRTManager.Encryption
     * - public byte[] CreateKey(..)
     * + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + 
     * In addition, you must update the next files to support the new encryption:
-    * - EncryptionManager.cs (this) ; update the conditions in order to use the suitable enc/dec
-    * - EncryptionType.cs ; add the new type as supported
-    * - MainView.cs ; update the conditions in order to get the suitable key (+IV?) for decryption
+    * - EncryptionManager.cs [Encrypt, Decrypt, RegisterEncKeysFunctions] (this) ; update the conditions in order to use the suitable enc/dec
+    * - EncryptionType.cs [EncryptionType] ; add the new type as supported
+    * - MainView.cs [DecryptionNecessity]; update the conditions in order to get the suitable key (+IV?) for decryption
     */
     public class EncryptionManager
     {
@@ -36,22 +36,21 @@ namespace SRTShareLib.SRTManager.Encryption
             {
                 case EncryptionType.AES128:
                     {
-                        byte[] key = AES128.CreateKey(dstIp, dstPort);
-                        byte[] IV = AES128.CreateIV(ProtocolManager.GenerateSocketId(dstIp, dstPort).ToString());
+                        (byte[] key, byte[] IV) = AES128.CreateKey_IV(dstIp, dstPort);
 
                         return AES128.Encrypt(data, key, IV);
                     }
 
-                case EncryptionType.Sub:
+                case EncryptionType.Substitution:
                     {
-                        byte[] key = Substitution.CreateKey(dstIp, dstPort);
+                        (byte[] key, _) = Substitution.CreateKey(dstIp, dstPort);
 
                         return Substitution.Encrypt(data, key);
                     }
 
                 case EncryptionType.XOR:
                     {
-                        byte[] key = XOR.CreateKey(dstIp, dstPort);
+                        (byte[] key, _) = XOR.CreateKey(dstIp, dstPort);
 
                         return XOR.Encrypt(data, key);
                     }
@@ -76,8 +75,11 @@ namespace SRTShareLib.SRTManager.Encryption
                 case EncryptionType.AES128:
                     return AES128.Decrypt(data, key, IV);
 
-                case EncryptionType.Sub:
+                case EncryptionType.Substitution:
                     return Substitution.Decrypt(data, key);
+
+                case EncryptionType.XOR:
+                    return XOR.Decrypt(data, key);
 
                 default:
                     throw new System.Exception($"'{encryptionType}' This decryption method isn't supported yet");

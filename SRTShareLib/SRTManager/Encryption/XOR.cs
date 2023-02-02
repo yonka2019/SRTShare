@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Text;
+﻿using System.Text;
 
 namespace SRTShareLib.SRTManager.Encryption
 {
@@ -8,7 +7,8 @@ namespace SRTShareLib.SRTManager.Encryption
         /// <summary>
         /// Type of the encryption
         /// </summary>
-        internal static EncryptionType Type => EncryptionType.Sub;
+        public const EncryptionType Type = EncryptionType.Substitution;
+        // dynamic key size, according the: 'ip' + 'port'
 
         internal static byte[] Encrypt(byte[] data, byte[] key)
         {
@@ -17,7 +17,7 @@ namespace SRTShareLib.SRTManager.Encryption
 
         internal static byte[] Decrypt(byte[] data, byte[] key)
         {
-            return  Cipher(data, key);
+            return Cipher(data, key);  // encrypt to encrypt = decrypted (especially for xor encryption)
         }
 
         private static byte[] Cipher(byte[] data, byte[] key)
@@ -34,10 +34,11 @@ namespace SRTShareLib.SRTManager.Encryption
             return output;
         }
 
-        public static byte[] CreateKey(string ip, ushort port)
+        public static (byte[], byte[]) CreateKey(string ip, ushort port)
         {
-            return Encoding.ASCII.GetBytes(string.Join(ip, port.ToString()));
-        }
+            string combinedString = string.Join(ip, port.ToString());
 
+            return (Encoding.ASCII.GetBytes(combinedString), null);  // null - is the IV (not in using)
+        }
     }
 }

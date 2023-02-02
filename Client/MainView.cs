@@ -6,6 +6,7 @@ using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -18,7 +19,6 @@ namespace Client
 {
     public partial class MainView : Form
     {
-        private readonly Thread pRecvKAThread;
         private readonly Random rnd = new Random();
 
         private bool serverAlive = false;  // for icmp request - answer check
@@ -33,8 +33,10 @@ namespace Client
         internal static string serverMac = null;
         internal static bool externalConnection;
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.Sub;  // SET ENCRYPTION HERE
+        internal const EncryptionType ENCRYPTION = EncryptionType.Substitution;  // SET ENCRYPTION HERE
+        private static Dictionary<EncryptionType, Func<string, ushort, (byte[], byte[])>> EncCredFunc;  // Functions which is responsible for getting the key +/ iv 
 
+        private static Thread handlePackets, handleKeepAlive;
 #if DEBUG
         private static ulong dataReceived = 0;  // count data packets received (included chunks)
 #endif
@@ -43,17 +45,15 @@ namespace Client
         {
             InitializeComponent();
 
-            myPort = (ushort)rnd.Next(1, 50000);
+            myPort = (ushort)rnd.Next(1, 50000);  // randomize any port for the client
 
-            // start receiving packets
-            new Thread(() => { PacketManager.ReceivePackets(0, PacketHandler); }).Start();
+            // receive packets
+            handlePackets = new Thread(() => { PacketManager.ReceivePackets(0, PacketHandler); });
+            handlePackets.Start();
 
-            // start receiving keep-alive packets
-            pRecvKAThread = new Thread(() =>
-            {
-                PacketManager.ReceivePackets(0, KeepAliveHandler);
-            });
-            pRecvKAThread.Start();
+            // receive keep-alive packets
+            handleKeepAlive = new Thread(() => { PacketManager.ReceivePackets(0, KeepAliveHandler); });
+            handleKeepAlive.Start();
 
             Packet arpRequest = ARPManager.Request(ConfigManager.IP, out bool sameSubnet);  // search for server's mac (when answer will be received -
                                                                                             // the client will automatically send SRT induction request
@@ -67,6 +67,8 @@ namespace Client
             ResponseCheck();
 
             ServerAliveChecker.LostConnection += Server_LostConnection;  // subscribe the event to avoid unexpectable server shutdown
+
+            RegisterEncKeysFunctions();
         }
 
         /// <summary>
@@ -105,32 +107,7 @@ namespace Client
         {
             if (packet.IsValidUDP(myPort, ConfigManager.PORT))  // UDP Packet
             {
-                UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
-                byte[] payload = datagram.Payload.ToArray();
-
-                if (videoStage && ENCRYPTION != EncryptionType.None)  // if video stage reached and the encryption enabled -
-                                                                      // the server will send each packet encrypted (data/shutdown/keepalive)
-                {
-                    byte[] key = null;
-                    byte[] IV = null;
-
-                    switch (ENCRYPTION)  // build the credentials according the requirements
-                    {
-                        case EncryptionType.AES128:
-                            key = AES128.CreateKey(packet.Ethernet.IpV4.Destination.ToString(), datagram.DestinationPort);
-                            IV = AES128.CreateIV(client_sid.ToString());
-                            break;
-
-                        case EncryptionType.Sub:
-                            key = Substitution.CreateKey(packet.Ethernet.IpV4.Destination.ToString(), datagram.DestinationPort);
-                            break;
-
-                        default:
-                            throw new Exception($"'{ENCRYPTION}' This encryption method isn't supported yet");
-                    }
-
-                    payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, key, IV);
-                }
+                DecryptionNecessity(packet, out byte[] payload);
 
                 if (Control.SRTHeader.IsControl(payload))  // (SRT) Control
                 {
@@ -191,6 +168,32 @@ namespace Client
         }
 
         /// <summary>
+        /// If the client is in the video stage, and he enabled encryption, he should to decrypt each packet which is received from the server
+        /// (according the after-video policy)
+        /// </summary>
+        /// <param name="packet">packet to check his state</param>
+        /// <param name="payload">payload which is returned after check (raw/decrypted)</param>
+        private void DecryptionNecessity(Packet packet, out byte[] payload)
+        {
+            UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
+            payload = datagram.Payload.ToArray();
+
+            if (videoStage && ENCRYPTION != EncryptionType.None)  // if video stage reached and the encryption enabled -
+                                                                  // the server will send each packet encrypted (data/shutdown/keepalive)
+            {
+                if (!EncCredFunc.ContainsKey(ENCRYPTION))
+                    throw new Exception($"'{ENCRYPTION}' This encryption method isn't supported yet");
+
+                string ip = packet.Ethernet.IpV4.Destination.ToString();
+                ushort port = datagram.DestinationPort;
+
+                (byte[] key, byte[] IV) = EncCredFunc[ENCRYPTION](ip, port);
+
+                payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, key, IV);
+            }
+        }
+
+        /// <summary>
         /// Callback function invoked by Pcap.Net for every keep alive packets
         /// </summary>
         /// <param name="packet">New given keepalive packet</param>
@@ -231,6 +234,9 @@ namespace Client
                 PacketManager.SendPacket(shutdown_packet);
             }
 
+            handlePackets.Abort();
+            handleKeepAlive.Abort();
+
             Environment.Exit(0);
             base.OnClosed(e);
         }
@@ -251,9 +257,22 @@ namespace Client
         {
             CConsole.WriteLine("[ERROR] Server isn't alive anymore", MessageType.bgError);
 
-            MessageBox.Show("Can't connect to server", "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Lost connection with the server", "Connection Problem", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             Environment.Exit(-1);
+        }
+
+        /// <summary>
+        /// Register encryption create keys functions individually for each encryption type
+        /// </summary>
+        public static void RegisterEncKeysFunctions()
+        {
+            EncCredFunc = new Dictionary<EncryptionType, Func<string, ushort, (byte[], byte[])>>
+            {
+                { EncryptionType.AES128, AES128.CreateKey_IV },
+                { EncryptionType.Substitution, Substitution.CreateKey },
+                { EncryptionType.XOR, XOR.CreateKey }
+            };
         }
     }
 }

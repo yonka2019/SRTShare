@@ -6,7 +6,7 @@
         AES128 = 2,
         AES192 = 3,
         AES256 = 4,
-        Sub = 5,
+        Substitution = 5,
         XOR = 6
     }
 }

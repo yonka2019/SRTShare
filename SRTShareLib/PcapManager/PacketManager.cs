@@ -1,6 +1,5 @@
 ﻿using PcapDotNet.Core;
 using PcapDotNet.Packets;
-using SRTShareLib.SRTManager.Encryption;
 using CConsole = SRTShareLib.CColorManager;
 
 namespace SRTShareLib.PcapManager
@@ -16,17 +15,6 @@ namespace SRTShareLib.PcapManager
             using (PacketCommunicator communicator = NetworkManager.Device.Open(100, // name of the device
                                  PacketDeviceOpenAttributes.DataTransferUdpRemote, // udp mode
                                  1000)) // read timeout
-            {
-                communicator.SendPacket(packetToSend);
-            }
-        }
-
-        public static void SendPacket(Packet packetToSend, EncryptionType encryptionType)
-        {
-
-            using (PacketCommunicator communicator = NetworkManager.Device.Open(100, // name of the device
-                     PacketDeviceOpenAttributes.DataTransferUdpRemote, // udp mode
-                     1000)) // read timeout
             {
                 communicator.SendPacket(packetToSend);
             }

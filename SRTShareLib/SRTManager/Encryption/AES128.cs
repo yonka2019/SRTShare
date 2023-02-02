@@ -5,7 +5,7 @@ using System.Text;
 namespace SRTShareLib.SRTManager.Encryption
 {
     /*
-     * This encryption method is problematic because this encryption use "hash" function in order to encrypt/decrypt the data.
+     * This encryption method is problematic because this encryption method use "hash" function in order to encrypt/decrypt the data.
      * Which means, that even if one bit will lost from the packet or will received in the wrong way, the whole packet will be damaged and unsuitable to decrypt.
      * In other words, this encrypytion method require the packet to be received fully as it was sent, and because the protocol which uses UDP connection as base,
      * the packets come damaged, and can't be decrypted and read correctly, which causes a lot of interference and unreadable screen-share.
@@ -21,7 +21,9 @@ namespace SRTShareLib.SRTManager.Encryption
         /// <summary>
         /// Type of the encryption
         /// </summary>
-        internal static EncryptionType Type => EncryptionType.AES128;
+        public const EncryptionType Type = EncryptionType.AES128;
+        public const int KeySize = 16;  // Bytes (AES 128 - 128 bit => 16 bit key size)
+        public const int IVSize = 16;  // Default to all AES encryptions
 
         internal static byte[] Encrypt(byte[] data, byte[] Key, byte[] IV)
         {
@@ -70,33 +72,24 @@ namespace SRTShareLib.SRTManager.Encryption
         /// <summary>
         /// According the encryption policy, the encryption key generates according the 'IP:PORT' Encrypted into hashed size (according the encryption type)
         /// AES128 - Key is hashed into MD5 (128 bit)
+        /// According the encryption policy, the IV generates according the 'CLIENT_SOCKET_ID' field which is encrypted into hashed size 16 byte (128 bit) via MD5
         /// </summary>
         /// <returns>ready hashed key to be used for encryption or decryption</returns>
-        public static byte[] CreateKey(string ip, ushort port)
+        public static (byte[], byte[]) CreateKey_IV(string ip, ushort port)
         {
-            string keyToHash = $"{ip}:{port}";
             byte[] key;
+            byte[] IV;
+
+            string socketId = ProtocolManager.GenerateSocketId(ip, port).ToString();
+            string keyToHash = $"{ip}:{port}";
 
             using (MD5 md5 = MD5.Create())
             {
                 key = md5.ComputeHash(Encoding.UTF8.GetBytes(keyToHash));
-            }
-            return key;
-        }
-
-        /// <summary>
-        /// According the encryption policy, the IV generates according the 'CLIENT_SOCKET_ID' field which is encrypted into hashed size 16 byte (128 bit) via MD5
-        /// </summary>
-        /// <returns>ready hashed iv to be used for encryption or decryption</returns>
-        public static byte[] CreateIV(string socketId)
-        {
-            byte[] IV;
-
-            using (MD5 md5 = MD5.Create())
-            {
                 IV = md5.ComputeHash(Encoding.UTF8.GetBytes(socketId));
             }
-            return IV;
+
+            return (key, IV);
         }
     }
 }

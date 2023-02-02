@@ -7,7 +7,8 @@ namespace SRTShareLib.SRTManager.Encryption
         /// <summary>
         /// Type of the encryption
         /// </summary>
-        internal static EncryptionType Type => EncryptionType.Sub;
+        public const EncryptionType Type = EncryptionType.Substitution;
+        public const int KeySize = 4;  // Bytes
 
         /// <summary>
         /// Build substitution rules table
@@ -59,7 +60,7 @@ namespace SRTShareLib.SRTManager.Encryption
             return decrypted;
         }
 
-        public static byte[] CreateKey(string ip, ushort port)
+        public static (byte[], byte[]) CreateKey(string ip, ushort port)
         {
             int key = 0;
 
@@ -69,7 +70,7 @@ namespace SRTShareLib.SRTManager.Encryption
             {
                 key += c;
             }
-            return BitConverter.GetBytes(key);
+            return (BitConverter.GetBytes(key), null);  // null - is the IV (not in using)
         }
     }
 }

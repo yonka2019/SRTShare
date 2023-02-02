@@ -102,7 +102,6 @@ namespace SRTShareLib
             {
                 { MessageType.txtDefault, new CColor(defaultBackground, defaultForeground) },
                 { MessageType.txtMuted, new CColor(defaultBackground, ConsoleColor.DarkGray) },
-                { MessageType.txtPrimary, new CColor(defaultBackground, ConsoleColor.Gray) },
                 { MessageType.txtWarning, new CColor(defaultBackground, ConsoleColor.Yellow) },
                 { MessageType.txtError, new CColor(defaultBackground, ConsoleColor.Red) },
                 { MessageType.txtSuccess, new CColor(defaultBackground, ConsoleColor.Green) },
@@ -133,21 +132,20 @@ namespace SRTShareLib
     public enum MessageType
     {
         // foreground (text) color
-        txtDefault,
-        txtMuted,
-        txtPrimary,
-        txtSuccess,
-        txtInfo,
-        txtWarning,
-        txtError,
+        txtDefault,  // 7
+        txtMuted,  // 8
+        txtSuccess,  // A
+        txtInfo,  // 3
+        txtWarning,  // E
+        txtError,  // C
 
         // background color
-        bgDefault,
-        bgMuted,
-        bgPrimary,
-        bgSuccess,
-        bgInfo,
-        bgWarning,
-        bgError
+        bgDefault,  // 0 7
+        bgMuted,  // 8 0
+        bgPrimary,  // 7 F
+        bgSuccess,  // 2 F
+        bgInfo,  // 3 F
+        bgWarning,  // E 0
+        bgError  // C F
     }
 }

@@ -24,6 +24,7 @@ namespace Server
         private static readonly Screen[] screens = Screen.AllScreens;
 
         private static Thread pressedKeyListenerT;
+        private static Thread handlePackets;
 
         private static void Main()
         {
@@ -35,7 +36,9 @@ namespace Server
             _ = ConfigManager.IP;
 
             // always listen for any new connections
-            new Thread(() => { PacketManager.ReceivePackets(0, HandlePacket); }).Start();
+            handlePackets = new Thread(() => { PacketManager.ReceivePackets(0, HandlePacket); });
+            handlePackets.Start();
+
             PrintGreeting();
 
             NetworkManager.PrintInterfaceData();
@@ -45,6 +48,7 @@ namespace Server
             pressedKeyListenerT = new Thread(KeyPressedListener);
             pressedKeyListenerT.Start();
 
+            CConsole.WriteLine("[Server] UP\n", MessageType.txtSuccess);
         }
 
         /// <summary>
@@ -157,6 +161,7 @@ namespace Server
 
         /// <summary>
         /// This function executes when the server turned off (ONLY CTRL + C)
+        /// Safely disposes all used resources, and sends shutdown broadcast to all connected clients
         /// </summary>
         private static void Console_CtrlCKeyPressed(object sender, ConsoleCancelEventArgs e)
         {
@@ -177,6 +182,9 @@ namespace Server
                 Packet shutdown_packet = shutdown_request.Shutdown(socketId, InVideoStage(socketId), GetSocketEncryptionType(socketId));
                 PacketManager.SendPacket(shutdown_packet);
             }
+
+            handlePackets.Abort();
+
             Environment.Exit(0);
         }
 

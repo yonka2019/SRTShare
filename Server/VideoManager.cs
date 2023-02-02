@@ -11,6 +11,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using CConsole = SRTShareLib.CColorManager;  // Colored Console
+
 
 namespace Server
 {
@@ -42,6 +44,8 @@ namespace Server
             Thread videoStarter = new Thread(new ParameterizedThreadStart(VideoInit));  // create thread of keep-alive checker
             videoStarter.Start(client.SocketId);
             VideoStage = true;
+
+            CConsole.WriteLine($"[Server] [{client.IPAddress}] Video is being shared\n", MessageType.txtInfo);
         }
 
         /// <summary>
