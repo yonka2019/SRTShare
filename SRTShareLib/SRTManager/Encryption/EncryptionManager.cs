@@ -49,6 +49,13 @@ namespace SRTShareLib.SRTManager.Encryption
                         return Substitution.Encrypt(data, key);
                     }
 
+                case EncryptionType.XOR:
+                    {
+                        byte[] key = XOR.CreateKey(dstIp, dstPort);
+
+                        return XOR.Encrypt(data, key);
+                    }
+
                 default:
                     throw new System.Exception($"'{encryptionType}' This encryption method isn't supported yet");
             }
