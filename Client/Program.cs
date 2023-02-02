@@ -1,4 +1,5 @@
 ﻿using SRTShareLib;
+using SRTShareLib.PcapManager;
 using System;
 using System.IO;
 using System.Net.NetworkInformation;
@@ -14,14 +15,16 @@ namespace Client
         [STAThread]
         private static void Main()
         {
+            CColorManager.WriteLine("\t-- SRT Client  --\n", MessageType.txtWarning);
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;  // to handle libraries missing
 
             _ = ConfigManager.IP;
 
-            PacketManager.PrintInterfaceData();
-            PacketManager.PrintServerData();
+            NetworkManager.PrintInterfaceData();
+            NetworkManager.PrintServerData();
 
             TestConnection();
 

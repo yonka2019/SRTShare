@@ -1,6 +1,8 @@
 ﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.Transport;
 using SRTShareLib;
+using SRTShareLib.PcapManager;
+using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.ProtocolFields.Control;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
@@ -8,7 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-
+using System.Windows.Forms;
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 
 namespace Server
@@ -16,21 +18,54 @@ namespace Server
     internal class Program
     {
         internal const uint SERVER_SOCKET_ID = 123;
-        internal static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
+        public static Dictionary<uint, SRTSocket> SRTSockets = new Dictionary<uint, SRTSocket>();
+
+        public static int SharedScreenIndex { get; private set; }
+        private static readonly Screen[] screens = Screen.AllScreens;
+
+        private static Thread pressedKeyListenerT;
+        private static Thread handlePackets;
 
         private static void Main()
         {
+            CConsole.WriteLine("\t-- SRT Server  --\n", MessageType.txtWarning);
+
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;  // to handle libraries missing
             Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CtrlCKeyPressed);  // to handle server shutdown (ONLY CTRL + C)
 
             _ = ConfigManager.IP;
 
-            new Thread(() => { PacketManager.ReceivePackets(0, HandlePacket); }).Start(); // always listen for any new connections
+            // always listen for any new connections
+            handlePackets = new Thread(() => { PacketManager.ReceivePackets(0, HandlePacket); });
+            handlePackets.Start();
 
-            PacketManager.PrintInterfaceData();
-            PacketManager.PrintServerData();
+            PrintGreeting();
+
+            NetworkManager.PrintInterfaceData();
+            NetworkManager.PrintServerData();
+
+            // server started up - no errors, handle key press (switch shared screen feature)
+            pressedKeyListenerT = new Thread(KeyPressedListener);
+            pressedKeyListenerT.Start();
+
+            CConsole.WriteLine("[Server] UP\n", MessageType.txtSuccess);
         }
 
+        /// <summary>
+        /// Prints greeting to server console
+        /// </summary>
+        private static void PrintGreeting()
+        {
+            // when server is being shutdown with the CTRL+C (break) the server will
+            // have couple of seconds to send a "shutdown" message to the clients to notify them
+            CConsole.WriteLine("[!] To shutdown server use only CTRL + C\n", MessageType.txtError);
+
+            CConsole.WriteLine("[*] You can switch between the screens with the [<-] [->] keys arrow\n", MessageType.txtInfo);
+        }
+
+        /// <summary>
+        /// Handle unhandled exception (especially libraries missing)
+        /// </summary>
         private static void UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Exception ex = (Exception)e.ExceptionObject;
@@ -90,7 +125,7 @@ namespace Server
 
             else if (packet.IsValidARP())  // ARP Packet
             {
-                if (packet.Ethernet.Arp.TargetProtocolIpV4Address.ToString() == PacketManager.LocalIp)  // the arp was for the server
+                if (packet.Ethernet.Arp.TargetProtocolIpV4Address.ToString() == NetworkManager.LocalIp)  // the arp was for the server
                     RequestsHandler.HandleArp(packet);
             }
         }
@@ -99,17 +134,17 @@ namespace Server
         /// If a client lost connection, this function will be called
         /// </summary>
         /// <param name="socket_id">socket id who lost connection</param>
-        internal static void LostConnection(uint socket_id)
+        internal static void Client_LostConnection(uint socket_id)
         {
             CConsole.WriteLine($"[Keep-Alive] {SRTSockets[socket_id].SocketAddress.IPAddress} is dead, disposing resources..\n", MessageType.bgError);
-            Dispose(socket_id);
+            DisposeClient(socket_id);
         }
 
         /// <summary>
         /// On lost connection / shutdown, we need to dispose client resources and information
         /// </summary>
         /// <param name="client_id">client id who need to be cleaned</param>
-        internal static void Dispose(uint client_id)
+        internal static void DisposeClient(uint client_id)
         {
             SRTSockets[client_id].Data.StopVideo();
 
@@ -126,18 +161,86 @@ namespace Server
 
         /// <summary>
         /// This function executes when the server turned off (ONLY CTRL + C)
+        /// Safely disposes all used resources, and sends shutdown broadcast to all connected clients
         /// </summary>
-        static void Console_CtrlCKeyPressed(object sender, ConsoleCancelEventArgs e)
+        private static void Console_CtrlCKeyPressed(object sender, ConsoleCancelEventArgs e)
         {
-            CConsole.WriteLine("[Server] Shutting down...", MessageType.bgError);
+            e.Cancel = true;
 
-            foreach (SRTSocket socket in SRTSockets.Values)  // send to each client shutdown message
+            CConsole.Write("[Server] Shutting down...", MessageType.bgError);
+            CConsole.WriteLine(" (Wait approx. ~5 seconds)", MessageType.txtError);
+            pressedKeyListenerT.Abort();
+
+            foreach (uint socketId in SRTSockets.Keys)  // send to each client shutdown message
             {
-                ShutdownRequest shutdown_request = new ShutdownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), PacketManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
-                Packet shutdown_packet = shutdown_request.Shutdown();
+                SRTSocket socket = SRTSockets[socketId];
+
+                socket.KeepAlive.Disable();
+                socket.Data.StopVideo();
+
+                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
+                Packet shutdown_packet = shutdown_request.Shutdown(socketId, InVideoStage(socketId), GetSocketEncryptionType(socketId));
                 PacketManager.SendPacket(shutdown_packet);
             }
-            Environment.Exit(Environment.ExitCode);
+
+            handlePackets.Abort();
+
+            Environment.Exit(0);
+        }
+
+        /// <summary>
+        /// Listenes the key press, for feature to switch between the screens via the -> <- buttons
+        /// </summary>
+        private static void KeyPressedListener()
+        {
+            while (true)
+            {
+                ConsoleKeyInfo keyInfo = Console.ReadKey();
+
+                if (keyInfo.Key == ConsoleKey.LeftArrow)
+                {
+                    if (SharedScreenIndex > 0)
+                    {
+                        SharedScreenIndex--;
+                        CConsole.WriteLine($"[Server] Screen {SharedScreenIndex + 1} is shared\n", MessageType.txtInfo);
+                    }
+                    else
+                    {
+                        CConsole.WriteLine($"[Server] You can only swith between ({1} - {screens.Length}) screens\n", MessageType.txtWarning);
+                    }
+                }
+                else if (keyInfo.Key == ConsoleKey.RightArrow)
+                {
+                    if (SharedScreenIndex + 1 < screens.Length)
+                    {
+                        SharedScreenIndex++;
+                        CConsole.WriteLine($"[Server] Screen {SharedScreenIndex + 1} is shared\n", MessageType.txtInfo);
+                    }
+                    else
+                    {
+                        CConsole.WriteLine($"[Server] You can only switch between ({1} - {screens.Length}) screens\n", MessageType.txtWarning);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// returns true if the given socket id (client) in the video stage (server sending data)
+        /// </summary>
+        /// <param name="socketId">socket id (client)</param>
+        private static bool InVideoStage(uint socketId)
+        {
+            return SRTSockets[socketId].Data.VideoStage;
+        }
+
+        /// <summary>
+        /// returns the selected encryption type by the client at the handshake part
+        /// </summary>
+        /// <param name="socketId">socket id (client)</param>
+        /// <returns>chosen encryption method</returns>
+        private static EncryptionType GetSocketEncryptionType(uint socketId)
+        {
+            return SRTSockets[socketId].Data.EncryptionMethod;
         }
     }
 }

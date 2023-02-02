@@ -1,5 +1,6 @@
 ﻿using PcapDotNet.Packets;
 using SRTShareLib;
+using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Threading;
@@ -18,7 +19,8 @@ namespace Server
         private int timeoutSeconds;
         private bool connected;
 
-        private static System.Timers.Timer timer;
+        private readonly System.Timers.Timer timer;
+        private Thread kaChecker;
 
         internal delegate void Notify(uint socket_id);
         internal event Notify LostConnection;
@@ -52,8 +54,15 @@ namespace Server
         /// </summary>
         internal void StartCheck()
         {
-            Thread kaChecker = new Thread(new ParameterizedThreadStart(KeepAliveChecker));  // create thread of keep-alive checker
+            kaChecker = new Thread(new ParameterizedThreadStart(KeepAliveChecker));  // create thread of keep-alive checker
             kaChecker.Start(client.SocketId);
+        }
+
+        internal void Disable()
+        {
+            timer.Stop();
+            timer.Dispose();
+            kaChecker.Abort();
         }
 
         /// <summary>
@@ -69,7 +78,7 @@ namespace Server
         /// The function sends keep-alive packets every 3 seconds while the client is connected
         /// </summary>
         /// <param name="dest_socket_id"></param>
-        internal void KeepAliveChecker(object dest_socket_id)
+        private void KeepAliveChecker(object dest_socket_id)
         {
             uint u_dest_socket_id = (uint)dest_socket_id;
             timer.Start();
@@ -77,7 +86,7 @@ namespace Server
             while (connected)
             {
                 KeepAliveRequest keepAlive_request = new KeepAliveRequest
-                                (PacketManager.BuildBaseLayers(PacketManager.MacAddress, client.MacAddress.ToString(), PacketManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
+                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
                 Packet keepAlive_packet = keepAlive_request.Alive(u_dest_socket_id);
                 PacketManager.SendPacket(keepAlive_packet);

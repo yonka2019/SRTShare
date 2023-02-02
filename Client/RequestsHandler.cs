@@ -1,12 +1,14 @@
 ﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.IpV4;
 using SRTShareLib;
+using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.RequestsFactory;
+using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using CConsole = SRTShareLib.CColorManager;
 using Control = SRTShareLib.SRTManager.ProtocolFields.Control;
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
-using CConsole = SRTShareLib.CColorManager;
-using System;
 
 namespace Client
 {
@@ -20,20 +22,20 @@ namespace Client
         {
             if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(MainView.GetAdaptedPeerIp(), MainView.myPort))
             {
-                HandshakeRequest handshake_response = new HandshakeRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+                HandshakeRequest handshake_response = new HandshakeRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
 
                 // client -> server (conclusion)
 
                 IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedPeerIp());
-                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: true, MainView.client_socket_id, handshake_request.SOCKET_ID, cookie: handshake_request.SYN_COOKIE); // ***need to change peer id***
+                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: true, MainView.client_sid, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_FIELD, handshake_request.SYN_COOKIE);
                 PacketManager.SendPacket(handshake_packet);
 
             }
             else
             {
                 // Exit the prgram and send a shutdwon request
-                ShutdownRequest shutdown_response = new ShutdownRequest(PacketManager.BuildBaseLayers(PacketManager.MacAddress, MainView.server_mac, PacketManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
-                Packet shutdown_packet = shutdown_response.Shutdown();
+                ShutdownRequest shutdown_response = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+                Packet shutdown_packet = shutdown_response.Shutdown(MainView.server_sid);
                 PacketManager.SendPacket(shutdown_packet);
 
                 MessageBox.Show("Bad cookie - Stopping", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -49,10 +51,10 @@ namespace Client
         internal static void HandleArp(string server_mac, ushort myPort, uint client_socket_id)
         {
             HandshakeRequest handshake = new HandshakeRequest
-                    (PacketManager.BuildBaseLayers(PacketManager.MacAddress, server_mac, PacketManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
+                    (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
 
             IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedPeerIp());
-            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(MainView.GetAdaptedPeerIp(), myPort), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0);
+            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(MainView.GetAdaptedPeerIp(), myPort), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)MainView.ENCRYPTION);
 
             PacketManager.SendPacket(handshake_packet);
         }
@@ -67,6 +69,8 @@ namespace Client
         /// </summary>
         internal static void HandleShutDown()
         {
+            ServerAliveChecker.Disable();
+
             CConsole.WriteLine("[Shutdown] Server stopped", MessageType.txtError);
             MessageBox.Show("Server have been stopped", "Server Stopped", MessageBoxButtons.OK, MessageBoxIcon.Error);
             Environment.Exit(0);

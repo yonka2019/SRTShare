@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using static System.Net.Mime.MediaTypeNames;
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace Client
@@ -11,43 +9,44 @@ namespace Client
     {
         private static ushort lastDataPosition;
         private static readonly List<byte> allChunks = new List<byte>();
-
-        // check if need to be async
+        private static readonly object _lock = new object();
 
         internal static void ProduceImage(Data.SRTHeader data_request, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
         {
-            if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.FIRST)
+            // in case if chunk had received while other chunk is building (in this method), the new chunk will create new task and
+            // will intervene the proccess, so to avoid multi access tries, lock the global resource (allChunks) until the task will finish
+            lock (_lock)
             {
-                if (lastDataPosition == (ushort)Data.PositionFlags.MIDDLE)
+                if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.FIRST)
                 {
-                    ShowImage(false, imageBoxDisplayIn);
+                    if (lastDataPosition == (ushort)Data.PositionFlags.MIDDLE)  // last lost, image received
+                    {
+                        ShowImage(false, imageBoxDisplayIn);
+                        allChunks.Clear();
+                    }
+                    allChunks.AddRange(data_request.DATA);
+                }
+
+                else if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.LAST)  // full image received (but maybe middle packets get lost)
+                {
+                    allChunks.AddRange(data_request.DATA);
+                    ShowImage(true, imageBoxDisplayIn);
                     allChunks.Clear();
                 }
-                allChunks.AddRange(data_request.DATA);
-            }
+                else
+                {
+                    allChunks.AddRange(data_request.DATA);
+                }
 
-            else if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.LAST)
-            {
-                allChunks.AddRange(data_request.DATA);
-                ShowImage(true, imageBoxDisplayIn);
-                allChunks.Clear();
+                lastDataPosition = data_request.PACKET_POSITION_FLAG;
             }
-
-            else
-            {
-                allChunks.AddRange(data_request.DATA);
-            }
-
-            lastDataPosition = data_request.PACKET_POSITION_FLAG;
         }
 
-        private static void ShowImage(bool allChunksReceived, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
+        private static void ShowImage(bool lastChunkReceived, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
         {
 #if DEBUG
-            if (allChunksReceived)
-                Debug.WriteLine("[IMAGE] SUCCESS: Image fully built\n--------------------\n");
-            else
-                Debug.WriteLine("[IMAGE] ERROR: Chunks missing (SHOWING IMAGE)\n--------------------\n");
+            if (!lastChunkReceived)
+                Debug.WriteLine("[IMAGE] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
 #endif
 
             using (MemoryStream ms = new MemoryStream(allChunks.ToArray()))
@@ -58,7 +57,7 @@ namespace Client
                 }
                 catch
                 {
-                    Debug.WriteLine("[IMAGE] ERROR: Can't build image at all\n--------------------\n");
+                    Debug.WriteLine("[IMAGE] ERROR: Can't build image\n");
                 }
             }
         }

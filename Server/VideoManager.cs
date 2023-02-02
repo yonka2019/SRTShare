@@ -1,5 +1,7 @@
 ﻿using PcapDotNet.Packets;
 using SRTShareLib;
+using SRTShareLib.PcapManager;
+using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;
@@ -7,33 +9,31 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows.Forms;
+using CConsole = SRTShareLib.CColorManager;  // Colored Console
+
 
 namespace Server
 {
     internal class VideoManager
     {
-        private static class Win32Native
-        {
-            public const int DESKTOPVERTRES = 0x75;
-            public const int DESKTOPHORZRES = 0x76;
-
-            [DllImport("gdi32.dll")]
-            public static extern int GetDeviceCaps(IntPtr hDC, int index);
-        }
-
         private readonly SClient client;
         private bool connected;
 
+        public readonly EncryptionType EncryptionMethod;
+        public bool VideoStage { get; private set; }
+
 #if DEBUG
-        private static ulong dataSent = 0;
+        private static ulong dataSent = 0;  // count data sent packets (included chunks)
 #endif
 
-        internal VideoManager(SClient client)
+        internal VideoManager(SClient client, ushort EncryptionMethod)
         {
             this.client = client;
             connected = true;
+
+            this.EncryptionMethod = (EncryptionType)EncryptionMethod;
         }
 
         /// <summary>
@@ -42,8 +42,10 @@ namespace Server
         internal void StartVideo()
         {
             Thread videoStarter = new Thread(new ParameterizedThreadStart(VideoInit));  // create thread of keep-alive checker
-
             videoStarter.Start(client.SocketId);
+            VideoStage = true;
+
+            CConsole.WriteLine($"[Server] [{client.IPAddress}] Video is being shared\n", MessageType.txtInfo);
         }
 
         /// <summary>
@@ -52,15 +54,18 @@ namespace Server
         internal void StopVideo()
         {
             connected = false;
+            VideoStage = false;
         }
 
+        /// <summary>
+        /// looping sending screenshots (video) to client
+        /// </summary>
+        /// <param name="dest_socket_id">socket id, to indentify the client</param>
         private void VideoInit(object dest_socket_id)
         {
             uint u_dest_socket_id = (uint)dest_socket_id;
-            //bool hi = false;
-            //bool hello = false;
-
             int count = 0;
+
             while (connected)
             {
                 Bitmap bmp = TakeScreenShot();
@@ -68,9 +73,9 @@ namespace Server
                 List<byte> stream = mStream.ToArray().ToList();
 
                 DataRequest dataRequest = new DataRequest(
-                                PacketManager.BuildBaseLayers(PacketManager.MacAddress, client.MacAddress.ToString(), PacketManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
+                                OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
-                List<Packet> data_packets = dataRequest.SplitToPackets(stream, time_stamp: 0, u_dest_socket_id, (int)client.MTU);
+                List<Packet> data_packets = dataRequest.SplitToPackets(stream, time_stamp: 0, u_dest_socket_id, (int)client.MTU, (ushort)EncryptionMethod);
 
                 foreach (Packet packet in data_packets)
                 {
@@ -79,33 +84,43 @@ namespace Server
                     Console.Title = $"Data sent {++dataSent}";
 #endif
                 }
-
                 count++;
             }
         }
 
-        private static Bitmap TakeScreenShot()
+        // 'app.manifest' file for auto-scale screenshot - https://stackoverflow.com/questions/47015893/windows-screenshot-with-scaling
+        /// <summary>
+        /// Screenshots current selected screen (supporting scale (125%, 150%..)
+        /// </summary>
+        /// <returns>Bitmap of the screenshot</returns>
+        private Bitmap TakeScreenShot()
         {
             int width, height;
 
-            using (Graphics g = Graphics.FromHwnd(IntPtr.Zero))
-            {
-                IntPtr hDC = g.GetHdc();
-                width = Win32Native.GetDeviceCaps(hDC, Win32Native.DESKTOPHORZRES);
-                height = Win32Native.GetDeviceCaps(hDC, Win32Native.DESKTOPVERTRES);
-                g.ReleaseHdc(hDC);
-            }
+            // get the selected screen
+            Screen selectedScreen = Screen.AllScreens[Program.SharedScreenIndex];
+
+            int x = selectedScreen.Bounds.X;
+            int y = selectedScreen.Bounds.Y;
+
+            width = selectedScreen.Bounds.Width;
+            height = selectedScreen.Bounds.Height;
 
             Bitmap bmp = new Bitmap(width, height);
 
             using (Graphics g = Graphics.FromImage(bmp))
             {
-                g.CopyFromScreen(0, 0, 0, 0, bmp.Size);
+                g.CopyFromScreen(x, y, 0, 0, bmp.Size);
                 return bmp;
             }
         }
 
-        private static MemoryStream GetJpegStream(Bitmap bmp)
+        /// <summary>
+        /// Converts bitmap into jpg to avoid load
+        /// </summary>
+        /// <param name="bmp">bitmap image to convert</param>
+        /// <returns>memory stream which contains the jpg image</returns>
+        private MemoryStream GetJpegStream(Bitmap bmp)
         {
             MemoryStream stream = new MemoryStream();
             Encoder myEncoder = Encoder.Quality;
@@ -113,7 +128,7 @@ namespace Server
             ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
             EncoderParameters myEncoderParameters = new EncoderParameters(1);
 
-            EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, 50L);
+            EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, 50L);  // set qualiy 0 -> 100
             myEncoderParameters.Param[0] = myEncoderParameter;
 
             bmp.Save(stream, jpgEncoder, myEncoderParameters);
@@ -121,7 +136,12 @@ namespace Server
             return stream;
         }
 
-        private static ImageCodecInfo GetEncoder(ImageFormat format)
+        /// <summary>
+        /// gets the image encoder according the image format
+        /// </summary>
+        /// <param name="format">image format to get his encoder</param>
+        /// <returns>codec of the given image format</returns>
+        private ImageCodecInfo GetEncoder(ImageFormat format)
         {
             ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
 

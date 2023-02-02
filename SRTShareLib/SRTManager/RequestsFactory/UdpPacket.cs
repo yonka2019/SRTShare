@@ -10,7 +10,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
          * EthernetLayer - Exist
          * InternetLayer - Exist
          * UDPLayer - Exist
-         * PayloadLayer (SRT Data) - Should be added
+         * PayloadLayer (SRT Packet) - Should be added
          */
 
         public UdpPacket(params ILayer[] layers)
@@ -26,6 +26,15 @@ namespace SRTShareLib.SRTManager.RequestsFactory
         protected ref ILayer GetPayloadLayer()
         {
             return ref workingLayers[workingLayers.Length - 1];
+        }
+
+        /// <summary>
+        /// The function returns the whole layers (in a layers array)
+        /// </summary>
+        /// <returns>Layers array</returns>
+        protected ILayer[] GetLayers()
+        {
+            return workingLayers;
         }
 
         /// <summary>

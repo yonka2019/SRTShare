@@ -1,4 +1,6 @@
 ﻿using PcapDotNet.Packets;
+using SRTShareLib.PcapManager;
+using SRTShareLib.SRTManager.Encryption;
 using System;
 using System.Collections.Generic;
 using SRTData = SRTShareLib.SRTManager.ProtocolFields.Data;
@@ -10,8 +12,10 @@ namespace SRTShareLib.SRTManager.RequestsFactory
     {
         public DataRequest(params ILayer[] layers) : base(layers) { }
 
-        public List<Packet> SplitToPackets(List<byte> stream, uint time_stamp, uint dest_socket_id, int MTU)
+        public List<Packet> SplitToPackets(List<byte> stream, uint time_stamp, uint dest_socket_id, int MTU, ushort EncryptionMethod)
         {
+            EncryptionType encryptionMethod = (EncryptionType)EncryptionMethod;
+
             List<Packet> packets = new List<Packet>();
             List<byte> packet_data;
             SRTData.SRTHeader srt_packet_data;
@@ -33,8 +37,12 @@ namespace SRTShareLib.SRTManager.RequestsFactory
                     packetPositionFlag = SRTData.PositionFlags.MIDDLE;
 
                 // Create the SRT packet header and payload
-                srt_packet_data = new SRTData.SRTHeader(sequence_number: 0, packetPositionFlag, SRTData.EncryptionFlags.NOT_ENCRYPTED, is_retransmitted: false, message_number: messageNumber, time_stamp, dest_socket_id, packet_data);
-                GetPayloadLayer() = PacketManager.BuildPLayer(srt_packet_data.GetByted());
+                srt_packet_data = new SRTData.SRTHeader(sequence_number: 0, packetPositionFlag, 
+                    encryptionMethod == EncryptionType.None ? SRTData.EncryptionFlags.NOT_ENCRYPTED : SRTData.EncryptionFlags.ENCRYPTED,
+                    is_retransmitted: false, message_number: messageNumber, time_stamp, dest_socket_id, packet_data);
+
+
+                GetPayloadLayer() = OSIManager.BuildPLayer(srt_packet_data.GetByted(), true, encryptionMethod, GetLayers());
 
                 packets.Add(BuildPacket());  // Add the packet to the list of packets
 

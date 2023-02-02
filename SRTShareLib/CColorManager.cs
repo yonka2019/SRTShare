@@ -8,6 +8,8 @@ namespace SRTShareLib
         private static readonly ConsoleColor defaultBackground;
         private static readonly ConsoleColor defaultForeground;  // foreground <=> text
 
+        private static readonly object _lock = new object();
+
         private static Dictionary<MessageType, CColor> colorTypes;
 
         static CColorManager()
@@ -17,58 +19,71 @@ namespace SRTShareLib
             SetValues();
         }
 
+        // support only '\n' in the END of the string "lala\n" - good ;; "la\nlala" - bad
         public static void Write(string str, MessageType mType)
         {
-            Console.BackgroundColor = colorTypes[mType].Background;
-            Console.ForegroundColor = colorTypes[mType].Foreground;
-
-            if (str.EndsWith("\n"))  // given string ends with new line char
+            lock (_lock)
             {
-                int newLines = CountNewLines(str);
+                Console.BackgroundColor = colorTypes[mType].Background;
+                Console.ForegroundColor = colorTypes[mType].Foreground;
 
-                str = str.Replace("\n", "");  // remove them
-                Console.Write(str);  // print without them
-                Console.ResetColor();  // remove colors
-
-                for (int i = 0; i < newLines; i++)
+                if (str.EndsWith("\n"))  // given string ends with new line char
                 {
-                    Console.WriteLine();  // print each of them (\n)
+                    int newLines = CountNewLines(str);
+
+                    str = str.Replace("\n", "");  // remove them
+                    Console.Write(str);  // print without them
+                    Console.ResetColor();  // remove colors
+
+                    for (int i = 0; i < newLines; i++)
+                    {
+                        Console.WriteLine();  // print each of them (\n)
+                    }
                 }
-            }
-            else
-            {
-                Console.Write(str);
-                Console.ResetColor();
+                else
+                {
+                    Console.Write(str);
+                    Console.ResetColor();
+                }
             }
         }
 
+        // support only '\n' in the END of the string "lala\n" - good ;; "la\nlala" - bad
         public static void WriteLine(string str, MessageType mType)
         {
-            Console.BackgroundColor = colorTypes[mType].Background;
-            Console.ForegroundColor = colorTypes[mType].Foreground;
-
-            if (str.EndsWith("\n"))  // given string ends with new line char
+            lock (_lock)
             {
-                int newLines = CountNewLines(str);
+                Console.BackgroundColor = colorTypes[mType].Background;
+                Console.ForegroundColor = colorTypes[mType].Foreground;
 
-                str = str.Replace("\n", "");  // remove them
-                Console.Write(str);  // print without them
-                Console.ResetColor();  // remove colors
-
-                for (int i = 0; i < newLines; i++)
+                if (str.EndsWith("\n"))  // given string ends with new line char
                 {
-                    Console.WriteLine();  // print each of them (\n)
-                }
-            }
-            else
-            {
-                Console.Write(str);
-                Console.ResetColor();
-            }
+                    int newLines = CountNewLines(str);
 
-            Console.WriteLine();  // '\n' because method is WriteLine
+                    str = str.Replace("\n", "");  // remove them
+                    Console.Write(str);  // print without them
+                    Console.ResetColor();  // remove colors
+
+                    for (int i = 0; i < newLines; i++)
+                    {
+                        Console.WriteLine();  // print each of them (\n)
+                    }
+                }
+                else
+                {
+                    Console.Write(str);
+                    Console.ResetColor();
+                }
+
+                Console.WriteLine();  // '\n' because method is WriteLine
+            }
         }
 
+        /// <summary>
+        /// Counts the \n in the given string to remove them later, and restore them with WriteLINE function
+        /// </summary>
+        /// <param name="str">String to search in</param>
+        /// <returns>number of \n in the given string</returns>
         private static int CountNewLines(string str)
         {
             int count = 0;
@@ -87,7 +102,6 @@ namespace SRTShareLib
             {
                 { MessageType.txtDefault, new CColor(defaultBackground, defaultForeground) },
                 { MessageType.txtMuted, new CColor(defaultBackground, ConsoleColor.DarkGray) },
-                { MessageType.txtPrimary, new CColor(defaultBackground, ConsoleColor.Gray) },
                 { MessageType.txtWarning, new CColor(defaultBackground, ConsoleColor.Yellow) },
                 { MessageType.txtError, new CColor(defaultBackground, ConsoleColor.Red) },
                 { MessageType.txtSuccess, new CColor(defaultBackground, ConsoleColor.Green) },
@@ -118,21 +132,20 @@ namespace SRTShareLib
     public enum MessageType
     {
         // foreground (text) color
-        txtDefault,
-        txtMuted,
-        txtPrimary,
-        txtSuccess,
-        txtInfo,
-        txtWarning,
-        txtError,
+        txtDefault,  // 7
+        txtMuted,  // 8
+        txtSuccess,  // A
+        txtInfo,  // 3
+        txtWarning,  // E
+        txtError,  // C
 
         // background color
-        bgDefault,
-        bgMuted,
-        bgPrimary,
-        bgSuccess,
-        bgInfo,
-        bgWarning,
-        bgError
+        bgDefault,  // 0 7
+        bgMuted,  // 8 0
+        bgPrimary,  // 7 F
+        bgSuccess,  // 2 F
+        bgInfo,  // 3 F
+        bgWarning,  // E 0
+        bgError  // C F
     }
 }

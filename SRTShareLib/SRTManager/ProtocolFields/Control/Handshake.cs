@@ -1,5 +1,6 @@
 ﻿using PcapDotNet.Core.Extensions;
 using PcapDotNet.Packets.IpV4;
+using SRTShareLib.PcapManager;
 using System;
 
 namespace SRTShareLib.SRTManager.ProtocolFields.Control
@@ -13,7 +14,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             INTIAL_PSN = intial_psn; byteFields.Add(BitConverter.GetBytes(INTIAL_PSN));
 
             // (.Mtu - 100; explanation) To avoid errors with sending, because this field used to set fixed size of splitted data packet, while the real mtu that the interface provides refers the whole size of the packet which get sent, and with the whole srt packet and all layers in will much more
-            MTU = (uint)PacketManager.Device.GetNetworkInterface().GetIPProperties().GetIPv4Properties().Mtu - 100; byteFields.Add(BitConverter.GetBytes(MTU));
+            MTU = (uint)NetworkManager.Device.GetNetworkInterface().GetIPProperties().GetIPv4Properties().Mtu - 100; byteFields.Add(BitConverter.GetBytes(MTU));
             byteFields.Add(BitConverter.GetBytes(MFW));
             TYPE = type; byteFields.Add(BitConverter.GetBytes(TYPE));
             SOCKET_ID = source_socket_id; byteFields.Add(BitConverter.GetBytes(SOCKET_ID));
@@ -34,8 +35,8 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             TYPE = BitConverter.ToUInt32(data, 31);  // [31 32 33 34] (4 bytes)
             SOCKET_ID = BitConverter.ToUInt32(data, 35);  // [35 36 37 38] (4 bytes)
             SYN_COOKIE = BitConverter.ToUInt32(data, 39);  // [39 40 41 42] (4 bytes)
-            PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 43)); // [43 44 45 46]
-            PEER_IP = new IpV4Address(MethodExt.ReverseIp(PEER_IP.ToString()));
+            PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 43));  // [43 44 45 46]
+            PEER_IP = new IpV4Address(MethodExt.ReverseIp(PEER_IP.ToString())); // Reverse the ip because the little/big endian
         }
 
 
@@ -82,7 +83,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// number of sent packets for which an ACK control packet has not yet
         /// been received).
         /// </summary>
-        public uint MFW => 8192; // Maximum Flow Windows Size
+        public uint MFW => 8192;  // Maximum Flow Windows Size
 
         /// <summary>
         /// 32 bits (4 bytes). This field indicates the handshake packet
@@ -110,7 +111,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// </summary>
         public IpV4Address PEER_IP { get; set; }
 
-        public enum Extension // Extension Field
+        public enum Extension  // Extension Field
         {
             HSREQ = 0x00000001,
             KMREQ = 0x00000002,
@@ -126,14 +127,6 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             INDUCTION = 0x00000001
         }
 
-        public enum Encryption // Encryption Field
-        {
-            None = 0,
-            AES128 = 2,
-            AES192 = 3,
-            AES256 = 4
-        }
-
         public override string ToString()
         {
             string handshake = "";
@@ -142,7 +135,8 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             handshake += "Dest SId: " + DEST_SOCKET_ID + "\n";
             handshake += "Cookie: " + SYN_COOKIE + "\n";
             handshake += "Peer ip: " + PEER_IP.ToString() + "\n";
-            handshake += "Handshake type: " + TYPE.ToString("X");
+            handshake += "Handshake type: " + TYPE.ToString("X") + "\n";
+            handshake += "Encryption: " + ((Encryption.EncryptionType)ENCRYPTION_FIELD).ToString();
 
             return handshake;
         }

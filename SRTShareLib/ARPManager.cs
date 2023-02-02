@@ -3,6 +3,7 @@ using PcapDotNet.Packets;
 using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
+using SRTShareLib.PcapManager;
 using System;
 
 namespace SRTShareLib
@@ -17,18 +18,18 @@ namespace SRTShareLib
         /// <returns>Mac request packet</returns>
         public static Packet Request(string to_ip, out bool sameSubnet)
         {
-            sameSubnet = new IpV4Address(to_ip).IsInSubnet(PacketManager.Mask, PacketManager.DefaultGateway);
+            sameSubnet = new IpV4Address(to_ip).IsInSubnet(NetworkManager.Mask, NetworkManager.DefaultGateway);
             // operate by if it not in the same subnet (get gateway mac, send to gatway.. etc..)
 
             if (!sameSubnet)
-                to_ip = PacketManager.DefaultGateway;  // not in the same gateway -> get getway mac (via arp) and send the packet to him.
+                to_ip = NetworkManager.DefaultGateway;  // not in the same gateway -> get getway mac (via arp) and send the packet to him.
 
 
             return PacketBuilder.Build(
             DateTime.Now,
             new EthernetLayer
             {
-                Source = new MacAddress(PacketManager.MacAddress),
+                Source = new MacAddress(NetworkManager.MacAddress),
                 Destination = new MacAddress("FF:FF:FF:FF:FF:FF"), // send to all
                 EtherType = EthernetType.Arp
             },
@@ -36,8 +37,8 @@ namespace SRTShareLib
             new ArpLayer
             {
                 ProtocolType = EthernetType.IpV4,  // IMPORTANT! NOT EthernetType.Arp HERE!!
-                SenderHardwareAddress = new MacAddress(PacketManager.MacAddress).ToBytes().AsReadOnly(),
-                SenderProtocolAddress = new IpV4Address(PacketManager.LocalIp).ToBytes().AsReadOnly(),
+                SenderHardwareAddress = new MacAddress(NetworkManager.MacAddress).ToBytes().AsReadOnly(),
+                SenderProtocolAddress = new IpV4Address(NetworkManager.LocalIp).ToBytes().AsReadOnly(),
                 TargetHardwareAddress = new MacAddress("FF:FF:FF:FF:FF:FF").ToBytes().AsReadOnly(), // send to all
                 TargetProtocolAddress = new IpV4Address(to_ip).ToBytes().AsReadOnly(), // ip to get its related mac
                 Operation = ArpOperation.Request,
@@ -57,7 +58,7 @@ namespace SRTShareLib
             DateTime.Now,
             new EthernetLayer
             {
-                Source = new MacAddress(PacketManager.MacAddress),
+                Source = new MacAddress(NetworkManager.MacAddress),
                 Destination = new MacAddress(to_mac),
                 EtherType = EthernetType.Arp
             },
@@ -65,7 +66,7 @@ namespace SRTShareLib
             new ArpLayer
             {
                 ProtocolType = EthernetType.IpV4,  // IMPORTANT! NOT EthernetType.Arp HERE!!
-                SenderHardwareAddress = new MacAddress(PacketManager.MacAddress).ToBytes().AsReadOnly(),
+                SenderHardwareAddress = new MacAddress(NetworkManager.MacAddress).ToBytes().AsReadOnly(),
                 SenderProtocolAddress = new IpV4Address(ConfigManager.IP).ToBytes().AsReadOnly(),
                 TargetHardwareAddress = new MacAddress(to_mac).ToBytes().AsReadOnly(), // mac to send to
                 TargetProtocolAddress = new IpV4Address(to_ip).ToBytes().AsReadOnly(), // ip to send to

@@ -16,9 +16,10 @@ namespace SRTShareLib
         public static uint GenerateCookie(string ip, ushort port)
         {
             string textToEncrypt = "";
-            textToEncrypt += ip + "&"; // add ip
-            textToEncrypt += port.ToString(); // add port
-            return Md5Encrypt(textToEncrypt); // return the encrypted cookie
+            textToEncrypt += ip + "_";  // add ip
+            textToEncrypt += port.ToString();  // add port
+
+            return Md5Encrypt(textToEncrypt);  // return the encrypted cookie
         }
 
         /// <summary>
@@ -30,10 +31,10 @@ namespace SRTShareLib
         public static uint GenerateSocketId(string ip, ushort port)
         {
             string textToEncrypt = "";
-            textToEncrypt += ip + "&"; // add ip
-            textToEncrypt += port.ToString() + "&"; // add port
+            textToEncrypt += ip + "&";  // add ip
+            textToEncrypt += port.ToString() + "&";  // add port
 
-            return Md5Encrypt(textToEncrypt); // return the encrypted cookie
+            return Md5Encrypt(textToEncrypt);  // return the encrypted cookie
         }
 
         /// <summary>
