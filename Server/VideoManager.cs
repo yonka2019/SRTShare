@@ -28,8 +28,12 @@ namespace Server
         private static ulong dataSent = 0;  // count data sent packets (included chunks)
 #endif
 
-        internal VideoManager(SClient client, ushort EncryptionMethod)
+        private static uint current_sequence_number;
+
+        internal VideoManager(SClient client, ushort EncryptionMethod, uint intial_sequence_number)
         {
+            current_sequence_number = intial_sequence_number;  // start from init
+
             this.client = client;
             connected = true;
 
@@ -75,7 +79,7 @@ namespace Server
                 DataRequest dataRequest = new DataRequest(
                                 OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
-                List<Packet> data_packets = dataRequest.SplitToPackets(stream, time_stamp: 0, u_dest_socket_id, (int)client.MTU, (ushort)EncryptionMethod);
+                List<Packet> data_packets = dataRequest.SplitToPackets(stream, ref current_sequence_number, time_stamp: 0, u_dest_socket_id, (int)client.MTU, (ushort)EncryptionMethod);
 
                 foreach (Packet packet in data_packets)
                 {

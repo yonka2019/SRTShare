@@ -72,7 +72,7 @@ namespace Server
 
             SClient currentClient = new SClient(handshake_request.PEER_IP, datagram.SourcePort, packet.Ethernet.Source, handshake_request.SOCKET_ID, handshake_request.MTU);
             KeepAliveManager kaManager = new KeepAliveManager(currentClient);
-            VideoManager dataManager = new VideoManager(currentClient, handshake_request.ENCRYPTION_FIELD);
+            VideoManager dataManager = new VideoManager(currentClient, handshake_request.ENCRYPTION_FIELD, handshake_request.INTIAL_PSN);
 
             SRTSocket newSRTSocket = new SRTSocket(currentClient,
                 kaManager, dataManager);

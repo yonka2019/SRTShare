@@ -27,7 +27,7 @@ namespace Client
                 // client -> server (conclusion)
 
                 IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedPeerIp());
-                Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: true, MainView.client_sid, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_FIELD, handshake_request.SYN_COOKIE);
+                Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.client_sid, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_FIELD, handshake_request.SYN_COOKIE);
                 PacketManager.SendPacket(handshake_packet);
 
             }
@@ -43,7 +43,7 @@ namespace Client
         }
 
         /// <summary>
-        /// The function handles what happens after getting an arp message from the server
+        /// The function handles what happens after getting an arp message from the server (BEGGINING SRT CONNECTION - INDUCTION 1)
         /// </summary>
         /// <param name="server_mac">Server's mac</param>
         /// <param name="myPort">Client's port</param>
@@ -54,7 +54,7 @@ namespace Client
                     (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
 
             IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedPeerIp());
-            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(MainView.GetAdaptedPeerIp(), myPort), init_psn: 0, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)MainView.ENCRYPTION);
+            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(MainView.GetAdaptedPeerIp(), myPort), init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)MainView.ENCRYPTION);
 
             PacketManager.SendPacket(handshake_packet);
         }

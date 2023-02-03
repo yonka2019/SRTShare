@@ -34,13 +34,19 @@ namespace Client
         internal static string serverMac = null;
         internal static bool externalConnection;
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.Substitution;  // SET ENCRYPTION HERE
         private static Dictionary<EncryptionType, Func<string, ushort, (byte[], byte[])>> EncCredFunc;  // Functions which is responsible for getting the key +/ iv 
 
         private static Thread handlePackets, handleKeepAlive;
 #if DEBUG
         private static ulong dataReceived = 0;  // count data packets received (included chunks)
 #endif
+
+        //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
+
+        internal const EncryptionType ENCRYPTION = EncryptionType.Substitution;  // The whole encryption of the conversation (from data stage)
+        internal const int INITIAL_PSN = 0;  // The first sequence number of the conversation
+
+        //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
         public MainView()
         {
@@ -77,7 +83,7 @@ namespace Client
         /// </summary>
         private void ResponseCheck()
         {
-            int duration = 5;  // seconds to wait
+            int duration = 5;  // seconds to wait for SRT server response
 
             // Create a timer that will trigger the countdown
             System.Timers.Timer timer = new System.Timers.Timer(1000);

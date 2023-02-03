@@ -12,7 +12,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
     {
         public DataRequest(params ILayer[] layers) : base(layers) { }
 
-        public List<Packet> SplitToPackets(List<byte> stream, uint time_stamp, uint dest_socket_id, int MTU, ushort EncryptionMethod)
+        public List<Packet> SplitToPackets(List<byte> stream, ref uint sequence_number, uint time_stamp, uint dest_socket_id, int MTU, ushort EncryptionMethod)
         {
             EncryptionType encryptionMethod = (EncryptionType)EncryptionMethod;
 
@@ -37,10 +37,9 @@ namespace SRTShareLib.SRTManager.RequestsFactory
                     packetPositionFlag = SRTData.PositionFlags.MIDDLE;
 
                 // Create the SRT packet header and payload
-                srt_packet_data = new SRTData.SRTHeader(sequence_number: 0, packetPositionFlag, 
+                srt_packet_data = new SRTData.SRTHeader(sequence_number: sequence_number, packetPositionFlag, 
                     encryptionMethod == EncryptionType.None ? SRTData.EncryptionFlags.NOT_ENCRYPTED : SRTData.EncryptionFlags.ENCRYPTED,
                     is_retransmitted: false, message_number: messageNumber, time_stamp, dest_socket_id, packet_data);
-
 
                 GetPayloadLayer() = OSIManager.BuildPLayer(srt_packet_data.GetByted(), true, encryptionMethod, GetLayers());
 
@@ -48,6 +47,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
 
                 i += MTU;  // Move the index to the next packet
                 messageNumber++;  // Increment the message number
+                sequence_number += (uint)packet_data.Count;  // increase seq number
             }
 
             return packets;
