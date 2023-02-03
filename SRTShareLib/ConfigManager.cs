@@ -1,7 +1,9 @@
 ﻿using Newtonsoft.Json;
 using SRTShareLib.PcapManager;
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 using CConsole = SRTShareLib.CColorManager;
@@ -19,9 +21,12 @@ namespace SRTShareLib
         public static ushort PORT { get; private set; }
 
         private static readonly string configDirectory = null;
+        private static readonly App calledFrom;
 
         static ConfigManager()
         {
+            calledFrom = CalledFrom();
+
             while (configDirectory == null)
             {
                 // Read the JSON file into a string
@@ -70,7 +75,7 @@ namespace SRTShareLib
         {
             ip = "";
             Regex ipRegex = new Regex(@"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$");
-            bool ipGood = false;
+            bool ipAddress = false;
 
             port = "";
             Regex portRegex = new Regex(@"^\d{1,6}$");
@@ -83,11 +88,15 @@ namespace SRTShareLib
             Console.WriteLine($"# --- Creating config ({CONFIG_NAME}) --- #\n");
 
             // get IP
-            while (!ipGood)
+            while (!ipAddress)
             {
-                Console.WriteLine("* If you are server-side, put here your own LOCAL IP (LAN) even if you are using external connection\n[OR] you can input \"my\" to auto-set your local ip.\n");
-                Console.WriteLine("* If you are client-side, If your server in the same subnet with the client\n" +
-                    "put here the local ip of the server (LAN), either, put the public one (WAN).");
+                if (calledFrom == App.Server)
+                    Console.WriteLine("* Put here your own LOCAL IP (LAN) even if you are using external connection\n[OR] you can input \"my\" to auto-set your local ip.\n");
+
+                else if (calledFrom == App.Client)
+                    Console.WriteLine("* If your server in the same subnet with the client\n" +
+                    "put here the local ip of the server (LAN), either, put the public one (WAN).\n" +
+                    "In addition, you can also put here a hostname (DNS Supported)");
 
                 Console.Write(">> Server IP: ");
                 ip = Console.ReadLine();
@@ -98,23 +107,23 @@ namespace SRTShareLib
                 }
 
                 Match ipMatch = ipRegex.Match(ip);  // 1st check [num.num.num.num]
-                ipGood = ipMatch.Success;
+                ipAddress = ipMatch.Success;
 
-                if (ipGood)
+                if (ipAddress)
                 {  // 2nd check [0-255.0-255.0-255.0-255]
                     for (int i = 1; i <= 4; i++)
                     {
                         if (int.Parse(ipMatch.Groups[i].Value) < 0 || int.Parse(ipMatch.Groups[i].Value) > 255)  // check if each block is between 0-255
                         {
-                            ipGood = false;
+                            ipAddress = false;
                             break;
                         }
                     }
                 }
 
-                if (!ipGood)
+                if (!ipAddress)  // maybe it's hostname, trying to send DNS request to get the IP
                 {
-                    CConsole.WriteLine("Bad IP\n", MessageType.txtError);
+                    // CHECK DNS AND GET REAL IP AND SET IT
                 }
             }
 
@@ -123,7 +132,8 @@ namespace SRTShareLib
             // get Port
             while (!portGood)
             {
-                Console.WriteLine("* If you are server-side, put here any unused port.");
+                if (calledFrom == App.Server)
+                    Console.WriteLine("* Put here any unused port.");
 
                 Console.Write(">> Server Port: ");
                 port = Console.ReadLine();  // add regex check
@@ -163,7 +173,19 @@ namespace SRTShareLib
             string upDirName = upDir.FullName;
             return Directory.GetFiles(upDirName, settingsFileName).Length != 1 ? UpDirTo(upDirName, settingsFileName) : upDirName;
         }
+
+        private static App CalledFrom()
+        {
+            StackFrame[] frames = new StackTrace().GetFrames();
+            MethodBase methodBase = frames[frames.Length - 1].GetMethod();  // get first stack frame (could be only client/server)
+
+            string calledFrom_ProjectName = methodBase.ReflectedType.Namespace;
+            App app = (App)Enum.Parse(typeof(App), calledFrom_ProjectName, true);
+
+            return app;
+        }
     }
+
     public enum App
     {
         Client,
