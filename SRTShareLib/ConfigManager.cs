@@ -71,9 +71,9 @@ namespace SRTShareLib
             File.WriteAllText(Directory.GetCurrentDirectory() + "\\" + CONFIG_NAME, json);
         }
 
-        private static void GetConfigData(out string ip, out string port)
+        private static void GetConfigData(out string IP, out string port)
         {
-            ip = "";
+            IP = "";
             Regex ipRegex = new Regex(@"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$");
             bool ipAddress = false;
 
@@ -91,7 +91,7 @@ namespace SRTShareLib
             while (!ipAddress)
             {
                 if (calledFrom == App.Server)
-                    Console.WriteLine("* Put here your own LOCAL IP (LAN) even if you are using external connection\n[OR] you can input \"my\" to auto-set your local ip.\n");
+                    Console.WriteLine("* Put here your own LOCAL IP (LAN). Even if you are using external connection\n[OR] you can input \"my\" to auto-set your local ip.\n");
 
                 else if (calledFrom == App.Client)
                     Console.WriteLine("* If your server in the same subnet with the client\n" +
@@ -99,14 +99,14 @@ namespace SRTShareLib
                     "In addition, you can also put here a hostname (DNS Supported)");
 
                 Console.Write(">> Server IP: ");
-                ip = Console.ReadLine();
+                IP = Console.ReadLine();
 
-                if (ip.ToLower() == "my")
+                if (IP.ToLower() == "my")
                 {
-                    ip = NetworkManager.LocalIp;  // auto set local ip
+                    IP = NetworkManager.LocalIp;  // auto set local ip
                 }
 
-                Match ipMatch = ipRegex.Match(ip);  // 1st check [num.num.num.num]
+                Match ipMatch = ipRegex.Match(IP);  // 1st check [num.num.num.num]
                 ipAddress = ipMatch.Success;
 
                 if (ipAddress)
@@ -123,7 +123,24 @@ namespace SRTShareLib
 
                 if (!ipAddress)  // maybe it's hostname, trying to send DNS request to get the IP
                 {
-                    // TODO: CHECK DNS AND GET REAL IP AND SET IT
+                    CConsole.Write("[DNS Request] ", MessageType.txtWarning);
+                    CConsole.WriteLine("Please wait..\n", MessageType.txtMuted);
+
+                    string hostName = IP;
+                    IP = NetworkManager.DnsRequest(hostName);
+
+                    if (IP == null)  // can't find IP
+                        // an issue could be occured because a wrong hostname, or some issues with the DNS request.. preferably to set IP address
+                        CConsole.WriteLine($"Can't get back DNS reply for the hostname: '{hostName}' (maybe wrong hostname)\n", MessageType.txtError);
+
+                    else  // IP found
+                    {
+                        CConsole.WriteLine("[DNS Reply]", MessageType.txtWarning);
+                        Console.WriteLine($"Hostname: {hostName}\n" +
+                                          $"IP Address: {IP}");
+
+                        ipAddress = true;  // found
+                    }
                 }
             }
 
