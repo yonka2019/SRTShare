@@ -163,5 +163,24 @@ namespace SRTShareLib.PcapManager
             // Take the selected adapter
             return allDevices[selectDeviceIndex - 1];
         }
+        
+        /// <summary>
+        /// Send DNS request to a hostname in order to found his IP address
+        /// </summary>
+        /// <param name="hostName">Hostname to get his IP via DNS request</param>
+        /// <returns>The IP of the hostname or NULL if this hostname doesn't exist or error occured</returns>
+        public static string DnsRequest(string hostName)
+        {
+            try
+            {
+                IPHostEntry hostInfo = Dns.GetHostEntry(hostName);
+                IPAddress[] address = hostInfo.AddressList;
+                return address[0].ToString();
+            }
+            catch (SocketException)
+            {
+                return null;
+            }
+        }
     }
 }

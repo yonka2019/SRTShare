@@ -11,8 +11,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
-using CConsole = SRTShareLib.CColorManager;  // Colored Console
 
+using CConsole = SRTShareLib.CColorManager;  // Colored Console
 
 namespace Server
 {
