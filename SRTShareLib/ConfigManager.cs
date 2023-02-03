@@ -123,7 +123,7 @@ namespace SRTShareLib
 
                 if (!ipAddress)  // maybe it's hostname, trying to send DNS request to get the IP
                 {
-                    // CHECK DNS AND GET REAL IP AND SET IT
+                    // TODO: CHECK DNS AND GET REAL IP AND SET IT
                 }
             }
 
