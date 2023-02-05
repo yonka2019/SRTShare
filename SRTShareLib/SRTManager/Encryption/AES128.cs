@@ -75,13 +75,13 @@ namespace SRTShareLib.SRTManager.Encryption
         /// According the encryption policy, the IV generates according the 'CLIENT_SOCKET_ID' field which is encrypted into hashed size 16 byte (128 bit) via MD5
         /// </summary>
         /// <returns>ready hashed key to be used for encryption or decryption</returns>
-        public static (byte[], byte[]) CreateKey_IV(string ip, ushort port)
+        public static (byte[], byte[]) CreateKey_IV(string ip)
         {
             byte[] key;
             byte[] IV;
 
             string socketId = ProtocolManager.GenerateSocketId(ip).ToString();
-            string keyToHash = $"{ip}:{port}";
+            string keyToHash = $"{ip}&key";
 
             using (MD5 md5 = MD5.Create())
             {

@@ -27,30 +27,28 @@ namespace SRTShareLib.SRTManager.Encryption
         public static byte[] Encrypt(EncryptionType encryptionType, byte[] data, ILayer[] layers)
         {
             IpV4Layer ipLayer = (IpV4Layer)layers[1];
-            UdpLayer udpLayer = (UdpLayer)layers[2];
 
             string dstIp = ipLayer.Destination.ToString();
-            ushort dstPort = ushort.Parse(udpLayer.DestinationPort.ToString());
 
             switch (encryptionType)
             {
                 case EncryptionType.AES128:
                     {
-                        (byte[] key, byte[] IV) = AES128.CreateKey_IV(dstIp, dstPort);
+                        (byte[] key, byte[] IV) = AES128.CreateKey_IV(dstIp);
 
                         return AES128.Encrypt(data, key, IV);
                     }
 
                 case EncryptionType.Substitution:
                     {
-                        (byte[] key, _) = Substitution.CreateKey(dstIp, dstPort);
+                        (byte[] key, _) = Substitution.CreateKey(dstIp);
 
                         return Substitution.Encrypt(data, key);
                     }
 
                 case EncryptionType.XOR:
                     {
-                        (byte[] key, _) = XOR.CreateKey(dstIp, dstPort);
+                        (byte[] key, _) = XOR.CreateKey(dstIp);
 
                         return XOR.Encrypt(data, key);
                     }

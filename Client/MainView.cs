@@ -34,7 +34,7 @@ namespace Client
         internal static string serverMac = null;
         internal static bool externalConnection;
 
-        private static Dictionary<EncryptionType, Func<string, ushort, (byte[], byte[])>> EncCredFunc;  // Functions which is responsible for getting the key +/ iv 
+        private static Dictionary<EncryptionType, Func<string, (byte[], byte[])>> EncCredFunc;  // Functions which is responsible for getting the key +/ iv 
 
         private static Thread handlePackets, handleKeepAlive;
 #if DEBUG
@@ -43,7 +43,7 @@ namespace Client
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.None;  // The whole encryption of the conversation (from data stage)
+        internal const EncryptionType ENCRYPTION = EncryptionType.Substitution;  // The whole encryption of the conversation (from data stage)
         internal const int INITIAL_PSN = 0;  // The first sequence number of the conversation
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
@@ -71,7 +71,7 @@ namespace Client
             if (!sameSubnet)
                 CConsole.WriteLine("[Client] External server address\n", MessageType.txtWarning);
 
-            ResponseCheck();
+            InductionCheck();
 
             ServerAliveChecker.LostConnection += Server_LostConnection;  // subscribe the event to avoid unexpectable server shutdown
 
@@ -81,7 +81,7 @@ namespace Client
         /// <summary>
         /// Check if there is ARP response from the server (if there is response, server mac should be changed, otherwise, if the mac null, it's a sign that the server havn't responded
         /// </summary>
-        private void ResponseCheck()
+        private void InductionCheck()
         {
             int duration = 5;  // seconds to wait for SRT server response
 
@@ -192,9 +192,8 @@ namespace Client
                     throw new Exception($"'{ENCRYPTION}' This encryption method isn't supported yet");
 
                 string ip = packet.Ethernet.IpV4.Destination.ToString();
-                ushort port = datagram.DestinationPort;
 
-                (byte[] key, byte[] IV) = EncCredFunc[ENCRYPTION](ip, port);
+                (byte[] key, byte[] IV) = EncCredFunc[ENCRYPTION](ip);
 
                 payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, key, IV);
             }
@@ -274,7 +273,7 @@ namespace Client
         /// </summary>
         public static void RegisterEncKeysFunctions()
         {
-            EncCredFunc = new Dictionary<EncryptionType, Func<string, ushort, (byte[], byte[])>>
+            EncCredFunc = new Dictionary<EncryptionType, Func<string, (byte[], byte[])>>
             {
                 { EncryptionType.AES128, AES128.CreateKey_IV },
                 { EncryptionType.Substitution, Substitution.CreateKey },

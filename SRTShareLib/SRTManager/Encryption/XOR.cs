@@ -34,11 +34,9 @@ namespace SRTShareLib.SRTManager.Encryption
             return output;
         }
 
-        public static (byte[], byte[]) CreateKey(string ip, ushort port)
+        public static (byte[], byte[]) CreateKey(string ip)
         {
-            string combinedString = string.Join(ip, port.ToString());
-
-            return (Encoding.ASCII.GetBytes(combinedString), null);  // null - is the IV (not in using)
+            return (Encoding.ASCII.GetBytes(ip), null);  // null - is the IV (not in using)
         }
     }
 }

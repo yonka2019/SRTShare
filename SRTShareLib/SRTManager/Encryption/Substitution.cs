@@ -60,11 +60,11 @@ namespace SRTShareLib.SRTManager.Encryption
             return decrypted;
         }
 
-        public static (byte[], byte[]) CreateKey(string ip, ushort port)
+        public static (byte[], byte[]) CreateKey(string ip)
         {
             int key = 0;
 
-            string concatenated = ip.Replace('.', '0') + "0" + port;
+            string concatenated = ip.Replace('.', '0');
 
             foreach (char c in concatenated)
             {
