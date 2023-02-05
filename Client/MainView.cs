@@ -35,8 +35,8 @@ namespace Client
         internal static bool externalConnection;
 
         private static Dictionary<EncryptionType, Func<string, (byte[], byte[])>> EncCredFunc;  // Functions which is responsible for getting the key +/ iv 
-
         private static Thread handlePackets, handleKeepAlive;
+
 #if DEBUG
         private static ulong dataReceived = 0;  // count data packets received (included chunks)
 #endif
@@ -165,7 +165,7 @@ namespace Client
                         // After client got the server's mac, send the first induction message
                         serverMac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
                         CConsole.WriteLine($"[Client] Server/Gateway MAC Found: {serverMac}\n", MessageType.txtSuccess);
-                        client_sid = ProtocolManager.GenerateSocketId(GetAdaptedPeerIp());
+                        client_sid = ProtocolManager.GenerateSocketId(GetAdaptedIP());
 
                         RequestsHandler.HandleArp(serverMac, myPort, client_sid);
                         handledArp = true;
@@ -191,7 +191,7 @@ namespace Client
                 if (!EncCredFunc.ContainsKey(ENCRYPTION))
                     throw new Exception($"'{ENCRYPTION}' This encryption method isn't supported yet");
 
-                string ip = packet.Ethernet.IpV4.Destination.ToString();
+                string ip = GetAdaptedIP();
 
                 (byte[] key, byte[] IV) = EncCredFunc[ENCRYPTION](ip);
 
@@ -248,10 +248,10 @@ namespace Client
         }
 
         /// <summary>
-        /// If the connection is external (the server outside client's subnet) so use the public ip as peer ip (peer ip is the packet sender IP according SRT docs)
+        /// If the connection is external (the server outside client's subnet) so use the public ip as client ip peer ip (peer ip is the packet sender IP according SRT docs)
         /// </summary>
         /// <returns>Adapted ip according the connection type</returns>
-        internal static string GetAdaptedPeerIp()
+        internal static string GetAdaptedIP()
         {
             return externalConnection ? NetworkManager.PublicIp : NetworkManager.LocalIp;
         }
