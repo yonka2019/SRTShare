@@ -70,8 +70,10 @@ namespace Server
         /// </summary>
         internal void ConfirmStatus()  // reset timeout seconds
         {
+            SClient clientSocket = Program.SRTSockets[client.SocketId].SocketAddress;
+
             timeoutSeconds = 0;
-            CConsole.WriteLine($"[{DateTime.Now:HH:mm:ss}] [Keep-Alive] {Program.SRTSockets[client.SocketId].SocketAddress.IPAddress} is alive\n", MessageType.txtSuccess);
+            CConsole.WriteLine($"[{DateTime.Now:HH:mm:ss}] [Keep-Alive] {clientSocket.IPAddress}:{clientSocket.Port} is alive\n", MessageType.txtSuccess);
         }
 
         /// <summary>

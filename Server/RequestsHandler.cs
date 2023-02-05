@@ -8,6 +8,8 @@ using SRTShareLib.SRTManager.ProtocolFields.Control;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 
+using CConsole = SRTShareLib.CColorManager;  // Colored Console
+
 namespace Server
 {
     internal class RequestsHandler
@@ -36,6 +38,12 @@ namespace Server
         internal static void HandleInduction(Packet packet, Handshake handshake_request)  // [SERVER] -> [CLIENT]
         {
             Console.WriteLine($"[Handshake] Got Induction: {handshake_request}\n");
+
+            if (Program.SRTSockets.ContainsKey(handshake_request.SOCKET_ID))
+            {
+                CConsole.WriteLine("[ERROR] This IP is already connected (droping connection)", MessageType.txtError);
+                return;
+            }
 
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
 
@@ -68,7 +76,7 @@ namespace Server
             Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_FIELD);
             PacketManager.SendPacket(handshake_packet);
 
-#region New client information set
+            #region New client information set
 
             SClient currentClient = new SClient(handshake_request.PEER_IP, datagram.SourcePort, packet.Ethernet.Source, handshake_request.SOCKET_ID, handshake_request.MTU);
             KeepAliveManager kaManager = new KeepAliveManager(currentClient);
@@ -82,7 +90,7 @@ namespace Server
 
             kaManager.LostConnection += Program.Client_LostConnection;
 
-#endregion
+            #endregion
         }
 
         /// <summary>

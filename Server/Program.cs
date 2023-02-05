@@ -138,7 +138,9 @@ namespace Server
         /// <param name="socket_id">socket id who lost connection</param>
         internal static void Client_LostConnection(uint socket_id)
         {
-            CConsole.WriteLine($"[Keep-Alive] {SRTSockets[socket_id].SocketAddress.IPAddress} is dead, disposing resources..\n", MessageType.bgError);
+            SClient clientSocket = SRTSockets[socket_id].SocketAddress;
+
+            CConsole.WriteLine($"[Keep-Alive] {clientSocket.IPAddress}:{clientSocket.Port} is dead, disposing resources..\n", MessageType.bgError);
             DisposeClient(socket_id);
         }
 
@@ -148,17 +150,19 @@ namespace Server
         /// <param name="client_id">client id who need to be cleaned</param>
         internal static void DisposeClient(uint client_id)
         {
+            SClient clientSocket = SRTSockets[client_id].SocketAddress;
+
             SRTSockets[client_id].Data.StopVideo();
 
             if (SRTSockets.ContainsKey(client_id))
             {
-                string removedIp = SRTSockets[client_id].SocketAddress.IPAddress.ToString();
+                string removedClient = $"{clientSocket.IPAddress}:{clientSocket.Port}";
 
                 SRTSockets.Remove(client_id);
-                CConsole.WriteLine($"[Server] Client [{removedIp}] was removed\n", MessageType.txtError);
+                CConsole.WriteLine($"[Server] Client [{removedClient}] was removed\n", MessageType.txtError);
             }
             else
-                CConsole.WriteLine($"[Server] Client [{SRTSockets[client_id].SocketAddress.IPAddress}] wasn't found\n", MessageType.txtError);
+                CConsole.WriteLine($"[Server] Client [{clientSocket.IPAddress}:{clientSocket.Port}] wasn't found\n", MessageType.txtError);
         }
 
         /// <summary>
@@ -177,12 +181,12 @@ namespace Server
             {
                 SRTSocket socket = SRTSockets[socketId];
 
+                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
+                Packet shutdown_packet = shutdown_request.Shutdown(socketId, IsInVideoStage(socketId), GetSocketEncryptionType(socketId));
+                PacketManager.SendPacket(shutdown_packet);
+
                 socket.KeepAlive.Disable();
                 socket.Data.StopVideo();
-
-                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
-                Packet shutdown_packet = shutdown_request.Shutdown(socketId, InVideoStage(socketId), GetSocketEncryptionType(socketId));
-                PacketManager.SendPacket(shutdown_packet);
             }
 
             handlePackets.Abort();
@@ -230,7 +234,7 @@ namespace Server
         /// returns true if the given socket id (client) in the video stage (server sending data)
         /// </summary>
         /// <param name="socketId">socket id (client)</param>
-        private static bool InVideoStage(uint socketId)
+        private static bool IsInVideoStage(uint socketId)
         {
             return SRTSockets[socketId].Data.VideoStage;
         }

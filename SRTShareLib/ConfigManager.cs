@@ -16,7 +16,7 @@ namespace SRTShareLib
     /// </summary>
     public static class ConfigManager
     {
-        private const bool OVERRIDE = true;  // even if the config exist - create a new one and overwrite the old one
+        private const bool OVERRIDE = false;  // even if the config exist - create a new one and overwrite the old one
 
         public const string CONFIG_NAME = "settings.json";
         public static string IP { get; private set; }
