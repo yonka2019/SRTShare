@@ -43,7 +43,7 @@ namespace Client
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.Substitution;  // The whole encryption of the conversation (from data stage)
+        internal const EncryptionType ENCRYPTION = EncryptionType.XOR;  // The whole encryption of the conversation (from data stage)
         internal const int INITIAL_PSN = 0;  // The first sequence number of the conversation
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
@@ -221,6 +221,8 @@ namespace Client
                         PacketManager.SendPacket(keepAlive_confirm);
 
                         Debug.WriteLine("[KEEP-ALIVE] Sending confirm\n");
+
+                        CConsole.WriteLine($"[{DateTime.Now:HH:mm:ss}] [Keep-Alive] Confirmed\n", MessageType.txtInfo);
                     }
                 }
             }

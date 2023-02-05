@@ -46,7 +46,7 @@ namespace Client
         /// <summary>
         /// Before the SRT connection, check via ICMP (ping) if the server totally alive
         /// </summary>
-        private static void TestConnection()
+        private static void TestICMP_Response()
         {
             Ping ping = new Ping();
 

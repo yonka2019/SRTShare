@@ -16,7 +16,7 @@ namespace SRTShareLib
     /// </summary>
     public static class ConfigManager
     {
-        private const bool ALWAYS_CREATE_NEW = false;  // even if the config exist - create a new one and overwrite the old one
+        private const bool ALWAYS_CREATE_NEW = true;  // even if the config exist - create a new one and overwrite the old one
 
         public const string CONFIG_NAME = "settings.json";
         public static string IP { get; private set; }
@@ -140,7 +140,7 @@ namespace SRTShareLib
                         Console.WriteLine($"Hostname: {hostName}\n" +
                                           $"IP Address: {IP}");
 
-                        // If the given server ip is the client external ip, it means that he should input the local one to avoid
+                        // If the given server ip is the client external ip, it means that the server is in the same subnet within the clients' subnet. And he should input the local one to avoid
                         // loop in the server
                         if (IP == NetworkManager.PublicIp)
                         {
