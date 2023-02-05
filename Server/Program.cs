@@ -117,7 +117,7 @@ namespace Server
 
                     else if (KeepAlive.IsKeepAlive(payload))  // (SRT) KeepAlive
                     {
-                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString(), packet.Ethernet.IpV4.Udp.SourcePort);
+                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
 
                         if (SRTSockets.ContainsKey(clientSocketId))
                             SRTSockets[clientSocketId].KeepAlive.ConfirmStatus();  // sign as alive
