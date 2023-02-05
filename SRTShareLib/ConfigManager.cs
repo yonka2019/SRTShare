@@ -41,7 +41,6 @@ namespace SRTShareLib
                     if (Console.ReadKey().Key == ConsoleKey.C)
                     {
                         GetConfigData(out string ip, out string port);
-
                         CreateConfig(ip, port);
 
                         Console.WriteLine("Config file successfully created!\n" +
@@ -141,7 +140,16 @@ namespace SRTShareLib
                         Console.WriteLine($"Hostname: {hostName}\n" +
                                           $"IP Address: {IP}");
 
-                        ipAddress = true;  // found
+                        // If the given server ip is the client external ip, it means that he should input the local one to avoid
+                        // loop in the server
+                        if (IP == NetworkManager.PublicIp)
+                        {
+                            Console.WriteLine();
+                            CConsole.Write("Bad IP  ", MessageType.txtError);
+                            CConsole.WriteLine("Please specify the local IP of the server\n", MessageType.txtMuted);
+                        }
+                        else
+                            ipAddress = true;  // found IP address, and the ip is good (not the same as the public one)
                     }
                 }
             }

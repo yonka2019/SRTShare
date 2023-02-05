@@ -80,7 +80,7 @@ namespace SRTShareLib.SRTManager.Encryption
             byte[] key;
             byte[] IV;
 
-            string socketId = ProtocolManager.GenerateSocketId(ip, port).ToString();
+            string socketId = ProtocolManager.GenerateSocketId(ip).ToString();
             string keyToHash = $"{ip}:{port}";
 
             using (MD5 md5 = MD5.Create())

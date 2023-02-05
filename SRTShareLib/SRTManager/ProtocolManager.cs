@@ -13,13 +13,12 @@ namespace SRTShareLib
         /// <param name="port">Client's port</param>
         /// <param name="current_time">Current time</param>
         /// <returns></returns>
-        public static uint GenerateCookie(string ip, ushort port)
+        public static uint GenerateCookie(string ip)
         {
             string textToEncrypt = "";
-            textToEncrypt += ip + "_";  // add ip
-            textToEncrypt += port.ToString();  // add port
+            textToEncrypt += ip + "&cookie";  // add ip
 
-            return Md5Encrypt(textToEncrypt);  // return the encrypted cookie
+            return Md5Encrypt(textToEncrypt);  // return the encrypted socket id
         }
 
         /// <summary>
@@ -28,13 +27,12 @@ namespace SRTShareLib
         /// <param name="ip">Client's ip</param>
         /// <param name="port">Client's port</param>
         /// <returns></returns>
-        public static uint GenerateSocketId(string ip, ushort port)
+        public static uint GenerateSocketId(string ip)
         {
             string textToEncrypt = "";
-            textToEncrypt += ip + "&";  // add ip
-            textToEncrypt += port.ToString() + "&";  // add port
+            textToEncrypt += ip + "&socket_id";  // add ip
 
-            return Md5Encrypt(textToEncrypt);  // return the encrypted cookie
+            return Md5Encrypt(textToEncrypt);  // return the encrypted socket id
         }
 
         /// <summary>

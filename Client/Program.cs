@@ -26,8 +26,6 @@ namespace Client
             NetworkManager.PrintInterfaceData();
             NetworkManager.PrintServerData();
 
-            TestConnection();
-
             Application.Run(new MainView());
         }
 
@@ -54,6 +52,7 @@ namespace Client
 
             // Set the address to ping
             string ipAddress = ConfigManager.IP;
+
 
             // Send the ping and get the reply
             PingReply reply = ping.Send(ipAddress);

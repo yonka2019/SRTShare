@@ -43,7 +43,7 @@ namespace Client
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.Substitution;  // The whole encryption of the conversation (from data stage)
+        internal const EncryptionType ENCRYPTION = EncryptionType.None;  // The whole encryption of the conversation (from data stage)
         internal const int INITIAL_PSN = 0;  // The first sequence number of the conversation
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
@@ -165,7 +165,7 @@ namespace Client
                         // After client got the server's mac, send the first induction message
                         serverMac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
                         CConsole.WriteLine($"[Client] Server/Gateway MAC Found: {serverMac}\n", MessageType.txtSuccess);
-                        client_sid = ProtocolManager.GenerateSocketId(GetAdaptedPeerIp(), myPort);
+                        client_sid = ProtocolManager.GenerateSocketId(GetAdaptedPeerIp());
 
                         RequestsHandler.HandleArp(serverMac, myPort, client_sid);
                         handledArp = true;
