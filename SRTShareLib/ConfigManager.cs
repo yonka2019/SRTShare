@@ -16,6 +16,8 @@ namespace SRTShareLib
     /// </summary>
     public static class ConfigManager
     {
+        private const bool OVERRIDE = true;  // even if the config exist - create a new one and overwrite the old one
+
         public const string CONFIG_NAME = "settings.json";
         public static string IP { get; private set; }
         public static ushort PORT { get; private set; }
@@ -31,7 +33,7 @@ namespace SRTShareLib
             {
                 // Read the JSON file into a string
                 configDirectory = UpDirTo(Directory.GetCurrentDirectory(), CONFIG_NAME);
-                if (configDirectory == null)
+                if (configDirectory == null || OVERRIDE)
                 {
                     CConsole.WriteLine("[ERROR] Can't find config file (or maybe he is duplicated at the same directory?)\n" +
                         "You can create your own config file, press [C] key to create it, or any another key to exit", MessageType.txtWarning);
