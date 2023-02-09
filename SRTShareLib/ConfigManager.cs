@@ -92,12 +92,12 @@ namespace SRTShareLib
             while (!ipAddress)
             {
                 if (calledFrom == App.Server)
-                    Console.WriteLine("* Put here your own LOCAL IP (LAN). Even if you are using external connection\n[OR] you can input \"my\" to auto-set your local ip.\n");
+                    Console.WriteLine("* Put here your own LOCAL IP (LAN). Even if you are using external connection.\n[OR] you can input \"my\" to auto-set your local ip.\n");
 
                 else if (calledFrom == App.Client)
                     Console.WriteLine("* If your server in the same subnet with the client\n" +
                     "put here the local ip of the server (LAN), either, put the public one (WAN).\n" +
-                    "In addition, you can also put here a hostname (DNS Supported)");
+                    "In addition, you can also put here a hostname (DNS Supported).");
 
                 Console.Write(">> Server IP: ");
                 IP = Console.ReadLine();
