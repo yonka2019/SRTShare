@@ -28,7 +28,7 @@ namespace Server
         private static ulong dataSent = 0;  // count data sent packets (included chunks)
 #endif
 
-        private long currentQuality;
+        internal long CurrentQuality { private get; set; }
 
         private static uint current_sequence_number;
 
@@ -40,24 +40,7 @@ namespace Server
             connected = true;
 
             this.EncryptionMethod = (EncryptionType)EncryptionMethod;
-            currentQuality = 50L;
-        }
-
-        /// <summary>
-        /// The client noticed that a lot of packets getting lost - which means that the server should decrease the quality to increase the stability
-        /// </summary>
-        internal void DownQuality()
-        {
-            currentQuality -= 10;
-        }
-
-        /// <summary>
-        /// The client requsted to set new quality
-        /// </summary>
-        /// <param name="newQuality"></param>
-        internal void SetQuality(int newQuality)
-        {
-            currentQuality = newQuality;
+            CurrentQuality = 50L;
         }
 
         /// <summary>
@@ -152,7 +135,7 @@ namespace Server
             ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
             EncoderParameters myEncoderParameters = new EncoderParameters(1);
 
-            EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, currentQuality);  // set qualiy 0 -> 100
+            EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, CurrentQuality);  // set qualiy 0 -> 100
             myEncoderParameters.Param[0] = myEncoderParameter;
 
             bmp.Save(stream, jpgEncoder, myEncoderParameters);

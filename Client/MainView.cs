@@ -98,6 +98,7 @@ namespace Client
                     timer.Stop();
                     if (!serverAlive)  // still null after 5 seconds
                     {
+                        CConsole.WriteLine("[Client] Server isn't responding to INDUCTION request", MessageType.txtError);
                         MessageBox.Show("Server isn't responding to [SRT: Induction] request..", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Environment.Exit(-1);
                     }
@@ -268,6 +269,17 @@ namespace Client
             MessageBox.Show("Lost connection with the server", "Connection Problem", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             Environment.Exit(-1);
+        }
+
+
+        private void QualityChange_button_Click(object sender, EventArgs e)
+        {
+            ToolStripMenuItem qualitySelected = (ToolStripMenuItem)sender;
+            string s_quality = qualitySelected.Text.Substring(qualitySelected.Text.Length - 3, 2);
+
+            if (s_quality == "00")
+                s_quality = "100";
+
         }
 
         /// <summary>
