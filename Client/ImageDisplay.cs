@@ -78,7 +78,7 @@ namespace Client
 #endif
             uint[] missedPackets = MissingPackets();
 
-            Console.WriteLine("SHOULD BE: " + (Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)));
+            Console.WriteLine("SHOULD BE: " + (Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0))));
             Console.WriteLine("MISSED: " + (missedPackets.Length));
 
             TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
