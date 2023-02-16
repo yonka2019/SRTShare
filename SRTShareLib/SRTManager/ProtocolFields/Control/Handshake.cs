@@ -115,13 +115,6 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// </summary>
         public IpV4Address PEER_IP { get; private set; }
 
-        public enum Extension  // Extension Field
-        {
-            HSREQ = 0x00000001,
-            KMREQ = 0x00000002,
-            CONFIG = 0x00000004
-        }
-
         public enum HandshakeType : uint
         {
             DONE = 0xFFFFFFFD,
