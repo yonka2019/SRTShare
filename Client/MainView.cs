@@ -57,6 +57,8 @@ namespace Client
         {
             InitializeComponent();
 
+            AutoQualityControl = autoQualityControl.Checked;
+
             myPort = (ushort)rnd.Next(1, 50000);  // randomize any port for the client
 
             // receive packets

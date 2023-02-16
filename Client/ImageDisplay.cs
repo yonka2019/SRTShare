@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Policy;
+using System.Security.Principal;
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
@@ -78,7 +79,7 @@ namespace Client
             System.Console.WriteLine("MISSED: " + (missedPackets.Length));
 
             // dataPackets.Last().MESSAGE_NUMBER - the last seq number which is the max
-            if ((dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0) <= missedPackets.Length) && MainView.AutoQualityControl)
+            if (((int)(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)) <= missedPackets.Length) && MainView.AutoQualityControl)
             {
                 if (currentQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)
                 {
