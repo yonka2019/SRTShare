@@ -11,6 +11,7 @@
         ACKACK = 0x0006,
         DROPREQ = 0x0007,
         PEERERROR = 0x0008,
+        QUALITY_UPDATE = 0x0009,
         USER_DEFINED = 0x7FFF
     }
 }

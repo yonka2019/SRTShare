@@ -68,55 +68,55 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
         /// 8 bit (1 bytes). The control packet has this flag set to
         /// "1". The data packet has this flag set to "0".
         /// </summary>
-        public bool IS_CONTROL_PACKET { get; set; } // true (1) -> control packet | false (0) -> data packet
+        public bool IS_CONTROL_PACKET { get; private set; } // true (1) -> control packet | false (0) -> data packet
 
         /// <summary>
         /// 32 bits (4 bytes). The sequence number field.
         /// </summary>
-        public uint SEQUENCE_NUMBER { get; set; }
+        public uint SEQUENCE_NUMBER { get; private set; }
 
         /// <summary>
         /// 16 bits (2 bytes). The position of the packet in the whole message.
         /// </summary>
-        public ushort PACKET_POSITION_FLAG { get; set; }
+        public ushort PACKET_POSITION_FLAG { get; private set; }
 
         /// <summary>
         /// 8 bits (1 byte). True if the packets need to be in order. False if not.
         /// </summary>
-        public bool ORDER_FLAG { get; set; }
+        public bool ORDER_FLAG { get; private set; }
 
         /// <summary>
         /// 16 bits (2 bytes). Different flags for each encryption option. 
         /// </summary>
-        public ushort KEY_BASED_ENCRYPTION_FLAG { get; set; }
+        public ushort KEY_BASED_ENCRYPTION_FLAG { get; private set; }
 
         /// <summary>
         /// 8 bits (1 byte). True if the packet is retransmitted (was sent more than once). False if not.
         /// </summary>
-        public bool RETRANSMITTED_PACKET_FLAG { get; set; }
+        public bool RETRANSMITTED_PACKET_FLAG { get; private set; }
 
         /// <summary>
         /// 32 bits (4 bytes). The sequential number of consecutive data packets that form a message
         /// </summary>
-        public uint MESSAGE_NUMBER { get; set; }
+        public uint MESSAGE_NUMBER { get; private set; }
 
         /// <summary>
         /// 32 bits (4 bytes). The timestamp of the packet, in microseconds.
         /// The value is relative to the time the SRT connection was established.
         /// </summary>
-        public uint TIMESTAMP { get; set; }
+        public uint TIMESTAMP { get; private set; }
 
         /// <summary>
         /// 32 bits (4 bytes). A fixed-width field providing the
         /// SRT socket ID to which a packet should be dispatched.The field
         /// may have the special value "0" when the packet is a connection request.
         /// </summary>
-        public uint DEST_SOCKET_ID { get; set; }
+        public uint DEST_SOCKET_ID { get; private set; }
 
         /// <summary>
         /// The actual data of the packet.
         /// </summary>
-        public List<byte> DATA { get; set; }
+        public List<byte> DATA { get; private set; }
     }
 }
 

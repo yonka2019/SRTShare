@@ -134,7 +134,7 @@ namespace SRTShareLib.PcapManager
                     return BuildEPLayer(data, encryptionType, layers);
                 }
             }
-            // not video stage, surely encryption is disabled /// Encryption disabled (the both cases don't use totally any encryption)
+            // not video stage, surely encryption is not should be used /// Encryption disabled (the both cases don't use totally any encryption)
             return BuildPLayer(data);
         }
 

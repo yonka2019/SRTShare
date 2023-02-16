@@ -7,6 +7,9 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
 {
     public class Handshake : SRTHeader
     {
+        /// <summary>
+        /// Fields -> List<Byte[]> (To send)
+        /// </summary>
         public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, IpV4Address p_ip) : base(ControlType.HANDSHAKE, dest_socket_id)
         {
             VERSION = version; byteFields.Add(BitConverter.GetBytes(VERSION));
@@ -22,11 +25,11 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             PEER_IP = p_ip; byteFields.Add(PEER_IP.ToBytes());
         }
 
-
+        /// <summary>
+        /// Byte[] -> Fields (To extract)
+        /// </summary>
         public Handshake(byte[] data) : base(data)  // initialize SRT Control header fields
         {
-            // initialize SRT Control Handshake header fields
-
             VERSION = BitConverter.ToUInt32(data, 13);  // [13 14 15 16] (4 bytes)
             ENCRYPTION_FIELD = BitConverter.ToUInt16(data, 17);  // [17 18] (2 bytes)
             INTIAL_PSN = BitConverter.ToUInt32(data, 19);  // [19 20 21 22] (4 bytes)
@@ -55,21 +58,21 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// values are 4 and 5. Values greater than 5 are reserved for future
         /// use.
         /// </summary>
-        public uint VERSION { get; set; }
+        public uint VERSION { get; private set; }
 
         /// <summary>
         /// 16 bits (2 bytes). Block cipher family and key size. The
         /// values of this field are described in Table 2. The default value
         /// is AES-128.
         /// </summary>
-        public ushort ENCRYPTION_FIELD { get; set; }
+        public ushort ENCRYPTION_FIELD { get; private set; }
 
         /// <summary>
         /// 32 bits (4 bytes). The sequence number of the
         /// very first data packet to be sent.
         /// INITIAL PACKET SEQUENCE NUMBER, shortened: INITIAL_PSN
         /// </summary>
-        public uint INTIAL_PSN { get; set; }
+        public uint INTIAL_PSN { get; private set; }
 
         /// <summary>
         /// 32 bits (4 bytes). This value is typically set
@@ -90,34 +93,27 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// 32 bits (4 bytes). This field indicates the handshake packet
         /// type.
         /// </summary>
-        public uint TYPE { get; set; }
+        public uint TYPE { get; private set; }
 
         /// <summary>
         /// 32 bits (4 bytes). This field holds the ID of the source SRT
         /// socket from which a handshake packet is issued.
         /// </summary>
-        public uint SOCKET_ID { get; set; }
+        public uint SOCKET_ID { get; private set; }
 
         /// <summary>
         /// 32 bits (4 bytes). Randomized value for processing a 
         /// The value of this field is specified by the handshake message
         /// type.
         /// </summary>
-        public uint SYN_COOKIE { get; set; }
+        public uint SYN_COOKIE { get; private set; }
 
         /// <summary>
         /// 32 bits (4 bytes). IPv4 address of the packet's
         /// sender.The value consists of four 32-bit fields.In the case of
         /// IPv4 addresses, fields 2, 3 and 4 are filled with zeroes.
         /// </summary>
-        public IpV4Address PEER_IP { get; set; }
-
-        public enum Extension  // Extension Field
-        {
-            HSREQ = 0x00000001,
-            KMREQ = 0x00000002,
-            CONFIG = 0x00000004
-        }
+        public IpV4Address PEER_IP { get; private set; }
 
         public enum HandshakeType : uint
         {

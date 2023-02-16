@@ -37,6 +37,14 @@ namespace Client
         private static Dictionary<EncryptionType, Func<string, (byte[], byte[])>> EncCredFunc;  // Functions which is responsible for getting the key +/ iv 
         private static Thread handlePackets, handleKeepAlive;
 
+        internal static bool AutoQualityControl = false;
+
+        // 10% - q_10p
+        // 20% - q_10p
+        //   . . .
+        internal static Dictionary<byte, ToolStripMenuItem> QualityButtons;
+
+
 #if DEBUG
         private static ulong dataReceived = 0;  // count data packets received (included chunks)
 #endif
@@ -46,11 +54,17 @@ namespace Client
         internal const EncryptionType ENCRYPTION = EncryptionType.XOR;  // The whole encryption of the conversation (from data stage)
         internal const int INITIAL_PSN = 0;  // The first sequence number of the conversation
 
+        internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
+        internal const int DATA_DECREASE_QUALITY_BY = 10; // (0 - 100)
+
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
         public MainView()
         {
             InitializeComponent();
+
+            AutoQualityControl = autoQualityControl.Checked;
+            QualityButtons = new Dictionary<byte, ToolStripMenuItem> { { 10, q_10p }, { 20, q_20p }, { 30, q_30p }, { 40, q_40p }, { 50, q_50p }, { 60, q_60p }, { 70, q_70p }, { 80, q_80p }, { 90, q_90p }, { 100, q_100p } };
 
             myPort = (ushort)rnd.Next(1, 50000);  // randomize any port for the client
 
@@ -98,6 +112,7 @@ namespace Client
                     timer.Stop();
                     if (!serverAlive)  // still null after 5 seconds
                     {
+                        CConsole.WriteLine("[Client] Server isn't responding to INDUCTION request", MessageType.txtError);
                         MessageBox.Show("Server isn't responding to [SRT: Induction] request..", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Environment.Exit(-1);
                     }
@@ -229,27 +244,6 @@ namespace Client
         }
 
         /// <summary>
-        /// The function accurs when the form is closed
-        /// </summary>
-        /// <param name="e"></param>
-        protected override void OnClosed(EventArgs e)
-        {
-            if (serverMac != null)
-            {
-                // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
-                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
-                Packet shutdown_packet = shutdown_request.Shutdown(server_sid);
-                PacketManager.SendPacket(shutdown_packet);
-            }
-
-            handlePackets.Abort();
-            handleKeepAlive.Abort();
-
-            Environment.Exit(0);
-            base.OnClosed(e);
-        }
-
-        /// <summary>
         /// If the connection is external (the server outside client's subnet) so use the public ip as client ip peer ip (peer ip is the packet sender IP according SRT docs)
         /// </summary>
         /// <returns>Adapted ip according the connection type</returns>
@@ -268,6 +262,55 @@ namespace Client
             MessageBox.Show("Lost connection with the server", "Connection Problem", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             Environment.Exit(-1);
+        }
+
+
+        private void QualityChange_button_Click(object sender, EventArgs e)
+        {
+            ToolStripMenuItem qualitySelected = (ToolStripMenuItem)sender;
+            if (qualitySelected.Checked)  // if already selected - do not do anything
+                return;
+
+            foreach (ToolStripMenuItem item in QualityButtons.Values)
+            {
+                item.Checked = false;
+            }
+            qualitySelected.Checked = true;
+
+            byte newQuality = QualityButtons.FirstOrDefault(quality => quality.Value == qualitySelected).Key;
+
+            QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+            Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(server_sid, newQuality);
+            PacketManager.SendPacket(qualityUpdate_packet);
+
+            CConsole.WriteLine($"[Quality Update] Quality updated to: {newQuality}%\n", MessageType.txtInfo);
+            ImageDisplay.CurrentVideoQuality = newQuality;
+        }
+
+        private void AutoQualityControl_Click(object sender, EventArgs e)
+        {
+            AutoQualityControl = autoQualityControl.Checked;
+            string flag = AutoQualityControl ? "enabled" : "disabled";
+            CConsole.WriteLine($"[Quality Update] Auto quality control {flag}\n", MessageType.txtInfo);
+        }
+
+        /// <summary>
+        /// The function accurs when the form is closed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MainView_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (serverMac != null)
+            {
+                // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
+                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
+                Packet shutdown_packet = shutdown_request.Shutdown(server_sid);
+                PacketManager.SendPacket(shutdown_packet);
+            }
+
+            handlePackets.Abort();
+            handleKeepAlive.Abort();
         }
 
         /// <summary>
