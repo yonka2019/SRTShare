@@ -37,6 +37,8 @@ namespace Client
         private static Dictionary<EncryptionType, Func<string, (byte[], byte[])>> EncCredFunc;  // Functions which is responsible for getting the key +/ iv 
         private static Thread handlePackets, handleKeepAlive;
 
+        internal static bool AutoQualityControl = false;
+
 #if DEBUG
         private static ulong dataReceived = 0;  // count data packets received (included chunks)
 #endif
@@ -230,27 +232,6 @@ namespace Client
         }
 
         /// <summary>
-        /// The function accurs when the form is closed
-        /// </summary>
-        /// <param name="e"></param>
-        protected override void OnClosed(EventArgs e)
-        {
-            if (serverMac != null)
-            {
-                // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
-                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
-                Packet shutdown_packet = shutdown_request.Shutdown(server_sid);
-                PacketManager.SendPacket(shutdown_packet);
-            }
-
-            handlePackets.Abort();
-            handleKeepAlive.Abort();
-
-            Environment.Exit(0);
-            base.OnClosed(e);
-        }
-
-        /// <summary>
         /// If the connection is external (the server outside client's subnet) so use the public ip as client ip peer ip (peer ip is the packet sender IP according SRT docs)
         /// </summary>
         /// <returns>Adapted ip according the connection type</returns>
@@ -275,11 +256,55 @@ namespace Client
         private void QualityChange_button_Click(object sender, EventArgs e)
         {
             ToolStripMenuItem qualitySelected = (ToolStripMenuItem)sender;
+            if (qualitySelected.Checked)  // if already selected - do not do anything
+                return;
+
+            ToolStripMenuItem[] qualityItems = { q_10p, q_20p, q_30p, q_40p, q_50p, q_60p, q_70p, q_80p, q_90p, q_100p };
+
+            foreach (ToolStripMenuItem item in qualityItems)
+            {
+                item.Checked = false;
+            }
+            qualitySelected.Checked = true;
+
             string s_quality = qualitySelected.Text.Substring(qualitySelected.Text.Length - 3, 2);
 
             if (s_quality == "00")
                 s_quality = "100";
 
+            byte newQuality = Convert.ToByte(s_quality);
+
+            QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+            Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(server_sid, newQuality);
+            PacketManager.SendPacket(qualityUpdate_packet);
+
+            CConsole.WriteLine($"[Quality Update] Quality updated to: {s_quality}%\n", MessageType.txtInfo);
+        }
+
+        private void AutoQualityControl_Click(object sender, EventArgs e)
+        {
+            AutoQualityControl = autoQualityControl.Checked;
+            string flag = AutoQualityControl ? "enabled" : "disabled";
+            CConsole.WriteLine($"[Quality Update] Auto quality control {flag}\n", MessageType.txtInfo);
+        }
+
+        /// <summary>
+        /// The function accurs when the form is closed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MainView_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (serverMac != null)
+            {
+                // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
+                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
+                Packet shutdown_packet = shutdown_request.Shutdown(server_sid);
+                PacketManager.SendPacket(shutdown_packet);
+            }
+
+            handlePackets.Abort();
+            handleKeepAlive.Abort();
         }
 
         /// <summary>

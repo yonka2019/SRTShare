@@ -118,8 +118,15 @@ namespace Server
                         if (SRTSockets.ContainsKey(clientSocketId))
                             SRTSockets[clientSocketId].KeepAlive.ConfirmStatus();  // sign as alive
                     }
-                    else if (QualityControl.IsQualityControl(payload))
+                    else if (QualityUpdate.IsQualityUpdate(payload))  // update the quality especially to this client
                     {
+                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
+
+                        QualityUpdate qualityUpdate = new QualityUpdate(payload);
+
+                        Console.WriteLine($"[Quality Update] {SRTSockets[clientSocketId].SocketAddress.IPAddress} updated quality: {qualityUpdate.QUALITY}%\n");
+
+                        SRTSockets[clientSocketId].Data.CurrentQuality = qualityUpdate.QUALITY;
 
                     }
                     else if (Shutdown.IsShutdown(payload))  // (SRT) Shutdown

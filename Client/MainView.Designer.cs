@@ -33,6 +33,7 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.VideoBox = new Cyotek.Windows.Forms.ImageBox();
             this.QualitySetter = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.autoQualityControl = new System.Windows.Forms.ToolStripMenuItem();
             this.q_100p = new System.Windows.Forms.ToolStripMenuItem();
             this.q_90p = new System.Windows.Forms.ToolStripMenuItem();
             this.q_80p = new System.Windows.Forms.ToolStripMenuItem();
@@ -43,7 +44,6 @@
             this.q_30p = new System.Windows.Forms.ToolStripMenuItem();
             this.q_20p = new System.Windows.Forms.ToolStripMenuItem();
             this.q_10p = new System.Windows.Forms.ToolStripMenuItem();
-            this.autoQualityControl = new System.Windows.Forms.ToolStripMenuItem();
             this.panel1.SuspendLayout();
             this.QualitySetter.SuspendLayout();
             this.SuspendLayout();
@@ -98,6 +98,17 @@
             this.QualitySetter.Size = new System.Drawing.Size(185, 268);
             this.QualitySetter.Text = "Set new quality";
             // 
+            // autoQualityControl
+            // 
+            this.autoQualityControl.Checked = true;
+            this.autoQualityControl.CheckOnClick = true;
+            this.autoQualityControl.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.autoQualityControl.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.autoQualityControl.Name = "autoQualityControl";
+            this.autoQualityControl.Size = new System.Drawing.Size(184, 22);
+            this.autoQualityControl.Text = "Auto Quality Control";
+            this.autoQualityControl.Click += new System.EventHandler(this.AutoQualityControl_Click);
+            // 
             // q_100p
             // 
             this.q_100p.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
@@ -140,6 +151,8 @@
             // 
             // q_50p
             // 
+            this.q_50p.Checked = true;
+            this.q_50p.CheckState = System.Windows.Forms.CheckState.Checked;
             this.q_50p.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.q_50p.Name = "q_50p";
             this.q_50p.Size = new System.Drawing.Size(184, 22);
@@ -178,16 +191,6 @@
             this.q_10p.Text = "Quality: 10%";
             this.q_10p.Click += new System.EventHandler(this.QualityChange_button_Click);
             // 
-            // autoQualityControl
-            // 
-            this.autoQualityControl.Checked = true;
-            this.autoQualityControl.CheckOnClick = true;
-            this.autoQualityControl.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.autoQualityControl.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.autoQualityControl.Name = "autoQualityControl";
-            this.autoQualityControl.Size = new System.Drawing.Size(184, 22);
-            this.autoQualityControl.Text = "Auto Quality Control";
-            // 
             // MainView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -198,6 +201,7 @@
             this.Name = "MainView";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "MainView";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainView_FormClosing);
             this.panel1.ResumeLayout(false);
             this.QualitySetter.ResumeLayout(false);
             this.ResumeLayout(false);

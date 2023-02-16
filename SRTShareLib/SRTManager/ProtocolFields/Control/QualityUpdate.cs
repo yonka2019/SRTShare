@@ -2,12 +2,12 @@
 
 namespace SRTShareLib.SRTManager.ProtocolFields.Control
 {
-    public class QualityControl : SRTHeader
+    public class QualityUpdate : SRTHeader
     {
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        public QualityControl(uint dest_socket_id, byte quality) : base(ControlType.QUALITY_CONTROL, dest_socket_id)
+        public QualityUpdate(uint dest_socket_id, byte quality) : base(ControlType.QUALITY_UPDATE, dest_socket_id)
         {
             QUALITY = quality; byteFields.Add(BitConverter.GetBytes(QUALITY));
         }
@@ -15,9 +15,9 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// <summary>
         /// Byte[] -> Fields (To extract)
         /// </summary>
-        public QualityControl(byte[] data) : base(data)  // initialize SRT Control header fields
+        public QualityUpdate(byte[] data) : base(data)  // initialize SRT Control header fields
         {
-            QUALITY = data[13];
+            QUALITY = data[13];  // [13]
         }
 
 
@@ -26,9 +26,9 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// </summary>
         /// <param name="data">Byte array to check</param>
         /// <returns>True if keep alive, false if not</returns>
-        public static bool IsQualityControl(byte[] data)
+        public static bool IsQualityUpdate(byte[] data)
         {
-            return BitConverter.ToUInt16(data, 1) == (ushort)ControlType.QUALITY_CONTROL;
+            return BitConverter.ToUInt16(data, 1) == (ushort)ControlType.QUALITY_UPDATE;
         }
 
         /// <summary>

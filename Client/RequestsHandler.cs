@@ -34,8 +34,8 @@ namespace Client
             else
             {
                 // Exit the prgram and send a shutdwon request
-                ShutdownRequest shutdown_response = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
-                Packet shutdown_packet = shutdown_response.Shutdown(MainView.server_sid);
+                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+                Packet shutdown_packet = shutdown_request.Shutdown(MainView.server_sid);
                 PacketManager.SendPacket(shutdown_packet);
 
                 MessageBox.Show("Bad cookie - Stopping", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);

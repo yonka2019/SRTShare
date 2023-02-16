@@ -40,7 +40,7 @@ namespace Server
             connected = true;
 
             this.EncryptionMethod = (EncryptionType)EncryptionMethod;
-            CurrentQuality = 50L;
+            CurrentQuality = 50L;  // default quality value
         }
 
         /// <summary>

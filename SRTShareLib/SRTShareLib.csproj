@@ -73,11 +73,12 @@
     <Compile Include="SRTManager\Encryption\Substitution.cs" />
     <Compile Include="SRTManager\Encryption\XOR.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\Keep-Alive.cs" />
-    <Compile Include="SRTManager\ProtocolFields\Control\QualityControl.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Control\QualityUpdate.cs" />
     <Compile Include="SRTManager\ProtocolFields\Data\DataFlags.cs" />
     <Compile Include="SRTManager\ProtocolFields\Data\SRTHeader.cs" />
     <Compile Include="SRTManager\ProtocolManager.cs" />
     <Compile Include="SRTManager\RequestsFactory\DataRequest.cs" />
+    <Compile Include="SRTManager\RequestsFactory\QualityUpdateRequest.cs" />
     <Compile Include="SRTManager\SClient.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\ControlType.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\Handshake.cs" />
