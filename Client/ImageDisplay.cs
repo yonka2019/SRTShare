@@ -2,6 +2,7 @@
 using SRTShareLib;
 using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.RequestsFactory;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -19,6 +20,9 @@ namespace Client
 
         private static List<Data.SRTHeader> dataPackets = new List<Data.SRTHeader>();
         internal static byte CurrentVideoQuality = 50;
+
+        private static DateTime lastQualityModify;
+        private const int minimum_SecondsElapsedToModify = 3;  // don't allow the algorithm to AUTO modify the quality if there is was a quality change
 
         private static byte[] FullData
         {
@@ -74,11 +78,17 @@ namespace Client
 #endif
             uint[] missedPackets = MissingPackets();
 
-            System.Console.WriteLine("SHOULD BE: " + (dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)));
-            System.Console.WriteLine("MISSED: " + (missedPackets.Length));
+            Console.WriteLine("SHOULD BE: " + (Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)));
+            Console.WriteLine("MISSED: " + (missedPackets.Length));
+
+            TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
 
             // dataPackets.Last().MESSAGE_NUMBER - the last seq number which is the max
-            if (((int)(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)) <= missedPackets.Length) && MainView.AutoQualityControl)
+            if ((Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)) <= missedPackets.Length)  // check if necessary
+
+                && MainView.AutoQualityControl  // check if option enabled
+
+                && timeElapsed.TotalSeconds > minimum_SecondsElapsedToModify)  // check if min required time elapsed
             {
                 if (CurrentVideoQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)
                 {
@@ -100,6 +110,8 @@ namespace Client
                         item.Checked = false;
                     }
                     qualityButton.Checked = true;
+
+                    lastQualityModify = DateTime.Now;
                 }
             }
 
