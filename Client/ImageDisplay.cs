@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Policy;
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
@@ -72,6 +73,9 @@ namespace Client
                 Debug.WriteLine("[IMAGE] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
 #endif
             uint[] missedPackets = MissingPackets();
+
+            System.Console.WriteLine("SHOULD BE: " + (dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)));
+            System.Console.WriteLine("MISSED: " + (missedPackets.Length));
 
             // dataPackets.Last().MESSAGE_NUMBER - the last seq number which is the max
             if ((dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0) <= missedPackets.Length) && MainView.AutoQualityControl)
