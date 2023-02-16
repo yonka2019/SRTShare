@@ -39,6 +39,12 @@ namespace Client
 
         internal static bool AutoQualityControl = false;
 
+        // 10% - q_10p
+        // 20% - q_10p
+        //   . . .
+        internal static Dictionary<byte, ToolStripMenuItem> QualityButtons;
+
+
 #if DEBUG
         private static ulong dataReceived = 0;  // count data packets received (included chunks)
 #endif
@@ -49,7 +55,7 @@ namespace Client
         internal const int INITIAL_PSN = 0;  // The first sequence number of the conversation
 
         internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
-        internal const int DATA_DECREASE_QUALITY_BY = 15; // (0 - 100)
+        internal const int DATA_DECREASE_QUALITY_BY = 10; // (0 - 100)
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
@@ -58,6 +64,7 @@ namespace Client
             InitializeComponent();
 
             AutoQualityControl = autoQualityControl.Checked;
+            QualityButtons = new Dictionary<byte, ToolStripMenuItem> { { 10, q_10p }, { 20, q_20p }, { 30, q_30p }, { 40, q_40p }, { 50, q_50p }, { 60, q_60p }, { 70, q_70p }, { 80, q_80p }, { 90, q_90p }, { 100, q_100p } };
 
             myPort = (ushort)rnd.Next(1, 50000);  // randomize any port for the client
 
@@ -264,26 +271,20 @@ namespace Client
             if (qualitySelected.Checked)  // if already selected - do not do anything
                 return;
 
-            ToolStripMenuItem[] qualityItems = { q_10p, q_20p, q_30p, q_40p, q_50p, q_60p, q_70p, q_80p, q_90p, q_100p };
-
-            foreach (ToolStripMenuItem item in qualityItems)
+            foreach (ToolStripMenuItem item in QualityButtons.Values)
             {
                 item.Checked = false;
             }
             qualitySelected.Checked = true;
 
-            string s_quality = qualitySelected.Text.Substring(qualitySelected.Text.Length - 3, 2);
-
-            if (s_quality == "00")
-                s_quality = "100";
-
-            byte newQuality = Convert.ToByte(s_quality);
+            byte newQuality = QualityButtons.FirstOrDefault(quality => quality.Value == qualitySelected).Key;
 
             QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
             Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(server_sid, newQuality);
             PacketManager.SendPacket(qualityUpdate_packet);
 
-            CConsole.WriteLine($"[Quality Update] Quality updated to: {s_quality}%\n", MessageType.txtInfo);
+            CConsole.WriteLine($"[Quality Update] Quality updated to: {newQuality}%\n", MessageType.txtInfo);
+            ImageDisplay.CurrentVideoQuality = newQuality;
         }
 
         private void AutoQualityControl_Click(object sender, EventArgs e)

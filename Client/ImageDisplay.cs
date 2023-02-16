@@ -6,8 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Policy;
-using System.Security.Principal;
+using System.Windows.Forms;
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
@@ -19,7 +18,7 @@ namespace Client
         private static readonly object _lock = new object();
 
         private static List<Data.SRTHeader> dataPackets = new List<Data.SRTHeader>();
-        private static byte currentQuality = 50;
+        internal static byte CurrentVideoQuality = 50;
 
         private static byte[] FullData
         {
@@ -81,15 +80,26 @@ namespace Client
             // dataPackets.Last().MESSAGE_NUMBER - the last seq number which is the max
             if (((int)(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)) <= missedPackets.Length) && MainView.AutoQualityControl)
             {
-                if (currentQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)
+                if (CurrentVideoQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)
                 {
-                    currentQuality -= MainView.DATA_DECREASE_QUALITY_BY;  // down quality and send quality update request 
+                    CurrentVideoQuality -= MainView.DATA_DECREASE_QUALITY_BY;  // down quality and send quality update request 
 
                     QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
-                    Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(MainView.server_sid, currentQuality);
+                    Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(MainView.server_sid, CurrentVideoQuality);
                     PacketManager.SendPacket(qualityUpdate_packet);
 
-                    CConsole.WriteLine($"[Auto Quality Control] Quality updated: {currentQuality}\n", MessageType.txtWarning);
+                    CConsole.WriteLine($"[Auto Quality Control] Quality updated: {CurrentVideoQuality}\n" , MessageType.txtWarning);
+
+                    ToolStripMenuItem qualityButton = MainView.QualityButtons[RoundToNearestTen(CurrentVideoQuality)];
+
+                    if (qualityButton.Checked)  // if already selected - do not do anything
+                        return;
+
+                    foreach (ToolStripMenuItem item in MainView.QualityButtons.Values)
+                    {
+                        item.Checked = false;
+                    }
+                    qualityButton.Checked = true;
                 }
             }
 
@@ -103,6 +113,17 @@ namespace Client
                 {
                     Debug.WriteLine("[IMAGE] ERROR: Can't build image\n");
                 }
+            }
+        }
+        private static byte RoundToNearestTen(byte num)
+        {
+            if (num % 10 >= 5)
+            {
+                return (byte)((num / 10 + 1) * 10);
+            }
+            else
+            {
+                return (byte)(num / 10 * 10);
             }
         }
 
