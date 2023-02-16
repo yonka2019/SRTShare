@@ -1,15 +1,13 @@
 ﻿using PcapDotNet.Packets;
+using SRTShareLib;
 using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.RequestsFactory;
-using SRTShareLib;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System;
-
-using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
+using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace Client
 {
@@ -19,10 +17,6 @@ namespace Client
         private static readonly object _lock = new object();
 
         private static List<Data.SRTHeader> dataPackets = new List<Data.SRTHeader>();
-
-        private const int LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
-        private const int DOWN_QUALITY_BY = 15;
-
         private static byte currentQuality = 50;
 
         private static byte[] FullData
@@ -77,16 +71,14 @@ namespace Client
             if (!lastChunkReceived)
                 Debug.WriteLine("[IMAGE] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
 #endif
-
-
             uint[] missedPackets = MissingPackets();
 
             // dataPackets.Last().MESSAGE_NUMBER - the last seq number which is the max
-            if ((dataPackets.Last().MESSAGE_NUMBER * (LOSS_PERCENT_REQUIRED / 100.0) <= missedPackets.Length) && MainView.AutoQualityControl)
+            if ((dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0) <= missedPackets.Length) && MainView.AutoQualityControl)
             {
-                if (currentQuality - DOWN_QUALITY_BY > 0)
+                if (currentQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)
                 {
-                    currentQuality -= DOWN_QUALITY_BY;  // down quality and send quality update request 
+                    currentQuality -= MainView.DATA_DECREASE_QUALITY_BY;  // down quality and send quality update request 
 
                     QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
                     Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(MainView.server_sid, currentQuality);
