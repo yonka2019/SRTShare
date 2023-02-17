@@ -19,10 +19,10 @@ namespace Client
         private static readonly object _lock = new object();
 
         private static List<Data.SRTHeader> dataPackets = new List<Data.SRTHeader>();
-        internal static byte CurrentVideoQuality = 50;
+        internal static byte CurrentVideoQuality = ProtocolManager.DEFAULT_QUALITY;
 
         private static DateTime lastQualityModify;
-        private const int minimum_SecondsElapsedToModify = 3;  // don't allow the algorithm to AUTO modify the quality if there is was a quality change
+        private const int MINIMUM_SECONDS_ELPASED_TO_MODIFY = 3;  // don't allow the algorithm to AUTO modify the quality if there is was a quality change
 
         private static byte[] FullData
         {
@@ -78,8 +78,8 @@ namespace Client
 #endif
             uint[] missedPackets = MissingPackets();
 
-            Console.WriteLine("SHOULD BE: " + (Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0))));
-            Console.WriteLine("MISSED: " + (missedPackets.Length));
+            Console.WriteLine("SHOULD BE: " + Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)));
+            Console.WriteLine("MISSED: " + missedPackets.Length);
 
             TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
 
@@ -88,7 +88,7 @@ namespace Client
 
                 && MainView.AutoQualityControl  // check if option enabled
 
-                && timeElapsed.TotalSeconds > minimum_SecondsElapsedToModify)  // check if min required time elapsed
+                && timeElapsed.TotalSeconds > MINIMUM_SECONDS_ELPASED_TO_MODIFY)  // check if min required time elapsed
             {
                 if (CurrentVideoQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)
                 {
@@ -98,9 +98,9 @@ namespace Client
                     Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(MainView.server_sid, CurrentVideoQuality);
                     PacketManager.SendPacket(qualityUpdate_packet);
 
-                    CConsole.WriteLine($"[Auto Quality Control] Quality updated: {CurrentVideoQuality}\n" , MessageType.txtWarning);
+                    CConsole.WriteLine($"[Auto Quality Control] Quality updated: {CurrentVideoQuality}\n", MessageType.txtWarning);
 
-                    ToolStripMenuItem qualityButton = MainView.QualityButtons[RoundToNearestTen(CurrentVideoQuality)];
+                    ToolStripMenuItem qualityButton = MainView.QualityButtons[CurrentVideoQuality.RoundToNearestTen()];
 
                     if (qualityButton.Checked)  // if already selected - do not do anything
                         return;
@@ -125,17 +125,6 @@ namespace Client
                 {
                     Debug.WriteLine("[IMAGE] ERROR: Can't build image\n");
                 }
-            }
-        }
-        private static byte RoundToNearestTen(byte num)
-        {
-            if (num % 10 >= 5)
-            {
-                return (byte)((num / 10 + 1) * 10);
-            }
-            else
-            {
-                return (byte)(num / 10 * 10);
             }
         }
 

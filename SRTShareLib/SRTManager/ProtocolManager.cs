@@ -6,6 +6,8 @@ namespace SRTShareLib
 {
     public class ProtocolManager
     {
+        public const byte DEFAULT_QUALITY = 50;  // video default quality value
+
         /// <summary>
         /// The function generates a syn cookie for the handshake
         /// </summary>

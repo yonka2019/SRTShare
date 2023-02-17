@@ -51,7 +51,7 @@ namespace Client
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.XOR;  // The whole encryption of the conversation (from data stage)
+        internal const EncryptionType ENCRYPTION = EncryptionType.None;  // The whole encryption of the conversation (from data stage)
         internal const int INITIAL_PSN = 0;  // The first sequence number of the conversation
 
         internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
@@ -65,6 +65,7 @@ namespace Client
 
             AutoQualityControl = autoQualityControl.Checked;
             QualityButtons = new Dictionary<byte, ToolStripMenuItem> { { 10, q_10p }, { 20, q_20p }, { 30, q_30p }, { 40, q_40p }, { 50, q_50p }, { 60, q_60p }, { 70, q_70p }, { 80, q_80p }, { 90, q_90p }, { 100, q_100p } };
+            QualityButtons[ProtocolManager.DEFAULT_QUALITY.RoundToNearestTen()].Checked = true;
 
             myPort = (ushort)rnd.Next(1, 50000);  // randomize any port for the client
 
@@ -152,6 +153,7 @@ namespace Client
                             });
                             CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
                             videoStage = true;
+                            EnableQualityButtons();
                         }
                     }
                     else if (Control.Shutdown.IsShutdown(payload))  // (SRT) Server Shutdown ! [HANDLES ONLY CTRL + C EVENT ON SERVER SIDE] !
@@ -211,6 +213,17 @@ namespace Client
                 (byte[] key, byte[] IV) = EncCredFunc[ENCRYPTION](ip);
 
                 payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, key, IV);
+            }
+        }
+
+        /// <summary>
+        /// When video staged achieved, the quality buttons should be enabled 
+        /// </summary>
+        private void EnableQualityButtons()
+        {
+            foreach (ToolStripMenuItem button in QualityButtons.Values)
+            {
+                button.Enabled = true;
             }
         }
 
