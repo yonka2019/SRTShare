@@ -1,6 +1,6 @@
 ﻿using PcapDotNet.Packets;
 using SRTShareLib.PcapManager;
-using SRTShareLib.SRTManager.Encryption;
+using SRTShareLib.SRTManager.EManager.Encryption;
 using System;
 using System.Collections.Generic;
 using SRTData = SRTShareLib.SRTManager.ProtocolFields.Data;

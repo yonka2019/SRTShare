@@ -133,7 +133,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             handshake += "Cookie: " + SYN_COOKIE + "\n";
             handshake += "Peer ip: " + PEER_IP.ToString() + "\n";
             handshake += "Handshake type: " + TYPE.ToString("X") + "\n";
-            handshake += "Encryption: " + ((Encryption.EncryptionType)ENCRYPTION_FIELD).ToString() + "\n";
+            handshake += "Encryption: " + ((EManager.Encryption.EncryptionType)ENCRYPTION_FIELD).ToString() + "\n";
             handshake += "Initial PSN: " + INTIAL_PSN;
 
             return handshake;

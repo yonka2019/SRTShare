@@ -1,7 +1,7 @@
 ﻿using PcapDotNet.Packets;
 using SRTShareLib;
 using SRTShareLib.PcapManager;
-using SRTShareLib.SRTManager.Encryption;
+using SRTShareLib.SRTManager.EManager.Encryption;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;

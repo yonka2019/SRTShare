@@ -2,7 +2,7 @@
 using PcapDotNet.Packets.Transport;
 using SRTShareLib;
 using SRTShareLib.PcapManager;
-using SRTShareLib.SRTManager.Encryption;
+using SRTShareLib.SRTManager.EManager.Encryption;
 using SRTShareLib.SRTManager.ProtocolFields.Control;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;

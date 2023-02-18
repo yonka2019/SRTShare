@@ -1,8 +1,7 @@
 ﻿using PcapDotNet.Packets;
 using PcapDotNet.Packets.IpV4;
-using PcapDotNet.Packets.Transport;
 
-namespace SRTShareLib.SRTManager.Encryption
+namespace SRTShareLib.SRTManager.EManager.Encryption
 {
     /* 
     * Each encryption method (type) must have his own 'public static class'
