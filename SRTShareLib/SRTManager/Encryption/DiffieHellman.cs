@@ -6,6 +6,7 @@ namespace SRTShareLib.SRTManager.Encryption  // Key Exchange Manager
     {
         private static readonly ECDiffieHellmanCng me;
 
+        private static byte[] secretKey;
         public static byte[] PublicKey { get; private set; }
 
         static DiffieHellman()
@@ -16,6 +17,7 @@ namespace SRTShareLib.SRTManager.Encryption  // Key Exchange Manager
                 HashAlgorithm = CngAlgorithm.MD5
             };
             PublicKey = GetPublicKey();
+            secretKey = null;  // should be set later, when second public key will be received
         }
 
         public static byte[] GetPublicKey()
@@ -23,10 +25,19 @@ namespace SRTShareLib.SRTManager.Encryption  // Key Exchange Manager
             return me.PublicKey.ToByteArray();
         }
 
-        public static byte[] GenerateSecretKey(byte[] peerKey)
+        public static byte[] GetSecretKey(byte[] peerPublicKey = null)
         {
-            CngKey peerCngKey = CngKey.Import(peerKey, CngKeyBlobFormat.EccPublicBlob);
-            return me.DeriveKeyMaterial(peerCngKey);
+            if (peerPublicKey == null)
+            {
+                return secretKey;
+            }
+            else  // secret key should be updated according the given peer public key
+            {
+                CngKey peerCngKey = CngKey.Import(peerPublicKey, CngKeyBlobFormat.EccPublicBlob);
+                secretKey = me.DeriveKeyMaterial(peerCngKey);
+
+                return secretKey;
+            }
         }
     }
 }
