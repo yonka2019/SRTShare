@@ -13,7 +13,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         public Handshake(uint version, ushort encryption_field, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, IpV4Address p_ip) : base(ControlType.HANDSHAKE, dest_socket_id)
         {
             VERSION = version; byteFields.Add(BitConverter.GetBytes(VERSION));
-            ENCRYPTION_FIELD = encryption_field; byteFields.Add(BitConverter.GetBytes(ENCRYPTION_FIELD));
+            ENCRYPTION_TYPE = encryption_field; byteFields.Add(BitConverter.GetBytes(ENCRYPTION_TYPE));
             INTIAL_PSN = intial_psn; byteFields.Add(BitConverter.GetBytes(INTIAL_PSN));
 
             // (.Mtu - 100; explanation) To avoid errors with sending, because this field used to set fixed size of splitted data packet, while the real mtu that the interface provides refers the whole size of the packet which get sent, and with the whole srt packet and all layers in will much more
@@ -31,7 +31,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         public Handshake(byte[] data) : base(data)  // initialize SRT Control header fields
         {
             VERSION = BitConverter.ToUInt32(data, 13);  // [13 14 15 16] (4 bytes)
-            ENCRYPTION_FIELD = BitConverter.ToUInt16(data, 17);  // [17 18] (2 bytes)
+            ENCRYPTION_TYPE = BitConverter.ToUInt16(data, 17);  // [17 18] (2 bytes)
             INTIAL_PSN = BitConverter.ToUInt32(data, 19);  // [19 20 21 22] (4 bytes)
             MTU = BitConverter.ToUInt32(data, 23);  // [23 24 25 26] (4 bytes)
             // MFW = [27 28 29 30] (4 bytes)
@@ -65,7 +65,13 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// values of this field are described in Table 2. The default value
         /// is AES-128.
         /// </summary>
-        public ushort ENCRYPTION_FIELD { get; private set; }
+        public ushort ENCRYPTION_TYPE { get; private set; }
+
+        /// <summary>
+        /// 256 bits (32 bytes). Fixed size which is Diffie-Hellman key-exchange method use.
+        /// NOTICE: if there is no encryption at all, the encryption will be fulled '0' bytes ({0x0, 0x0, 0x0, ...}) as well.
+        /// </summary>
+        public byte[] ENCRYPTION_KEY { get; private set; }
 
         /// <summary>
         /// 32 bits (4 bytes). The sequence number of the
@@ -133,7 +139,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             handshake += "Cookie: " + SYN_COOKIE + "\n";
             handshake += "Peer ip: " + PEER_IP.ToString() + "\n";
             handshake += "Handshake type: " + TYPE.ToString("X") + "\n";
-            handshake += "Encryption: " + ((EManager.Encryption.EncryptionType)ENCRYPTION_FIELD).ToString() + "\n";
+            handshake += "Encryption: " + ((Encryption.EncryptionType)ENCRYPTION_TYPE).ToString() + "\n";
             handshake += "Initial PSN: " + INTIAL_PSN;
 
             return handshake;

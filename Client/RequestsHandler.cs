@@ -27,7 +27,7 @@ namespace Client
                 // client -> server (conclusion)
 
                 IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedIP());
-                Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.client_sid, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_FIELD, handshake_request.SYN_COOKIE);
+                Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.client_sid, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_TYPE, handshake_request.SYN_COOKIE);
                 PacketManager.SendPacket(handshake_packet);
 
             }

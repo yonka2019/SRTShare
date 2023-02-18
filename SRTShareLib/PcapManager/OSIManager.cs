@@ -2,7 +2,7 @@
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
-using SRTShareLib.SRTManager.EManager.Encryption;
+using SRTShareLib.SRTManager.Encryption;
 using System.Collections.Generic;
 using System.Linq;
 

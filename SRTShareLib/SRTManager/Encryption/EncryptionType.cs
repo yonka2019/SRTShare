@@ -1,4 +1,4 @@
-﻿namespace SRTShareLib.SRTManager.EManager.Encryption
+﻿namespace SRTShareLib.SRTManager.Encryption
 {
     public enum EncryptionType
     {

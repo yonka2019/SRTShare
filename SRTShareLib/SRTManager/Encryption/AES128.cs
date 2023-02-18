@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace SRTShareLib.SRTManager.EManager.Encryption
+namespace SRTShareLib.SRTManager.Encryption
 {
     /*
      * This encryption method is problematic because this encryption method use "hash" function in order to encrypt/decrypt the data.

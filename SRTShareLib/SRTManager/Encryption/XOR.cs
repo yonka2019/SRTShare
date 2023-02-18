@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace SRTShareLib.SRTManager.EManager.Encryption
+namespace SRTShareLib.SRTManager.Encryption
 {
     public static class XOR
     {

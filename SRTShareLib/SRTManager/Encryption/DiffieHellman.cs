@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace SRTShareLib.SRTManager.Encryption.KEManager  // Key Exchange Manager
+namespace SRTShareLib.SRTManager.Encryption  // Key Exchange Manager
 {
     public static class DiffieHellman
     {
@@ -10,12 +10,11 @@ namespace SRTShareLib.SRTManager.Encryption.KEManager  // Key Exchange Manager
 
         static DiffieHellman()
         {
-            me = new ECDiffieHellmanCng
+            me = new ECDiffieHellmanCng(ECCurve.CreateFromFriendlyName("ECDH_P256"))  // 256 bit -> 32 bytes key fixed-size
             {
                 KeyDerivationFunction = ECDiffieHellmanKeyDerivationFunction.Hash,
-                HashAlgorithm = CngAlgorithm.MD5  // 128 bit key (16 byte)
+                HashAlgorithm = CngAlgorithm.MD5
             };
-
             PublicKey = GetPublicKey();
         }
 
