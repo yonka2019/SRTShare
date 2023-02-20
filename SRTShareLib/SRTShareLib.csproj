@@ -72,7 +72,9 @@
     <Compile Include="SRTManager\Encryption\EncryptionType.cs" />
     <Compile Include="SRTManager\Encryption\Substitution.cs" />
     <Compile Include="SRTManager\Encryption\XOR.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Control\Ack.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\Keep-Alive.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Control\Nak.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\QualityUpdate.cs" />
     <Compile Include="SRTManager\ProtocolFields\Data\DataFlags.cs" />
     <Compile Include="SRTManager\ProtocolFields\Data\SRTHeader.cs" />
