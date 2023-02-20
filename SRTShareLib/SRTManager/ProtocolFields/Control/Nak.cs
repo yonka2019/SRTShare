@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SRTShareLib.SRTManager.ProtocolFields.Control
 {
-    internal class Nak : SRTHeader
+    public class Nak : SRTHeader
     {
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
@@ -47,7 +47,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         }
 
         /// <summary>
-        /// list of 32 bits (2 bytes). All the lost packets' sequence number
+        /// list of 32 bits (2 bytes). All the lost packets' sequence numbers
         /// </summary>
         public List<uint> LOST_PACKETS { get; private set; }
     }

@@ -129,6 +129,29 @@ namespace Server
                         SRTSockets[clientSocketId].Data.CurrentQuality = qualityUpdate.QUALITY;
 
                     }
+
+                    else if(Nak.isNak(payload))
+                    {
+                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
+
+                        Nak nak_request = new Nak(payload);
+                        List<uint> missingSequenceNumbers = nak_request.LOST_PACKETS; 
+
+                        // resend all the packets for each missing sequence number (each image)
+                        
+                    }
+
+                    else if(Ack.isAck(payload))
+                    {
+                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
+
+                        Ack ack_request = new Ack(payload);
+                        uint receivedImageSequenceNumber = ack_request.ACK_SEQUENCE_NUMBER;
+
+                        // clear all the packets of teh received image sequence number
+                    }
+
+
                     else if (Shutdown.IsShutdown(payload))  // (SRT) Shutdown
                         RequestsHandler.HandleShutDown(packet);
                 }

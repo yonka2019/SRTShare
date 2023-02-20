@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SRTShareLib.SRTManager.ProtocolFields.Control
 {
-    internal class Ack : SRTHeader
+    public class Ack : SRTHeader
     {
         /// <summary>
         /// Fields -> List<Byte[]> (To send)

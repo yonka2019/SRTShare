@@ -87,7 +87,7 @@ namespace Client
             // if there are missing packets -> send a nak packet with missing packets
             if(missedPackets.Length > 0)
             {
-                SendMissingPackets(missedPackets);
+                SendMissingPackets(new uint[] { dataPackets[0].SEQUENCE_NUMBER });
                 return;
             }
 
@@ -173,12 +173,12 @@ namespace Client
             return missingList.ToArray();
         }
 
-        private static void SendMissingPackets(uint[] missedPackets)
+        private static void SendMissingPackets(uint[] missedSequenceNumbers)
         {
             NakRequest nak_request = new NakRequest
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
 
-            Packet nak_packet = nak_request.SendMissingPackets(missedPackets.ToList());
+            Packet nak_packet = nak_request.SendMissingPackets(missedSequenceNumbers.ToList());
             PacketManager.SendPacket(nak_packet);
         }
 
