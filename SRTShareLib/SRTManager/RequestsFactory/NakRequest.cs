@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace SRTShareLib.SRTManager.RequestsFactory
 {
-    internal class NakRequest : UdpPacket
+    public class NakRequest : UdpPacket
     {
         public NakRequest(params ILayer[] layers) : base(layers) { }
 

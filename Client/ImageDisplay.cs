@@ -10,6 +10,7 @@ using System.Linq;
 using System.Windows.Forms;
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
+using SRTShareLib.SRTManager.RequestsFactory;
 
 namespace Client
 {
@@ -70,16 +71,29 @@ namespace Client
             }
         }
 
+        
+
         private static void ShowImage(bool lastChunkReceived, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
         {
 #if DEBUG
             if (!lastChunkReceived)
                 Debug.WriteLine("[IMAGE] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
 #endif
-            uint[] missedPackets = MissingPackets();
+            uint[] missedPackets = GetMissingPackets();
 
             Console.WriteLine("SHOULD BE: " + (Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0))));
             Console.WriteLine("MISSED: " + (missedPackets.Length));
+
+            // if there are missing packets -> send a nak packet with missing packets
+            if(missedPackets.Length > 0)
+            {
+                SendMissingPackets(missedPackets);
+                return;
+            }
+
+            else // if all the packets of the current image were received -> send an ack packet with the image's sequence number
+                NotifyReceivedImage(dataPackets[0].SEQUENCE_NUMBER);
+
 
             TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
 
@@ -139,7 +153,7 @@ namespace Client
             }
         }
 
-        private static uint[] MissingPackets()
+        private static uint[] GetMissingPackets()
         {
             dataPackets = dataPackets.OrderBy(dp => dp.MESSAGE_NUMBER).ToList();
 
@@ -157,6 +171,24 @@ namespace Client
             }
 
             return missingList.ToArray();
+        }
+
+        private static void SendMissingPackets(uint[] missedPackets)
+        {
+            NakRequest nak_request = new NakRequest
+                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+
+            Packet nak_packet = nak_request.SendMissingPackets(missedPackets.ToList());
+            PacketManager.SendPacket(nak_packet);
+        }
+
+        private static void NotifyReceivedImage(uint ackSequenceNumber)
+        {
+            AckRequest ack_request = new AckRequest
+                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+
+            Packet ack_packet = ack_request.NotifyReceived(ackSequenceNumber);
+            PacketManager.SendPacket(ack_packet);
         }
     }
 }

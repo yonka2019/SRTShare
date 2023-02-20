@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace SRTShareLib.SRTManager.RequestsFactory
 {
-    internal class AckRequest : UdpPacket
+    public class AckRequest : UdpPacket
     {
         public AckRequest(params ILayer[] layers) : base(layers) { }
 
