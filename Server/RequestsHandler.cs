@@ -6,6 +6,7 @@ using SRTShareLib;
 using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.ProtocolFields.Control;
 using SRTShareLib.SRTManager.RequestsFactory;
+using SRTShareLib.SRTManager.Encryption;
 using System;
 
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
@@ -54,7 +55,7 @@ namespace Server
             uint cookie = ProtocolManager.GenerateCookie(client_ip);
 
             IpV4Address peer_ip = new IpV4Address(NetworkManager.PublicIp);
-            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_TYPE);
+            Packet handshake_packet = handshake_response.Induction(cookie, init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_TYPE, new byte[32]);
             PacketManager.SendPacket(handshake_packet);
         }
 
@@ -73,7 +74,12 @@ namespace Server
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, packet.Ethernet.Source.ToString(), NetworkManager.LocalIp, packet.Ethernet.IpV4.Source.ToString(), ConfigManager.PORT, datagram.SourcePort));
 
             IpV4Address peer_ip = new IpV4Address(NetworkManager.PublicIp);
-            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_TYPE);
+
+            byte[] myPublicKey = new byte[32];
+            if ((EncryptionType)handshake_request.ENCRYPTION_TYPE != EncryptionType.None)
+                myPublicKey = DiffieHellman.MyPublicKey;
+
+            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey);
             PacketManager.SendPacket(handshake_packet);
 
             #region New client information set

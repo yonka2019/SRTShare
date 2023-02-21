@@ -19,7 +19,7 @@ namespace Client
         private static readonly object _lock = new object();
 
         private static List<Data.SRTHeader> dataPackets = new List<Data.SRTHeader>();
-        internal static byte CurrentVideoQuality = ProtocolManager.DEFAULT_QUALITY;
+        internal static long CurrentVideoQuality = ProtocolManager.DEFAULT_QUALITY;
 
         private static DateTime lastQualityModify;
         private const int MINIMUM_SECONDS_ELPASED_TO_MODIFY = 3;  // don't allow the algorithm to AUTO modify the quality if there is was a quality change
@@ -72,14 +72,15 @@ namespace Client
 
         private static void ShowImage(bool lastChunkReceived, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
         {
+            uint[] missedPackets = MissingPackets();
+
 #if DEBUG
             if (!lastChunkReceived)
                 Debug.WriteLine("[IMAGE] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
-#endif
-            uint[] missedPackets = MissingPackets();
 
-            Console.WriteLine("SHOULD BE: " + Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)));
-            Console.WriteLine("MISSED: " + missedPackets.Length);
+            Debug.WriteLine("SHOULD BE: " + Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)));
+            Debug.WriteLine("MISSED: " + missedPackets.Length);
+#endif
 
             TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
 

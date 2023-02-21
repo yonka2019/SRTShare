@@ -28,7 +28,7 @@ namespace Server
         private static ulong dataSent = 0;  // count data sent packets (included chunks)
 #endif
 
-        internal byte CurrentQuality { private get; set; }
+        internal long CurrentQuality { private get; set; }
 
         private static uint current_sequence_number;
 

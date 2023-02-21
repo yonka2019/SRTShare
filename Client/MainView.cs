@@ -34,15 +34,14 @@ namespace Client
         internal static string serverMac = null;
         internal static bool externalConnection;
 
-        private static Dictionary<EncryptionType, Func<string, (byte[], byte[])>> EncCredFunc;  // Functions which is responsible for getting the key +/ iv 
         private static Thread handlePackets, handleKeepAlive;
 
         internal static bool AutoQualityControl = false;
 
-        // 10% - q_10p
-        // 20% - q_10p
-        //   . . .
-        internal static Dictionary<byte, ToolStripMenuItem> QualityButtons;
+        // 10% - q_10p (button)
+        // 20% - q_10p (button)
+        //  .. .. ..
+        internal static Dictionary<long, ToolStripMenuItem> QualityButtons;
 
 
 #if DEBUG
@@ -51,11 +50,12 @@ namespace Client
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.None;  // The whole encryption of the conversation (from data stage)
+        internal const EncryptionType ENCRYPTION = EncryptionType.XOR;  // The whole encryption of the conversation (from data stage)
         internal const int INITIAL_PSN = 0;  // The first sequence number of the conversation
 
         internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
         internal const int DATA_DECREASE_QUALITY_BY = 10; // (0 - 100)
+        // DEFAULT QUALITY VALUE (to server and client) - ProtocolManager.cs : DEFAULT_QUALITY
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
@@ -64,7 +64,7 @@ namespace Client
             InitializeComponent();
 
             AutoQualityControl = autoQualityControl.Checked;
-            QualityButtons = new Dictionary<byte, ToolStripMenuItem> { { 10, q_10p }, { 20, q_20p }, { 30, q_30p }, { 40, q_40p }, { 50, q_50p }, { 60, q_60p }, { 70, q_70p }, { 80, q_80p }, { 90, q_90p }, { 100, q_100p } };
+            QualityButtons = new Dictionary<long, ToolStripMenuItem> { { 10L, q_10p }, { 20L, q_20p }, { 30L, q_30p }, { 40L, q_40p }, { 50L, q_50p }, { 60L, q_60p }, { 70L, q_70p }, { 80L, q_80p }, { 90L, q_90p }, { 100L, q_100p } };
             QualityButtons[ProtocolManager.DEFAULT_QUALITY.RoundToNearestTen()].Checked = true;
 
             myPort = (ushort)rnd.Next(1, 50000);  // randomize any port for the client
@@ -89,8 +89,6 @@ namespace Client
             InductionCheck();
 
             ServerAliveChecker.LostConnection += Server_LostConnection;  // subscribe the event to avoid unexpectable server shutdown
-
-            RegisterEncKeysFunctions();
         }
 
         /// <summary>
@@ -142,15 +140,22 @@ namespace Client
 
                         if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.INDUCTION)  // (SRT) Induction
                         {
+                            Console.WriteLine($"[Handshake] Got Induction: {handshake_request}\n");
+
                             serverAlive = true;
                             RequestsHandler.HandleInduction(handshake_request);
                         }
-                        else if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.CONCLUSION)
+                        else if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.CONCLUSION)  // (SRT) Conclusion 
                         {
+                            Console.WriteLine($"[Handshake] Got Conclusion: {handshake_request}\n");
+
+                            DiffieHellman.PeerPublicKey = handshake_request.ENCRYPTION_PUBLIC_KEY;
+
                             Invoke((MethodInvoker)delegate
                             {
                                 VideoBox.Text = "";
                             });
+
                             CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
                             videoStage = true;
                             EnableQualityButtons();
@@ -205,14 +210,10 @@ namespace Client
             if (videoStage && ENCRYPTION != EncryptionType.None)  // if video stage reached and the encryption enabled -
                                                                   // the server will send each packet encrypted (data/shutdown/keepalive)
             {
-                if (!EncCredFunc.ContainsKey(ENCRYPTION))
+                if (!Enum.IsDefined(typeof(EncryptionType), ENCRYPTION))
                     throw new Exception($"'{ENCRYPTION}' This encryption method isn't supported yet");
 
-                string ip = GetAdaptedIP();
-
-                (byte[] key, byte[] IV) = EncCredFunc[ENCRYPTION](ip);
-
-                payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, key, IV);
+                payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, DiffieHellman.GetSecretKey());
             }
         }
 
@@ -290,7 +291,7 @@ namespace Client
             }
             qualitySelected.Checked = true;
 
-            byte newQuality = QualityButtons.FirstOrDefault(quality => quality.Value == qualitySelected).Key;
+            long newQuality = QualityButtons.FirstOrDefault(quality => quality.Value == qualitySelected).Key;
 
             QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
             Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(server_sid, newQuality);
@@ -326,17 +327,5 @@ namespace Client
             handleKeepAlive.Abort();
         }
 
-        /// <summary>
-        /// Register encryption create keys functions individually for each encryption type
-        /// </summary>
-        public static void RegisterEncKeysFunctions()
-        {
-            EncCredFunc = new Dictionary<EncryptionType, Func<string, (byte[], byte[])>>
-            {
-                { EncryptionType.AES128, AES128.CreateKey_IV },
-                { EncryptionType.Substitution, Substitution.CreateKey },
-                { EncryptionType.XOR, XOR.CreateKey }
-            };
-        }
     }
 }

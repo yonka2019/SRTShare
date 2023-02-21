@@ -22,15 +22,15 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         }
 
         /// <summary>
-        /// Byte[] -> Fields (To extract)
+        /// Byte[] -> Fields (To extract) [0 -> 12]
         /// </summary>
         public SRTHeader(byte[] data)
         {
-            IS_CONTROL_PACKET = BitConverter.ToBoolean(data, 0); // [0]
-            CONTROL_TYPE = BitConverter.ToUInt16(data, 1); // [1 2]
-            SUB_TYPE = BitConverter.ToUInt16(data, 3); // [3 4]
-            TYPE_SPECIFIC_INFO = BitConverter.ToUInt32(data, 5); // [5 6 7 8]
-            DEST_SOCKET_ID = BitConverter.ToUInt32(data, 9); // [9 10 11 12]
+            IS_CONTROL_PACKET = BitConverter.ToBoolean(data, 0); // [0] (1 byte)
+            CONTROL_TYPE = BitConverter.ToUInt16(data, 1); // [1 2] (2 bytes)
+            SUB_TYPE = BitConverter.ToUInt16(data, 3); // [3 4] (2 bytes)
+            TYPE_SPECIFIC_INFO = BitConverter.ToUInt32(data, 5); // [5 6 7 8] (4 bytes)
+            DEST_SOCKET_ID = BitConverter.ToUInt32(data, 9); // [9 10 11 12] (4 bytes)
         }
 
         /// <summary>

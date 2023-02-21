@@ -141,9 +141,9 @@ namespace SRTShareLib
             return true;
         }
 
-        public static byte RoundToNearestTen(this byte num)
+        public static long RoundToNearestTen(this long num)
         {
-            return num % 10 >= 5 ? (byte)(((num / 10) + 1) * 10) : (byte)(num / 10 * 10);
+            return num % 10 >= 5 ? (((num / 10) + 1) * 10) : (num / 10 * 10);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
         /// <returns>A shutdown packet</returns>
         public Packet Shutdown(uint dest_socket_id = 0, bool videoStage = false, EncryptionType encryptionType = EncryptionType.None)
         {
-            GetPayloadLayer() = OSIManager.BuildPLayer(new SRTControl.Shutdown(dest_socket_id).GetByted(), videoStage, encryptionType, GetLayers());
+            GetPayloadLayer() = OSIManager.BuildPLayer(new SRTControl.Shutdown(dest_socket_id).GetByted(), videoStage, encryptionType);
             return BuildPacket();
         }
     }

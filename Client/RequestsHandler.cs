@@ -27,7 +27,12 @@ namespace Client
                 // client -> server (conclusion)
 
                 IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedIP());
-                Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.client_sid, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_TYPE, handshake_request.SYN_COOKIE);
+
+                byte[] myPublicKey = new byte[32];
+                if (MainView.ENCRYPTION != SRTShareLib.SRTManager.Encryption.EncryptionType.None)
+                    myPublicKey = SRTShareLib.SRTManager.Encryption.DiffieHellman.MyPublicKey;
+
+                Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.client_sid, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey, handshake_request.SYN_COOKIE);
                 PacketManager.SendPacket(handshake_packet);
 
             }
@@ -54,7 +59,7 @@ namespace Client
                     (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
 
             IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedIP());
-            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(MainView.GetAdaptedIP()), init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)MainView.ENCRYPTION);
+            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(MainView.GetAdaptedIP()), init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)MainView.ENCRYPTION, new byte[32]);
 
             PacketManager.SendPacket(handshake_packet);
         }

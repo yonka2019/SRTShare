@@ -17,7 +17,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
         /// <returns>A keep alive packet</returns>
         public Packet Alive(uint dest_socket_id, bool videoStage = false, EncryptionType encryptionType = EncryptionType.None)
         {
-            GetPayloadLayer() = OSIManager.BuildPLayer(new SRTControl.KeepAlive(dest_socket_id).GetByted(), videoStage, encryptionType, GetLayers());
+            GetPayloadLayer() = OSIManager.BuildPLayer(new SRTControl.KeepAlive(dest_socket_id).GetByted(), videoStage, encryptionType);
             return BuildPacket();
         }
     }
