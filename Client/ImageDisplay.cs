@@ -74,6 +74,18 @@ namespace Client
         {
             uint[] missedPackets = MissingPackets();
 
+            // if there are missing packets -> send a nak packet with missing packets
+            if (missedPackets.Length > 0)
+            {
+                SendMissingPackets(new uint[] { dataPackets[0].SEQUENCE_NUMBER });
+                return;
+            }
+
+            else // if all the packets of the current image were received -> send an ack packet with the image's sequence number
+                NotifyReceivedImage(dataPackets[0].SEQUENCE_NUMBER);
+
+
+
             if (!lastChunkReceived)
                 Debug.WriteLine("[IMAGE BUILDER] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
 
@@ -164,5 +176,24 @@ namespace Client
 
             return missingList.ToArray();
         }
+
+        private static void SendMissingPackets(uint[] missedSequenceNumbers)
+        {
+            NakRequest nak_request = new NakRequest
+                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
+
+            Packet nak_packet = nak_request.SendMissingPackets(missedSequenceNumbers.ToList());
+            PacketManager.SendPacket(nak_packet);
+        }
+
+        private static void NotifyReceivedImage(uint ackSequenceNumber)
+        {
+            ACKRequest ack_request = new ACKRequest
+                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
+
+            Packet ack_packet = ack_request.NotifyReceived(ackSequenceNumber);
+            PacketManager.SendPacket(ack_packet);
+        }
+
     }
 }

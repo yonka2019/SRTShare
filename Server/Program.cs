@@ -118,7 +118,7 @@ namespace Server
                         if (SRTSockets.ContainsKey(clientSocketId))
                             SRTSockets[clientSocketId].KeepAlive.ConfirmStatus();  // sign as alive
                     }
-                    else if (QualityUpdate.IsQualityUpdate(payload))  // update the quality especially to this client
+                    else if (QualityUpdate.IsQualityUpdate(payload))  // (SRT) QualityUpdate - update the quality especially to this client
                     {
                         uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
 
@@ -129,6 +129,26 @@ namespace Server
                         SRTSockets[clientSocketId].Data.CurrentQuality = qualityUpdate.QUALITY;
 
                     }
+                    else if (NAK.IsNAK(payload))  // (SRT) NAK
+                    {
+                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
+
+                        NAK nak_request = new NAK(payload);
+                        List<uint> missingSequenceNumbers = nak_request.LOST_PACKETS;
+
+                        // resend all the packets for each missing sequence number (each image)
+
+                    }
+                    else if (ACK.IsACK(payload))  // (SRT) ACK
+                    {
+                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
+
+                        ACK ack_request = new ACK(payload);
+                        uint receivedImageSequenceNumber = ack_request.ACK_SEQUENCE_NUMBER;
+
+                        // clear all the packets of teh received image sequence number
+                    }
+
                     else if (Shutdown.IsShutdown(payload))  // (SRT) Shutdown
                         RequestsHandler.HandleShutDown(packet);
                 }
