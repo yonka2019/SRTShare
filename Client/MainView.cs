@@ -28,21 +28,22 @@ namespace Client
         private bool videoStage = false;  // when the client reaches the video stage, he knows that each packet from the server will be encrypted,
                                           // so he should be ready to decrypt each received packet
 
-        internal static uint server_sid = 0;  // we getting know this value on the indoction that the server returns to us (SID -> Socket ID)
-        internal static ushort myPort;
+        internal static uint server_sid = 0;  // we getting know this value on the induction that the server returns to us (SID -> Socket ID)
+        internal static string server_mac = null;
+
+        internal static ushort my_client_port;
         internal static uint client_sid = 0;  // the server sends this value on the induction answer (SID -> Socket ID) (MY SID)
-        internal static string serverMac = null;
+
         internal static bool externalConnection;
+        internal static bool AutoQualityControl = false;
 
         private static Thread handlePackets, handleKeepAlive;
-
-        internal static bool AutoQualityControl = false;
 
         // 10% - q_10p (button)
         // 20% - q_10p (button)
         //  .. .. ..
         internal static Dictionary<long, ToolStripMenuItem> QualityButtons;
-        internal static PeerEncryption serverEncryptionData;
+        internal static PeerEncryptionData serverEncryptionData;
 
 
 #if DEBUG
@@ -51,7 +52,7 @@ namespace Client
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.XOR;  // The whole encryption of the conversation (from data stage)
+        internal const EncryptionType ENCRYPTION = EncryptionType.None;  // The whole encryption of the conversation (from data stage)
         internal const int INITIAL_PSN = 0;  // The first sequence number of the conversation
 
         internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
@@ -68,7 +69,7 @@ namespace Client
             QualityButtons = new Dictionary<long, ToolStripMenuItem> { { 10L, q_10p }, { 20L, q_20p }, { 30L, q_30p }, { 40L, q_40p }, { 50L, q_50p }, { 60L, q_60p }, { 70L, q_70p }, { 80L, q_80p }, { 90L, q_90p }, { 100L, q_100p } };
             QualityButtons[ProtocolManager.DEFAULT_QUALITY.RoundToNearestTen()].Checked = true;
 
-            myPort = (ushort)rnd.Next(1, 50000);  // randomize any port for the client
+            my_client_port = (ushort)rnd.Next(1, 50000);  // randomize any port for the client
 
             // receive packets
             handlePackets = new Thread(() => { PacketManager.ReceivePackets(0, PacketHandler); });
@@ -127,7 +128,7 @@ namespace Client
         /// <param name="packet">New given packet</param>
         private void PacketHandler(Packet packet)
         {
-            if (packet.IsValidUDP(myPort, ConfigManager.PORT))  // UDP Packet
+            if (packet.IsValidUDP(my_client_port, ConfigManager.PORT))  // UDP Packet
             {
                 DecryptionNecessity(packet, out byte[] payload);
 
@@ -150,7 +151,8 @@ namespace Client
                         {
                             Console.WriteLine($"[Handshake] Got Conclusion: {handshake_request}\n");
 
-                            serverEncryptionData = new PeerEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY);
+                            // encryption data received - initialize him for future decrypt necessity
+                            serverEncryptionData = new PeerEncryptionData((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY);
 
                             Invoke((MethodInvoker)delegate
                             {
@@ -186,11 +188,11 @@ namespace Client
                     if ((arp.SenderProtocolIpV4Address.ToString() == ConfigManager.IP) || (arp.SenderProtocolIpV4Address.ToString() == NetworkManager.DefaultGateway)) // mac from server
                     {
                         // After client got the server's mac, send the first induction message
-                        serverMac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
-                        CConsole.WriteLine($"[Client] Server/Gateway MAC Found: {serverMac}\n", MessageType.txtSuccess);
+                        server_mac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
+                        CConsole.WriteLine($"[Client] Server/Gateway MAC Found: {server_mac}\n", MessageType.txtSuccess);
                         client_sid = ProtocolManager.GenerateSocketId(GetAdaptedIP());
 
-                        RequestsHandler.HandleArp(serverMac, myPort, client_sid);
+                        RequestsHandler.HandleArp(server_mac, my_client_port, client_sid);
                         handledArp = true;
                     }
                 }
@@ -235,7 +237,7 @@ namespace Client
         /// <param name="packet">New given keepalive packet</param>
         private void KeepAliveHandler(Packet packet)
         {
-            if (packet.IsValidUDP(myPort, ConfigManager.PORT))  // UDP Packet
+            if (packet.IsValidUDP(my_client_port, ConfigManager.PORT))  // UDP Packet
             {
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
@@ -246,7 +248,7 @@ namespace Client
                     {
                         Debug.WriteLine("[KEEP-ALIVE] Received request\n");
 
-                        KeepAliveRequest keepAlive_response = new KeepAliveRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
+                        KeepAliveRequest keepAlive_response = new KeepAliveRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, my_client_port, ConfigManager.PORT));
                         Packet keepAlive_confirm = keepAlive_response.Alive(server_sid);
                         PacketManager.SendPacket(keepAlive_confirm);
 
@@ -294,7 +296,7 @@ namespace Client
 
             long newQuality = QualityButtons.FirstOrDefault(quality => quality.Value == qualitySelected).Key;
 
-            QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+            QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
             Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(server_sid, newQuality);
             PacketManager.SendPacket(qualityUpdate_packet);
 
@@ -316,10 +318,10 @@ namespace Client
         /// <param name="e"></param>
         private void MainView_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (serverMac != null)
+            if (server_mac != null)
             {
                 // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
-                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
+                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, my_client_port, ConfigManager.PORT));
                 Packet shutdown_packet = shutdown_request.Shutdown(server_sid);
                 PacketManager.SendPacket(shutdown_packet);
             }

@@ -12,7 +12,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
     {
         public DataRequest(params ILayer[] layers) : base(layers) { }
 
-        public List<Packet> SplitToPackets(List<byte> stream, ref uint sequence_number, uint time_stamp, uint dest_socket_id, int MTU, PeerEncryption peerEncryption)
+        public List<Packet> SplitToPackets(List<byte> stream, ref uint sequence_number, uint time_stamp, uint dest_socket_id, int MTU, PeerEncryptionData peerEncryption)
         {
             List<Packet> packets = new List<Packet>();
             List<byte> packet_data;

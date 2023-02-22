@@ -138,7 +138,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             handshake += "Dest SId: " + DEST_SOCKET_ID + "\n";
             handshake += "Cookie: " + SYN_COOKIE + "\n";
             handshake += "Peer ip: " + PEER_IP.ToString() + "\n";
-            handshake += "Handshake type: " + TYPE.ToString("X") + "\n";
+            handshake += "Handshake type: " + ((HandshakeType)TYPE).ToString() + "\n";
             handshake += "Encryption type: " + ((EncryptionType)ENCRYPTION_TYPE).ToString() + "\n";
             handshake += "Encryption peer public key: " + BitConverter.ToString(ENCRYPTION_PEER_PUBLIC_KEY) + "\n";
             handshake += "Initial PSN: " + INTIAL_PSN;

@@ -22,7 +22,6 @@ namespace SRTShareLib.SRTManager.Encryption
         /// Type of the encryption
         /// </summary>
         public const EncryptionType Type = EncryptionType.AES256;
-        public const int KeySize = 32;  // Bytes. (AES 256 - 256 bit => 32 bit key size)
         public const int IVSize = 16;  // Bytes. Default to all AES encryption types (AES128, AES192, AES256 ..)
 
         internal static byte[] Encrypt(byte[] data, byte[] key)

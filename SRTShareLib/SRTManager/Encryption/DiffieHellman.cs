@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace SRTShareLib.SRTManager.Encryption  // Key Exchange Manager
+namespace SRTShareLib.SRTManager.Encryption
 {
     public static class DiffieHellman
     {
@@ -11,7 +11,8 @@ namespace SRTShareLib.SRTManager.Encryption  // Key Exchange Manager
         /// on chaning this public key size, the following classes should be updated as well:
         /// SRTManagaer.ProtocolFields.Control.Handshake
         /// </summary>
-        public const int PUBLIC_KEY_SIZE = 72;  // bytes
+        public const int PUBLIC_KEY_SIZE = 72;  // bytes  via (ECCurve.NamedCurves.nistP256 (256bit) + parameters)
+        public const int SECRET_KEY_SIZE = 32;  // bytes  via (ECCurve.NamedCurves.nistP256 (256bit)
 
         static DiffieHellman()
         {

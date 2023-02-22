@@ -88,7 +88,7 @@ namespace Server
 
             SClient currentClient = new SClient(handshake_request.PEER_IP, datagram.SourcePort, packet.Ethernet.Source, handshake_request.SOCKET_ID, handshake_request.MTU);
             KeepAliveManager kaManager = new KeepAliveManager(currentClient);
-            VideoManager videoManager = new VideoManager(currentClient, new PeerEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY), handshake_request.INTIAL_PSN);
+            VideoManager videoManager = new VideoManager(currentClient, new PeerEncryptionData((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY), handshake_request.INTIAL_PSN);
 
             SRTSocket newSRTSocket = new SRTSocket(currentClient,
                 kaManager, videoManager);

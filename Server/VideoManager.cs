@@ -21,7 +21,7 @@ namespace Server
         private readonly SClient client;
         private bool connected;
 
-        public readonly PeerEncryption PeerEncryption;
+        public readonly PeerEncryptionData PeerEncryption;
         public bool VideoStage { get; private set; }
 
 #if DEBUG
@@ -32,7 +32,7 @@ namespace Server
 
         private static uint current_sequence_number;
 
-        internal VideoManager(SClient client, PeerEncryption peerEncryption, uint intial_sequence_number)
+        internal VideoManager(SClient client, PeerEncryptionData peerEncryption, uint intial_sequence_number)
         {
             current_sequence_number = intial_sequence_number;  // start from init
 

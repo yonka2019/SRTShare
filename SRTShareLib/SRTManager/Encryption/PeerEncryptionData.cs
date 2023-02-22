@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SRTShareLib.SRTManager.Encryption
+﻿namespace SRTShareLib.SRTManager.Encryption
 {
     /// <summary>
     /// This struct allows to create a instance of a "Peer Encryption information"
@@ -14,7 +8,7 @@ namespace SRTShareLib.SRTManager.Encryption
     /// CLIENT EXAMPLE:
     /// The server has his own public key. In order to save it and use it later, to decrypt the packets, this class helps to save the public key
     /// </summary>
-    public readonly struct PeerEncryption
+    public readonly struct PeerEncryptionData
     {
         public readonly EncryptionType Type;
 
@@ -22,11 +16,16 @@ namespace SRTShareLib.SRTManager.Encryption
 
         public readonly byte[] SecretKey;
 
-        public PeerEncryption(EncryptionType encryptionType, byte[] peerPublicKey)
+        public PeerEncryptionData(EncryptionType encryptionType, byte[] peerPublicKey)
         {
             Type = encryptionType;
             PeerPublicKey = peerPublicKey;
-            SecretKey = DiffieHellman.GenerateSecretKey(peerPublicKey);
+
+            if (encryptionType == EncryptionType.None)  // if encryption type none - peer public key should be fulled zeros
+                SecretKey = new byte[DiffieHellman.SECRET_KEY_SIZE];
+            else
+                SecretKey = DiffieHellman.GenerateSecretKey(peerPublicKey);
+
         }
     }
 }

@@ -14,7 +14,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
         /// </summary>
         /// <param name="dest_socket_id">Destination socket id</param>
         /// <returns>A shutdown packet</returns>
-        public Packet Shutdown(uint dest_socket_id = 0, bool videoStage = false, PeerEncryption peerEncryption = default)
+        public Packet Shutdown(uint dest_socket_id = 0, bool videoStage = false, PeerEncryptionData peerEncryption = default)
         {
             GetPayloadLayer() = OSIManager.BuildPLayer(new SRTControl.Shutdown(dest_socket_id).GetByted(), videoStage, peerEncryption);
             return BuildPacket();

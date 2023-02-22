@@ -1,7 +1,7 @@
 ﻿namespace SRTShareLib.SRTManager.Encryption
 {
     /* 
-    * Each encryption method (type) must have his own 'public static class'
+    * Each encryption method (type) must have his own 'public static class' in "\EncryptionAlgorithms" folder (don't change the namespace)
     * THIS class MUST have atleast the next functions:
     * - internal byte[] Encrypt(..)
     * - internal byte[] Decrypt(..)

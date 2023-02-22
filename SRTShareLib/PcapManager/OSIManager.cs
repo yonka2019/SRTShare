@@ -108,7 +108,7 @@ namespace SRTShareLib.PcapManager
         /// <param name="encryptionType">encryption type to encrypt the data</param>
         /// <param name="layers">current layers in using</param>
         /// <returns>Payload layer object (encrypted bytes)</returns>
-        private static PayloadLayer BuildEPLayer(List<byte[]> data, PeerEncryption peerEncryption)
+        private static PayloadLayer BuildEPLayer(List<byte[]> data, PeerEncryptionData peerEncryption)
         {
             byte[] bytedData = ConcatBytes(data);
             byte[] encryptedData = EncryptionManager.Encrypt(bytedData, peerEncryption.Type, peerEncryption.SecretKey);
@@ -125,7 +125,7 @@ namespace SRTShareLib.PcapManager
         /// <param name="encryptionType">encryption type to use on video stage reaching</param>
         /// <param name="layers">current built layers</param>
         /// <returns>Payload layer object (according the need: enc/raw)</returns>
-        public static PayloadLayer BuildPLayer(List<byte[]> data, bool videoStage, PeerEncryption peerEncryption = default)
+        public static PayloadLayer BuildPLayer(List<byte[]> data, bool videoStage, PeerEncryptionData peerEncryption = default)
         {
             if (videoStage)
             {

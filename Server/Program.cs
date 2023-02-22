@@ -253,7 +253,7 @@ namespace Server
         /// </summary>
         /// <param name="socketId">socket id (client)</param>
         /// <returns>chosen encryption method</returns>
-        private static PeerEncryption GetSocketPeerEncryption(uint socketId)
+        private static PeerEncryptionData GetSocketPeerEncryption(uint socketId)
         {
             return SRTSockets[socketId].Data.PeerEncryption;
         }

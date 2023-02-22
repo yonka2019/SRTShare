@@ -23,15 +23,15 @@ namespace Client
         {
             if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(MainView.GetAdaptedIP()))
             {
-                HandshakeRequest handshake_response = new HandshakeRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+                HandshakeRequest handshake_response = new HandshakeRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
 
                 // client -> server (conclusion)
 
                 IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedIP());
 
                 byte[] myPublicKey;
-                if (MainView.ENCRYPTION != SRTShareLib.SRTManager.Encryption.EncryptionType.None)
-                    myPublicKey = SRTShareLib.SRTManager.Encryption.DiffieHellman.MyPublicKey;
+                if (MainView.ENCRYPTION != EncryptionType.None)
+                    myPublicKey = DiffieHellman.MyPublicKey;
                 else
                     myPublicKey = new byte[DiffieHellman.PUBLIC_KEY_SIZE];
 
@@ -42,7 +42,7 @@ namespace Client
             else
             {
                 // Exit the prgram and send a shutdwon request
-                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
                 Packet shutdown_packet = shutdown_request.Shutdown(MainView.server_sid);
                 PacketManager.SendPacket(shutdown_packet);
 
