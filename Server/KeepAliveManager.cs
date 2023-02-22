@@ -73,7 +73,7 @@ namespace Server
             SClient clientSocket = Program.SRTSockets[client.SocketId].SocketAddress;
 
             timeoutSeconds = 0;
-            CConsole.WriteLine($"[{DateTime.Now:HH:mm:ss}] [Keep-Alive] {clientSocket.IPAddress}:{clientSocket.Port} is alive\n", MessageType.txtSuccess);
+            CConsole.WriteLine($"[{DateTime.Now:HH:mm:ss}] [Keep-Alive] {clientSocket.IPAddress} is alive\n", MessageType.txtSuccess);
         }
 
         /// <summary>

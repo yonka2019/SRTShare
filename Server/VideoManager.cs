@@ -52,7 +52,7 @@ namespace Server
             videoStarter.Start(client.SocketId);
             VideoStage = true;
 
-            CConsole.WriteLine($"[Server] [{client.IPAddress}:{client.Port}] Video is being shared\n", MessageType.txtInfo);
+            CConsole.WriteLine($"[Server] [{client.IPAddress}] Video is being shared\n", MessageType.txtInfo);
         }
 
         /// <summary>

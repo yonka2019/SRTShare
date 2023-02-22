@@ -18,8 +18,8 @@ namespace SRTShareLib.SRTManager.Encryption  // Key Exchange Manager
 
         static DiffieHellman()
         {
-            // brainpool causes to "Invalid paramater" On CngKey.Import, so the best one - nistP256 Curve
-            me = new ECDiffieHellmanCng(ECCurve.NamedCurves.nistP256);  // 256 bit -> 32 bytes secret key fixed-size
+            // brainpoolPXXX causes to "Invalid paramater" On CngKey.Import, so the best one - nistP256 Curve
+            me = new ECDiffieHellmanCng(ECCurve.NamedCurves.nistP256);  // 256 bit -> 32 bytes SECRET key fixed-size
 
             MyPublicKey = GetPublicKey();
             secretKey = null;  // should be set later, when second public key will be received

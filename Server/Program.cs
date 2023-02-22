@@ -149,7 +149,7 @@ namespace Server
         {
             SClient clientSocket = SRTSockets[socket_id].SocketAddress;
 
-            CConsole.WriteLine($"[Keep-Alive] {clientSocket.IPAddress}:{clientSocket.Port} is dead, disposing resources..\n", MessageType.bgError);
+            CConsole.WriteLine($"[Keep-Alive] {clientSocket.IPAddress} is dead, disposing resources..\n", MessageType.bgError);
             DisposeClient(socket_id);
         }
 
@@ -165,13 +165,13 @@ namespace Server
 
             if (SRTSockets.ContainsKey(client_id))
             {
-                string removedClient = $"{clientSocket.IPAddress}:{clientSocket.Port}";
+                string removedClientIP = $"{clientSocket.IPAddress}";
 
                 SRTSockets.Remove(client_id);
-                CConsole.WriteLine($"[Server] Client [{removedClient}] was removed\n", MessageType.txtError);
+                CConsole.WriteLine($"[Server] Client [{removedClientIP}] was removed\n", MessageType.txtError);
             }
             else
-                CConsole.WriteLine($"[Server] Client [{clientSocket.IPAddress}:{clientSocket.Port}] wasn't found\n", MessageType.txtError);
+                CConsole.WriteLine($"[Server] Client [{clientSocket.IPAddress}] wasn't found\n", MessageType.txtError);
         }
 
         /// <summary>
