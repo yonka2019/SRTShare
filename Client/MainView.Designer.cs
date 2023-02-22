@@ -100,9 +100,7 @@
             // 
             // autoQualityControl
             // 
-            this.autoQualityControl.Checked = true;
             this.autoQualityControl.CheckOnClick = true;
-            this.autoQualityControl.CheckState = System.Windows.Forms.CheckState.Checked;
             this.autoQualityControl.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.autoQualityControl.Name = "autoQualityControl";
             this.autoQualityControl.Size = new System.Drawing.Size(184, 22);

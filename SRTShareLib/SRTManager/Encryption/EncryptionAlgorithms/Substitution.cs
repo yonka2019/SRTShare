@@ -15,7 +15,7 @@ namespace SRTShareLib.SRTManager.Encryption
         /// <returns>Ready substituted table</returns>
         private static byte[] BuildTable(byte[] _key)
         {
-            int key = BitConverter.ToInt32(_key, 0);
+            byte key = _key[0];
 
             byte[] table = new byte[256];
 

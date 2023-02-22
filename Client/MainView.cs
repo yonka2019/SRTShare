@@ -52,11 +52,12 @@ namespace Client
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.None;  // The whole encryption of the conversation (from data stage)
+        internal const EncryptionType ENCRYPTION = EncryptionType.XOR;  // The whole encryption of the conversation (from data stage)
         internal const int INITIAL_PSN = 0;  // The first sequence number of the conversation
 
         internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
         internal const int DATA_DECREASE_QUALITY_BY = 10; // (0 - 100)
+        internal const bool AUTO_QUALITY_CONTROL = false;
         // DEFAULT QUALITY VALUE (to server and client) - ProtocolManager.cs : DEFAULT_QUALITY
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
@@ -65,7 +66,9 @@ namespace Client
         {
             InitializeComponent();
 
+            autoQualityControl.Checked = AUTO_QUALITY_CONTROL;
             AutoQualityControl = autoQualityControl.Checked;
+
             QualityButtons = new Dictionary<long, ToolStripMenuItem> { { 10L, q_10p }, { 20L, q_20p }, { 30L, q_30p }, { 40L, q_40p }, { 50L, q_50p }, { 60L, q_60p }, { 70L, q_70p }, { 80L, q_80p }, { 90L, q_90p }, { 100L, q_100p } };
             QualityButtons[ProtocolManager.DEFAULT_QUALITY.RoundToNearestTen()].Checked = true;
 
@@ -227,7 +230,16 @@ namespace Client
         {
             foreach (ToolStripMenuItem button in QualityButtons.Values)
             {
-                button.Enabled = true;
+                if (QualitySetter.InvokeRequired && QualitySetter.IsHandleCreated)
+                {
+                    QualitySetter.Invoke((MethodInvoker)delegate
+                    {
+                        button.Enabled = true;
+                    });
+                }
+                else
+                    button.Enabled = true;
+                     
             }
         }
 

@@ -74,18 +74,14 @@ namespace Client
         {
             uint[] missedPackets = MissingPackets();
 
-#if DEBUG
             if (!lastChunkReceived)
-                Debug.WriteLine("[IMAGE] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
+                Debug.WriteLine("[IMAGE BUILDER] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
 
-            Debug.WriteLine("SHOULD BE: " + Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)));
-            Debug.WriteLine("MISSED: " + missedPackets.Length);
-#endif
-
+            double packetsShouldLost = Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0));
             TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
 
             // dataPackets.Last().MESSAGE_NUMBER - the last seq number which is the max
-            if ((Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)) <= missedPackets.Length)  // check if necessary
+            if ((packetsShouldLost <= missedPackets.Length)  // check if necessary
 
                 && MainView.AutoQualityControl  // check if option enabled
 
@@ -99,6 +95,9 @@ namespace Client
                     Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(MainView.server_sid, CurrentVideoQuality);
                     PacketManager.SendPacket(qualityUpdate_packet);
 
+                    Debug.WriteLine($"[QUALITY-CONTROL] Quality reduced to {CurrentVideoQuality}\n" +
+                        $"[-] LOST: {missedPackets.Length}\n" +
+                        $"[-] MIN-TO-LOST: {packetsShouldLost}");
                     CConsole.WriteLine($"[Auto Quality Control] Quality updated: {CurrentVideoQuality}\n", MessageType.txtWarning);
 
                     ToolStripMenuItem qualityButton = MainView.QualityButtons[CurrentVideoQuality.RoundToNearestTen()];
@@ -106,11 +105,28 @@ namespace Client
                     if (qualityButton.Checked)  // if already selected - do not do anything
                         return;
 
-                    foreach (ToolStripMenuItem item in MainView.QualityButtons.Values)
+                    foreach (ToolStripMenuItem item in MainView.QualityButtons.Values)  // set all buttons to unchecked
                     {
-                        item.Checked = false;
+                        if (item.Owner.InvokeRequired && item.Owner.IsHandleCreated)
+                        {
+                            item.Owner.Invoke((MethodInvoker)delegate
+                            {
+                                item.Checked = false;
+                            });
+                        }
+                        else
+                            item.Checked = false;
                     }
-                    qualityButton.Checked = true;
+
+                    if (qualityButton.Owner.InvokeRequired && qualityButton.Owner.IsHandleCreated)
+                    {
+                        qualityButton.Owner.Invoke((MethodInvoker)delegate
+                        {
+                            qualityButton.Checked = true;  // check the new setted quality
+                        });
+                    }
+                    else
+                        qualityButton.Checked = true;
 
                     lastQualityModify = DateTime.Now;
                 }
@@ -124,7 +140,7 @@ namespace Client
                 }
                 catch
                 {
-                    Debug.WriteLine("[IMAGE] ERROR: Can't build image\n");
+                    Debug.WriteLine("[IMAGE BUILDER] ERROR: Can't build image at all\n");
                 }
             }
         }
