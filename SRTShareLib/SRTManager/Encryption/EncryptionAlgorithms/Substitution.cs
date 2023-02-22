@@ -8,7 +8,6 @@ namespace SRTShareLib.SRTManager.Encryption
         /// Type of the encryption
         /// </summary>
         public const EncryptionType Type = EncryptionType.Substitution;
-        public const int KeySize = 4;  // Bytes
 
         /// <summary>
         /// Build substitution rules table
@@ -16,7 +15,7 @@ namespace SRTShareLib.SRTManager.Encryption
         /// <returns>Ready substituted table</returns>
         private static byte[] BuildTable(byte[] _key)
         {
-            int key = BitConverter.ToInt32(_key, 0);
+            byte key = _key[0];
 
             byte[] table = new byte[256];
 
@@ -58,19 +57,6 @@ namespace SRTShareLib.SRTManager.Encryption
                 }
             }
             return decrypted;
-        }
-
-        public static (byte[], byte[]) CreateKey(string ip)
-        {
-            int key = 0;
-
-            string concatenated = ip.Replace('.', '0');
-
-            foreach (char c in concatenated)
-            {
-                key += c;
-            }
-            return (BitConverter.GetBytes(key), null);  // null - is the IV (not in using)
         }
     }
 }

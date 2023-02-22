@@ -18,7 +18,7 @@ namespace SRTShareLib
     {
         private const bool ALWAYS_CREATE_NEW = false;  // even if the config exist - create a new one and overwrite the old one
 
-        public const string CONFIG_NAME = "settings.json";
+        internal const string CONFIG_NAME = "settings.json";
         public static string IP { get; private set; }
         public static ushort PORT { get; private set; }
 

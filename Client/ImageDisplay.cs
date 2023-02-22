@@ -19,10 +19,10 @@ namespace Client
         private static readonly object _lock = new object();
 
         private static List<Data.SRTHeader> dataPackets = new List<Data.SRTHeader>();
-        internal static byte CurrentVideoQuality = 50;
+        internal static long CurrentVideoQuality = ProtocolManager.DEFAULT_QUALITY;
 
         private static DateTime lastQualityModify;
-        private const int minimum_SecondsElapsedToModify = 3;  // don't allow the algorithm to AUTO modify the quality if there is was a quality change
+        private const int MINIMUM_SECONDS_ELPASED_TO_MODIFY = 3;  // don't allow the algorithm to AUTO modify the quality if there is was a quality change
 
         private static byte[] FullData
         {
@@ -72,44 +72,61 @@ namespace Client
 
         private static void ShowImage(bool lastChunkReceived, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
         {
-#if DEBUG
-            if (!lastChunkReceived)
-                Debug.WriteLine("[IMAGE] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
-#endif
             uint[] missedPackets = MissingPackets();
 
-            Console.WriteLine("SHOULD BE: " + (Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0))));
-            Console.WriteLine("MISSED: " + (missedPackets.Length));
+            if (!lastChunkReceived)
+                Debug.WriteLine("[IMAGE BUILDER] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
 
+            double packetsShouldLost = Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0));
             TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
 
             // dataPackets.Last().MESSAGE_NUMBER - the last seq number which is the max
-            if ((Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)) <= missedPackets.Length)  // check if necessary
+            if ((packetsShouldLost <= missedPackets.Length)  // check if necessary
 
                 && MainView.AutoQualityControl  // check if option enabled
 
-                && timeElapsed.TotalSeconds > minimum_SecondsElapsedToModify)  // check if min required time elapsed
+                && timeElapsed.TotalSeconds > MINIMUM_SECONDS_ELPASED_TO_MODIFY)  // check if min required time elapsed
             {
                 if (CurrentVideoQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)
                 {
                     CurrentVideoQuality -= MainView.DATA_DECREASE_QUALITY_BY;  // down quality and send quality update request 
 
-                    QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+                    QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
                     Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(MainView.server_sid, CurrentVideoQuality);
                     PacketManager.SendPacket(qualityUpdate_packet);
 
-                    CConsole.WriteLine($"[Auto Quality Control] Quality updated: {CurrentVideoQuality}\n" , MessageType.txtWarning);
+                    Debug.WriteLine($"[QUALITY-CONTROL] Quality reduced to {CurrentVideoQuality}\n" +
+                        $"[-] LOST: {missedPackets.Length}\n" +
+                        $"[-] MIN-TO-LOST: {packetsShouldLost}");
+                    CConsole.WriteLine($"[Auto Quality Control] Quality updated: {CurrentVideoQuality}\n", MessageType.txtWarning);
 
-                    ToolStripMenuItem qualityButton = MainView.QualityButtons[RoundToNearestTen(CurrentVideoQuality)];
+                    ToolStripMenuItem qualityButton = MainView.QualityButtons[CurrentVideoQuality.RoundToNearestTen()];
 
                     if (qualityButton.Checked)  // if already selected - do not do anything
                         return;
 
-                    foreach (ToolStripMenuItem item in MainView.QualityButtons.Values)
+                    foreach (ToolStripMenuItem item in MainView.QualityButtons.Values)  // set all buttons to unchecked
                     {
-                        item.Checked = false;
+                        if (item.Owner.InvokeRequired && item.Owner.IsHandleCreated)
+                        {
+                            item.Owner.Invoke((MethodInvoker)delegate
+                            {
+                                item.Checked = false;
+                            });
+                        }
+                        else
+                            item.Checked = false;
                     }
-                    qualityButton.Checked = true;
+
+                    if (qualityButton.Owner.InvokeRequired && qualityButton.Owner.IsHandleCreated)
+                    {
+                        qualityButton.Owner.Invoke((MethodInvoker)delegate
+                        {
+                            qualityButton.Checked = true;  // check the new setted quality
+                        });
+                    }
+                    else
+                        qualityButton.Checked = true;
 
                     lastQualityModify = DateTime.Now;
                 }
@@ -123,19 +140,8 @@ namespace Client
                 }
                 catch
                 {
-                    Debug.WriteLine("[IMAGE] ERROR: Can't build image\n");
+                    Debug.WriteLine("[IMAGE BUILDER] ERROR: Can't build image at all\n");
                 }
-            }
-        }
-        private static byte RoundToNearestTen(byte num)
-        {
-            if (num % 10 >= 5)
-            {
-                return (byte)((num / 10 + 1) * 10);
-            }
-            else
-            {
-                return (byte)(num / 10 * 10);
             }
         }
 

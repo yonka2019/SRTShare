@@ -149,7 +149,7 @@ namespace Server
         {
             SClient clientSocket = SRTSockets[socket_id].SocketAddress;
 
-            CConsole.WriteLine($"[Keep-Alive] {clientSocket.IPAddress}:{clientSocket.Port} is dead, disposing resources..\n", MessageType.bgError);
+            CConsole.WriteLine($"[Keep-Alive] {clientSocket.IPAddress} is dead, disposing resources..\n", MessageType.bgError);
             DisposeClient(socket_id);
         }
 
@@ -165,13 +165,13 @@ namespace Server
 
             if (SRTSockets.ContainsKey(client_id))
             {
-                string removedClient = $"{clientSocket.IPAddress}:{clientSocket.Port}";
+                string removedClientIP = $"{clientSocket.IPAddress}";
 
                 SRTSockets.Remove(client_id);
-                CConsole.WriteLine($"[Server] Client [{removedClient}] was removed\n", MessageType.txtError);
+                CConsole.WriteLine($"[Server] Client [{removedClientIP}] was removed\n", MessageType.txtError);
             }
             else
-                CConsole.WriteLine($"[Server] Client [{clientSocket.IPAddress}:{clientSocket.Port}] wasn't found\n", MessageType.txtError);
+                CConsole.WriteLine($"[Server] Client [{clientSocket.IPAddress}] wasn't found\n", MessageType.txtError);
         }
 
         /// <summary>
@@ -191,7 +191,7 @@ namespace Server
                 SRTSocket socket = SRTSockets[socketId];
 
                 ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
-                Packet shutdown_packet = shutdown_request.Shutdown(socketId, IsInVideoStage(socketId), GetSocketEncryptionType(socketId));
+                Packet shutdown_packet = shutdown_request.Shutdown(socketId, IsInVideoStage(socketId), GetSocketPeerEncryption(socketId));
                 PacketManager.SendPacket(shutdown_packet);
 
                 socket.KeepAlive.Disable();
@@ -253,9 +253,9 @@ namespace Server
         /// </summary>
         /// <param name="socketId">socket id (client)</param>
         /// <returns>chosen encryption method</returns>
-        private static EncryptionType GetSocketEncryptionType(uint socketId)
+        private static PeerEncryptionData GetSocketPeerEncryption(uint socketId)
         {
-            return SRTSockets[socketId].Data.EncryptionMethod;
+            return SRTSockets[socketId].Data.PeerEncryption;
         }
     }
 }

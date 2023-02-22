@@ -1,6 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace SRTShareLib.SRTManager.Encryption
 {
@@ -13,27 +13,29 @@ namespace SRTShareLib.SRTManager.Encryption
      * Another way, is to use encryption which operates on each byte individually and doesn't depend on any other bytes in the list, with this way,
      * even if any bit lost, the packet will be avaible to decryption.
      * 
-     * AES128 - depend on the other bytes because the hash encoding which is problematically in UDP based protocol (although, retransmission could help)
+     * AES256 - depend on the other bytes because the hash encoding which is problematically in UDP based protocol (although, retransmission could help)
      * Substitution / XOR - doesn't depend on other bytes, so they have better performance
      */
-    public static class AES128
+    public static class AES256
     {
         /// <summary>
         /// Type of the encryption
         /// </summary>
-        public const EncryptionType Type = EncryptionType.AES128;
-        public const int KeySize = 16;  // Bytes (AES 128 - 128 bit => 16 bit key size)
-        public const int IVSize = 16;  // Default to all AES encryptions
+        public const EncryptionType Type = EncryptionType.AES256;
+        public const int IVSize = 16;  // Bytes. Default to all AES encryption types (AES128, AES192, AES256 ..)
 
-        internal static byte[] Encrypt(byte[] data, byte[] Key, byte[] IV)
+        internal static byte[] Encrypt(byte[] data, byte[] key)
         {
             byte[] encrypted;
+
+            byte[] IV = new byte[IVSize];
+            Array.Copy(key, 0, IV, 0, 16);
 
             using (AesManaged aes = new AesManaged())
             {
                 aes.Padding = PaddingMode.Zeros;
 
-                ICryptoTransform encryptor = aes.CreateEncryptor(Key, IV);
+                ICryptoTransform encryptor = aes.CreateEncryptor(key, IV);
 
                 using (MemoryStream ms = new MemoryStream())
                 {
@@ -47,15 +49,18 @@ namespace SRTShareLib.SRTManager.Encryption
             return encrypted;
         }
 
-        internal static byte[] Decrypt(byte[] data, byte[] Key, byte[] IV)
+        internal static byte[] Decrypt(byte[] data, byte[] key)
         {
             byte[] decrypted;
+
+            byte[] IV = new byte[IVSize];
+            Array.Copy(key, 0, IV, 0, 16);
 
             using (AesManaged aes = new AesManaged())
             {
                 aes.Padding = PaddingMode.Zeros;
 
-                ICryptoTransform decryptor = aes.CreateDecryptor(Key, IV);
+                ICryptoTransform decryptor = aes.CreateDecryptor(key, IV);
 
                 using (MemoryStream ms = new MemoryStream(data))
                 {
@@ -67,29 +72,6 @@ namespace SRTShareLib.SRTManager.Encryption
                 }
             }
             return decrypted;
-        }
-
-        /// <summary>
-        /// According the encryption policy, the encryption key generates according the 'IP:PORT' Encrypted into hashed size (according the encryption type)
-        /// AES128 - Key is hashed into MD5 (128 bit)
-        /// According the encryption policy, the IV generates according the 'CLIENT_SOCKET_ID' field which is encrypted into hashed size 16 byte (128 bit) via MD5
-        /// </summary>
-        /// <returns>ready hashed key to be used for encryption or decryption</returns>
-        public static (byte[], byte[]) CreateKey_IV(string ip)
-        {
-            byte[] key;
-            byte[] IV;
-
-            string socketId = ProtocolManager.GenerateSocketId(ip).ToString();
-            string keyToHash = $"{ip}&key";
-
-            using (MD5 md5 = MD5.Create())
-            {
-                key = md5.ComputeHash(Encoding.UTF8.GetBytes(keyToHash));
-                IV = md5.ComputeHash(Encoding.UTF8.GetBytes(socketId));
-            }
-
-            return (key, IV);
         }
     }
 }

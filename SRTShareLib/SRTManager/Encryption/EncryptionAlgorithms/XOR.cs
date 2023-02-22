@@ -8,7 +8,6 @@ namespace SRTShareLib.SRTManager.Encryption
         /// Type of the encryption
         /// </summary>
         public const EncryptionType Type = EncryptionType.Substitution;
-        // dynamic key size, according the: 'ip' + 'port'
 
         internal static byte[] Encrypt(byte[] data, byte[] key)
         {
@@ -32,11 +31,6 @@ namespace SRTShareLib.SRTManager.Encryption
             }
 
             return output;
-        }
-
-        public static (byte[], byte[]) CreateKey(string ip)
-        {
-            return (Encoding.ASCII.GetBytes(ip), null);  // null - is the IV (not in using)
         }
     }
 }

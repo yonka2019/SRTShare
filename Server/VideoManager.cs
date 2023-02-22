@@ -21,7 +21,7 @@ namespace Server
         private readonly SClient client;
         private bool connected;
 
-        public readonly EncryptionType EncryptionMethod;
+        public readonly PeerEncryptionData PeerEncryption;
         public bool VideoStage { get; private set; }
 
 #if DEBUG
@@ -32,15 +32,15 @@ namespace Server
 
         private static uint current_sequence_number;
 
-        internal VideoManager(SClient client, ushort EncryptionMethod, uint intial_sequence_number)
+        internal VideoManager(SClient client, PeerEncryptionData peerEncryption, uint intial_sequence_number)
         {
             current_sequence_number = intial_sequence_number;  // start from init
 
             this.client = client;
             connected = true;
 
-            this.EncryptionMethod = (EncryptionType)EncryptionMethod;
-            CurrentQuality = 50L;  // default quality value
+            PeerEncryption = peerEncryption;
+            CurrentQuality = ProtocolManager.DEFAULT_QUALITY;  // default quality value
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Server
             videoStarter.Start(client.SocketId);
             VideoStage = true;
 
-            CConsole.WriteLine($"[Server] [{client.IPAddress}:{client.Port}] Video is being shared\n", MessageType.txtInfo);
+            CConsole.WriteLine($"[Server] [{client.IPAddress}] Video is being shared\n", MessageType.txtInfo);
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Server
                 DataRequest dataRequest = new DataRequest(
                                 OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
-                List<Packet> data_packets = dataRequest.SplitToPackets(stream, ref current_sequence_number, time_stamp: 0, u_dest_socket_id, (int)client.MTU, (ushort)EncryptionMethod);
+                List<Packet> data_packets = dataRequest.SplitToPackets(stream, ref current_sequence_number, time_stamp: 0, u_dest_socket_id, (int)client.MTU, PeerEncryption);
 
                 foreach (Packet packet in data_packets)
                 {

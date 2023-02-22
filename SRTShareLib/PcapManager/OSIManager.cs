@@ -108,10 +108,10 @@ namespace SRTShareLib.PcapManager
         /// <param name="encryptionType">encryption type to encrypt the data</param>
         /// <param name="layers">current layers in using</param>
         /// <returns>Payload layer object (encrypted bytes)</returns>
-        private static PayloadLayer BuildEPLayer(List<byte[]> data, EncryptionType encryptionType, ILayer[] layers)
+        private static PayloadLayer BuildEPLayer(List<byte[]> data, PeerEncryptionData peerEncryption)
         {
             byte[] bytedData = ConcatBytes(data);
-            byte[] encryptedData = EncryptionManager.Encrypt(encryptionType, bytedData, layers);
+            byte[] encryptedData = EncryptionManager.Encrypt(bytedData, peerEncryption.Type, peerEncryption.SecretKey);
             
             return BuildPLayer(encryptedData);
         }
@@ -125,13 +125,13 @@ namespace SRTShareLib.PcapManager
         /// <param name="encryptionType">encryption type to use on video stage reaching</param>
         /// <param name="layers">current built layers</param>
         /// <returns>Payload layer object (according the need: enc/raw)</returns>
-        public static PayloadLayer BuildPLayer(List<byte[]> data, bool videoStage, EncryptionType encryptionType = EncryptionType.None, ILayer[] layers = null)
+        public static PayloadLayer BuildPLayer(List<byte[]> data, bool videoStage, PeerEncryptionData peerEncryption = default)
         {
             if (videoStage)
             {
-                if (encryptionType != EncryptionType.None)  // No encryption setted
+                if (peerEncryption.Type != EncryptionType.None)  // No encryption setted
                 {
-                    return BuildEPLayer(data, encryptionType, layers);
+                    return BuildEPLayer(data, peerEncryption);
                 }
             }
             // not video stage, surely encryption is not should be used /// Encryption disabled (the both cases don't use totally any encryption)

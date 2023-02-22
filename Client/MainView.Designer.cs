@@ -100,9 +100,7 @@
             // 
             // autoQualityControl
             // 
-            this.autoQualityControl.Checked = true;
             this.autoQualityControl.CheckOnClick = true;
-            this.autoQualityControl.CheckState = System.Windows.Forms.CheckState.Checked;
             this.autoQualityControl.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.autoQualityControl.Name = "autoQualityControl";
             this.autoQualityControl.Size = new System.Drawing.Size(184, 22);
@@ -112,6 +110,7 @@
             // q_100p
             // 
             this.q_100p.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.q_100p.Enabled = false;
             this.q_100p.Name = "q_100p";
             this.q_100p.Size = new System.Drawing.Size(184, 22);
             this.q_100p.Text = "Quality: 100%";
@@ -120,6 +119,7 @@
             // q_90p
             // 
             this.q_90p.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.q_90p.Enabled = false;
             this.q_90p.Name = "q_90p";
             this.q_90p.Size = new System.Drawing.Size(184, 22);
             this.q_90p.Text = "Quality: 90%";
@@ -128,6 +128,7 @@
             // q_80p
             // 
             this.q_80p.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.q_80p.Enabled = false;
             this.q_80p.Name = "q_80p";
             this.q_80p.Size = new System.Drawing.Size(184, 22);
             this.q_80p.Text = "Quality: 80%";
@@ -136,6 +137,7 @@
             // q_70p
             // 
             this.q_70p.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.q_70p.Enabled = false;
             this.q_70p.Name = "q_70p";
             this.q_70p.Size = new System.Drawing.Size(184, 22);
             this.q_70p.Text = "Quality: 70%";
@@ -144,6 +146,7 @@
             // q_60p
             // 
             this.q_60p.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.q_60p.Enabled = false;
             this.q_60p.Name = "q_60p";
             this.q_60p.Size = new System.Drawing.Size(184, 22);
             this.q_60p.Text = "Quality: 60%";
@@ -151,9 +154,8 @@
             // 
             // q_50p
             // 
-            this.q_50p.Checked = true;
-            this.q_50p.CheckState = System.Windows.Forms.CheckState.Checked;
             this.q_50p.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.q_50p.Enabled = false;
             this.q_50p.Name = "q_50p";
             this.q_50p.Size = new System.Drawing.Size(184, 22);
             this.q_50p.Text = "Quality: 50%";
@@ -162,6 +164,7 @@
             // q_40p
             // 
             this.q_40p.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.q_40p.Enabled = false;
             this.q_40p.Name = "q_40p";
             this.q_40p.Size = new System.Drawing.Size(184, 22);
             this.q_40p.Text = "Quality: 40%";
@@ -170,6 +173,7 @@
             // q_30p
             // 
             this.q_30p.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.q_30p.Enabled = false;
             this.q_30p.Name = "q_30p";
             this.q_30p.Size = new System.Drawing.Size(184, 22);
             this.q_30p.Text = "Quality: 30%";
@@ -178,6 +182,7 @@
             // q_20p
             // 
             this.q_20p.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.q_20p.Enabled = false;
             this.q_20p.Name = "q_20p";
             this.q_20p.Size = new System.Drawing.Size(184, 22);
             this.q_20p.Text = "Quality: 20%";
@@ -186,6 +191,7 @@
             // q_10p
             // 
             this.q_10p.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.q_10p.Enabled = false;
             this.q_10p.Name = "q_10p";
             this.q_10p.Size = new System.Drawing.Size(184, 22);
             this.q_10p.Text = "Quality: 10%";

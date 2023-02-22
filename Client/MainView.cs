@@ -28,21 +28,22 @@ namespace Client
         private bool videoStage = false;  // when the client reaches the video stage, he knows that each packet from the server will be encrypted,
                                           // so he should be ready to decrypt each received packet
 
-        internal static uint server_sid = 0;  // we getting know this value on the indoction that the server returns to us (SID -> Socket ID)
-        internal static ushort myPort;
+        internal static uint server_sid = 0;  // we getting know this value on the induction that the server returns to us (SID -> Socket ID)
+        internal static string server_mac = null;
+
+        internal static ushort my_client_port;
         internal static uint client_sid = 0;  // the server sends this value on the induction answer (SID -> Socket ID) (MY SID)
-        internal static string serverMac = null;
+
         internal static bool externalConnection;
-
-        private static Dictionary<EncryptionType, Func<string, (byte[], byte[])>> EncCredFunc;  // Functions which is responsible for getting the key +/ iv 
-        private static Thread handlePackets, handleKeepAlive;
-
         internal static bool AutoQualityControl = false;
 
-        // 10% - q_10p
-        // 20% - q_10p
-        //   . . .
-        internal static Dictionary<byte, ToolStripMenuItem> QualityButtons;
+        private static Thread handlePackets, handleKeepAlive;
+
+        // 10% - q_10p (button)
+        // 20% - q_10p (button)
+        //  .. .. ..
+        internal static Dictionary<long, ToolStripMenuItem> QualityButtons;
+        internal static PeerEncryptionData serverEncryptionData;
 
 
 #if DEBUG
@@ -56,6 +57,8 @@ namespace Client
 
         internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
         internal const int DATA_DECREASE_QUALITY_BY = 10; // (0 - 100)
+        internal const bool AUTO_QUALITY_CONTROL = false;
+        // DEFAULT QUALITY VALUE (to server and client) - ProtocolManager.cs : DEFAULT_QUALITY
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
@@ -63,10 +66,13 @@ namespace Client
         {
             InitializeComponent();
 
+            autoQualityControl.Checked = AUTO_QUALITY_CONTROL;
             AutoQualityControl = autoQualityControl.Checked;
-            QualityButtons = new Dictionary<byte, ToolStripMenuItem> { { 10, q_10p }, { 20, q_20p }, { 30, q_30p }, { 40, q_40p }, { 50, q_50p }, { 60, q_60p }, { 70, q_70p }, { 80, q_80p }, { 90, q_90p }, { 100, q_100p } };
 
-            myPort = (ushort)rnd.Next(1, 50000);  // randomize any port for the client
+            QualityButtons = new Dictionary<long, ToolStripMenuItem> { { 10L, q_10p }, { 20L, q_20p }, { 30L, q_30p }, { 40L, q_40p }, { 50L, q_50p }, { 60L, q_60p }, { 70L, q_70p }, { 80L, q_80p }, { 90L, q_90p }, { 100L, q_100p } };
+            QualityButtons[ProtocolManager.DEFAULT_QUALITY.RoundToNearestTen()].Checked = true;
+
+            my_client_port = (ushort)rnd.Next(1, 50000);  // randomize any port for the client
 
             // receive packets
             handlePackets = new Thread(() => { PacketManager.ReceivePackets(0, PacketHandler); });
@@ -88,8 +94,6 @@ namespace Client
             InductionCheck();
 
             ServerAliveChecker.LostConnection += Server_LostConnection;  // subscribe the event to avoid unexpectable server shutdown
-
-            RegisterEncKeysFunctions();
         }
 
         /// <summary>
@@ -127,7 +131,7 @@ namespace Client
         /// <param name="packet">New given packet</param>
         private void PacketHandler(Packet packet)
         {
-            if (packet.IsValidUDP(myPort, ConfigManager.PORT))  // UDP Packet
+            if (packet.IsValidUDP(my_client_port, ConfigManager.PORT))  // UDP Packet
             {
                 DecryptionNecessity(packet, out byte[] payload);
 
@@ -141,17 +145,26 @@ namespace Client
 
                         if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.INDUCTION)  // (SRT) Induction
                         {
+                            Console.WriteLine($"[Handshake] Got Induction: {handshake_request}\n");
+
                             serverAlive = true;
                             RequestsHandler.HandleInduction(handshake_request);
                         }
-                        else if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.CONCLUSION)
+                        else if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.CONCLUSION)  // (SRT) Conclusion 
                         {
+                            Console.WriteLine($"[Handshake] Got Conclusion: {handshake_request}\n");
+
+                            // encryption data received - initialize him for future decrypt necessity
+                            serverEncryptionData = new PeerEncryptionData((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY);
+
                             Invoke((MethodInvoker)delegate
                             {
                                 VideoBox.Text = "";
                             });
+
                             CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
                             videoStage = true;
+                            EnableQualityButtons();
                         }
                     }
                     else if (Control.Shutdown.IsShutdown(payload))  // (SRT) Server Shutdown ! [HANDLES ONLY CTRL + C EVENT ON SERVER SIDE] !
@@ -178,11 +191,11 @@ namespace Client
                     if ((arp.SenderProtocolIpV4Address.ToString() == ConfigManager.IP) || (arp.SenderProtocolIpV4Address.ToString() == NetworkManager.DefaultGateway)) // mac from server
                     {
                         // After client got the server's mac, send the first induction message
-                        serverMac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
-                        CConsole.WriteLine($"[Client] Server/Gateway MAC Found: {serverMac}\n", MessageType.txtSuccess);
+                        server_mac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
+                        CConsole.WriteLine($"[Client] Server/Gateway MAC Found: {server_mac}\n", MessageType.txtSuccess);
                         client_sid = ProtocolManager.GenerateSocketId(GetAdaptedIP());
 
-                        RequestsHandler.HandleArp(serverMac, myPort, client_sid);
+                        RequestsHandler.HandleArp(server_mac, my_client_port, client_sid);
                         handledArp = true;
                     }
                 }
@@ -190,7 +203,7 @@ namespace Client
         }
 
         /// <summary>
-        /// If the client is in the video stage, and he enabled encryption, he should to decrypt each packet which is received from the server
+        /// If the client is in the video stage, and he enabled encryption, he should to decrypt each packet which is received from the server (only KeepAlive packets still raw)
         /// (according the after-video policy)
         /// </summary>
         /// <param name="packet">packet to check his state</param>
@@ -203,14 +216,30 @@ namespace Client
             if (videoStage && ENCRYPTION != EncryptionType.None)  // if video stage reached and the encryption enabled -
                                                                   // the server will send each packet encrypted (data/shutdown/keepalive)
             {
-                if (!EncCredFunc.ContainsKey(ENCRYPTION))
+                if (!Enum.IsDefined(typeof(EncryptionType), ENCRYPTION))
                     throw new Exception($"'{ENCRYPTION}' This encryption method isn't supported yet");
 
-                string ip = GetAdaptedIP();
+                payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, serverEncryptionData.SecretKey);
+            }
+        }
 
-                (byte[] key, byte[] IV) = EncCredFunc[ENCRYPTION](ip);
-
-                payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, key, IV);
+        /// <summary>
+        /// When video staged achieved, the quality buttons should be enabled 
+        /// </summary>
+        private void EnableQualityButtons()
+        {
+            foreach (ToolStripMenuItem button in QualityButtons.Values)
+            {
+                if (QualitySetter.InvokeRequired && QualitySetter.IsHandleCreated)
+                {
+                    QualitySetter.Invoke((MethodInvoker)delegate
+                    {
+                        button.Enabled = true;
+                    });
+                }
+                else
+                    button.Enabled = true;
+                     
             }
         }
 
@@ -220,7 +249,7 @@ namespace Client
         /// <param name="packet">New given keepalive packet</param>
         private void KeepAliveHandler(Packet packet)
         {
-            if (packet.IsValidUDP(myPort, ConfigManager.PORT))  // UDP Packet
+            if (packet.IsValidUDP(my_client_port, ConfigManager.PORT))  // UDP Packet
             {
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
@@ -231,7 +260,7 @@ namespace Client
                     {
                         Debug.WriteLine("[KEEP-ALIVE] Received request\n");
 
-                        KeepAliveRequest keepAlive_response = new KeepAliveRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
+                        KeepAliveRequest keepAlive_response = new KeepAliveRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, my_client_port, ConfigManager.PORT));
                         Packet keepAlive_confirm = keepAlive_response.Alive(server_sid);
                         PacketManager.SendPacket(keepAlive_confirm);
 
@@ -277,9 +306,9 @@ namespace Client
             }
             qualitySelected.Checked = true;
 
-            byte newQuality = QualityButtons.FirstOrDefault(quality => quality.Value == qualitySelected).Key;
+            long newQuality = QualityButtons.FirstOrDefault(quality => quality.Value == qualitySelected).Key;
 
-            QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+            QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
             Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(server_sid, newQuality);
             PacketManager.SendPacket(qualityUpdate_packet);
 
@@ -301,10 +330,10 @@ namespace Client
         /// <param name="e"></param>
         private void MainView_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (serverMac != null)
+            if (server_mac != null)
             {
                 // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
-                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
+                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, my_client_port, ConfigManager.PORT));
                 Packet shutdown_packet = shutdown_request.Shutdown(server_sid);
                 PacketManager.SendPacket(shutdown_packet);
             }
@@ -313,17 +342,5 @@ namespace Client
             handleKeepAlive.Abort();
         }
 
-        /// <summary>
-        /// Register encryption create keys functions individually for each encryption type
-        /// </summary>
-        public static void RegisterEncKeysFunctions()
-        {
-            EncCredFunc = new Dictionary<EncryptionType, Func<string, (byte[], byte[])>>
-            {
-                { EncryptionType.AES128, AES128.CreateKey_IV },
-                { EncryptionType.Substitution, Substitution.CreateKey },
-                { EncryptionType.XOR, XOR.CreateKey }
-            };
-        }
     }
 }
