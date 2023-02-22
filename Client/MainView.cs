@@ -149,7 +149,7 @@ namespace Client
                         {
                             Console.WriteLine($"[Handshake] Got Conclusion: {handshake_request}\n");
 
-                            DiffieHellman.PeerPublicKey = handshake_request.ENCRYPTION_PUBLIC_KEY;
+                            DiffieHellman.PeerPublicKey = handshake_request.ENCRYPTION_PEER_PUBLIC_KEY;
 
                             Invoke((MethodInvoker)delegate
                             {

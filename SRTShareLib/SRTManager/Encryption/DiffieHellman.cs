@@ -10,17 +10,17 @@ namespace SRTShareLib.SRTManager.Encryption  // Key Exchange Manager
         public static byte[] MyPublicKey { get; private set; }
         public static byte[] PeerPublicKey { private get; set; }
 
-        public const int KEY_SIZE = 32;  // bytes
+        /// <summary>
+        /// on chaning this public key size, the following classes should be updated as well:
+        /// SRTManagaer.ProtocolFields.Control.Handshake
+        /// </summary>
+        public const int PUBLIC_KEY_SIZE = 72;  // bytes
 
         static DiffieHellman()
         {
-            me = new ECDiffieHellmanCng()  // 256 bit -> 32 bytes key fixed-size
-            {
-                KeyDerivationFunction = ECDiffieHellmanKeyDerivationFunction.Hash,
-                HashAlgorithm = CngAlgorithm.MD5
-            };
-            me.KeySize = KEY_SIZE * 8;  // byte to bit // TODO: SHOULD BE FIXED TO BE 32 BYTES INSTAED OF BUGGED 72
-            
+            // brainpool causes to "Invalid paramater" On CngKey.Import, so the best one - nistP256 Curve
+            me = new ECDiffieHellmanCng(ECCurve.NamedCurves.nistP256);  // 256 bit -> 32 bytes secret key fixed-size
+
             MyPublicKey = GetPublicKey();
             secretKey = null;  // should be set later, when second public key will be received
         }

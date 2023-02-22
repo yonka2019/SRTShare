@@ -16,7 +16,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             VERSION = version; byteFields.Add(BitConverter.GetBytes(VERSION));
 
             ENCRYPTION_TYPE = encryption_type; byteFields.Add(BitConverter.GetBytes(ENCRYPTION_TYPE));
-            ENCRYPTION_PUBLIC_KEY = encryption_public_key; byteFields.Add(ENCRYPTION_PUBLIC_KEY);
+            ENCRYPTION_PEER_PUBLIC_KEY = encryption_public_key; byteFields.Add(ENCRYPTION_PEER_PUBLIC_KEY);
 
             INTIAL_PSN = intial_psn; byteFields.Add(BitConverter.GetBytes(INTIAL_PSN));
 
@@ -37,15 +37,15 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
 
             ENCRYPTION_TYPE = BitConverter.ToUInt16(data, 17);  // [17 18] (2 bytes)
 
-            ENCRYPTION_PUBLIC_KEY = new byte[32];
-            Array.Copy(data, 19, ENCRYPTION_PUBLIC_KEY, 0, DiffieHellman.KEY_SIZE);  // [19 ... 50] (32 bytes)
+            ENCRYPTION_PEER_PUBLIC_KEY = new byte[DiffieHellman.PUBLIC_KEY_SIZE];
+            Array.Copy(data, 19, ENCRYPTION_PEER_PUBLIC_KEY, 0, DiffieHellman.PUBLIC_KEY_SIZE);  // [19 ... 90] (72 bytes) ! If encryption not used - fulled zeros !
             
-            INTIAL_PSN = BitConverter.ToUInt32(data, 51);  // [51 52 53 54] (4 bytes)
-            MTU = BitConverter.ToUInt32(data, 55);  // [55 56 57 58] (4 bytes)
-            TYPE = BitConverter.ToUInt32(data, 59);  // [59 60 61 62] (4 bytes)
-            SOCKET_ID = BitConverter.ToUInt32(data, 63);  // [63 64 65 66] (4 bytes)
-            SYN_COOKIE = BitConverter.ToUInt32(data, 67);  // [67 68 69 70] (4 bytes)
-            PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 71));  // [71 72 73 74] (4 bytes)
+            INTIAL_PSN = BitConverter.ToUInt32(data, 91);  // [91 92 93 94] (4 bytes)
+            MTU = BitConverter.ToUInt32(data, 95);  // [95 96 97 98] (4 bytes)
+            TYPE = BitConverter.ToUInt32(data, 99);  // [99 100 101 102] (4 bytes)
+            SOCKET_ID = BitConverter.ToUInt32(data, 103);  // [103 104 105 106] (4 bytes)
+            SYN_COOKIE = BitConverter.ToUInt32(data, 107);  // [107 108 109 110] (4 bytes)
+            PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 111));  // [111 112 113 114] (4 bytes)
 
             PEER_IP = new IpV4Address(MethodExt.ReverseIp(PEER_IP.ToString()));  // Reverse the ip because the little/big endian
         }
@@ -76,10 +76,10 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         public ushort ENCRYPTION_TYPE { get; private set; }
 
         /// <summary>
-        /// 256 bits (32 bytes). Fixed size which is Diffie-Hellman key-exchange method use.
+        /// Size: DiffieHellman.PUBLIC_KEY_SIZE. Fixed size which is Diffie-Hellman key-exchange method use.
         /// NOTICE: if there is no encryption at all, the encryption will be fulled '0' bytes ({0x0, 0x0, 0x0, ...}) as well.
         /// </summary>
-        public byte[] ENCRYPTION_PUBLIC_KEY { get; private set; }
+        public byte[] ENCRYPTION_PEER_PUBLIC_KEY { get; private set; }
 
         /// <summary>
         /// 32 bits (4 bytes). The sequence number of the
@@ -140,7 +140,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             handshake += "Peer ip: " + PEER_IP.ToString() + "\n";
             handshake += "Handshake type: " + TYPE.ToString("X") + "\n";
             handshake += "Encryption type: " + ((EncryptionType)ENCRYPTION_TYPE).ToString() + "\n";
-            handshake += "Encryption public key: " + BitConverter.ToString(ENCRYPTION_PUBLIC_KEY) + "\n";
+            handshake += "Encryption peer public key: " + BitConverter.ToString(ENCRYPTION_PEER_PUBLIC_KEY) + "\n";
             handshake += "Initial PSN: " + INTIAL_PSN;
 
             return handshake;
