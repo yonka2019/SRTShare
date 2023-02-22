@@ -77,7 +77,7 @@ namespace Server
         }
 
         /// <summary>
-        /// The function sends keep-alive packets every 3 seconds while the client is connected
+        /// The function sends keep-alive packets every 3 seconds while the client is connected  [not encrypted, even it in video stage]
         /// </summary>
         /// <param name="dest_socket_id"></param>
         private void KeepAliveChecker(object dest_socket_id)

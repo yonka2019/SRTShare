@@ -191,7 +191,7 @@ namespace Server
                 SRTSocket socket = SRTSockets[socketId];
 
                 ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
-                Packet shutdown_packet = shutdown_request.Shutdown(socketId, IsInVideoStage(socketId), GetSocketEncryptionType(socketId));
+                Packet shutdown_packet = shutdown_request.Shutdown(socketId, IsInVideoStage(socketId), GetSocketPeerEncryption(socketId));
                 PacketManager.SendPacket(shutdown_packet);
 
                 socket.KeepAlive.Disable();
@@ -253,9 +253,9 @@ namespace Server
         /// </summary>
         /// <param name="socketId">socket id (client)</param>
         /// <returns>chosen encryption method</returns>
-        private static EncryptionType GetSocketEncryptionType(uint socketId)
+        private static PeerEncryption GetSocketPeerEncryption(uint socketId)
         {
-            return SRTSockets[socketId].Data.EncryptionMethod;
+            return SRTSockets[socketId].Data.PeerEncryption;
         }
     }
 }

@@ -42,6 +42,7 @@ namespace Client
         // 20% - q_10p (button)
         //  .. .. ..
         internal static Dictionary<long, ToolStripMenuItem> QualityButtons;
+        internal static PeerEncryption serverEncryptionData;
 
 
 #if DEBUG
@@ -149,7 +150,7 @@ namespace Client
                         {
                             Console.WriteLine($"[Handshake] Got Conclusion: {handshake_request}\n");
 
-                            DiffieHellman.PeerPublicKey = handshake_request.ENCRYPTION_PEER_PUBLIC_KEY;
+                            serverEncryptionData = new PeerEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY);
 
                             Invoke((MethodInvoker)delegate
                             {
@@ -197,7 +198,7 @@ namespace Client
         }
 
         /// <summary>
-        /// If the client is in the video stage, and he enabled encryption, he should to decrypt each packet which is received from the server
+        /// If the client is in the video stage, and he enabled encryption, he should to decrypt each packet which is received from the server (only KeepAlive packets still raw)
         /// (according the after-video policy)
         /// </summary>
         /// <param name="packet">packet to check his state</param>
@@ -213,7 +214,7 @@ namespace Client
                 if (!Enum.IsDefined(typeof(EncryptionType), ENCRYPTION))
                     throw new Exception($"'{ENCRYPTION}' This encryption method isn't supported yet");
 
-                payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, DiffieHellman.GetSecretKey());
+                payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, serverEncryptionData.SecretKey);
             }
         }
 

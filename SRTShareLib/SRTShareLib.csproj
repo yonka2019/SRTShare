@@ -70,6 +70,7 @@
     <Compile Include="SRTManager\Encryption\AES256.cs" />
     <Compile Include="SRTManager\Encryption\EncryptionManager.cs" />
     <Compile Include="SRTManager\Encryption\EncryptionType.cs" />
+    <Compile Include="SRTManager\Encryption\PeerEncryption.cs" />
     <Compile Include="SRTManager\Encryption\Substitution.cs" />
     <Compile Include="SRTManager\Encryption\XOR.cs" />
     <Compile Include="SRTManager\Encryption\DiffieHellman.cs" />

@@ -15,9 +15,9 @@ namespace SRTShareLib.SRTManager.RequestsFactory
         /// </summary>
         /// <param name="dest_socket_id">Destination socket id</param>
         /// <returns>A quality control packet</returns>
-        public Packet UpdateQuality(uint dest_socket_id = 0, long newQuality = ProtocolManager.DEFAULT_QUALITY, bool videoStage = false, EncryptionType encryptionType = EncryptionType.None)
+        public Packet UpdateQuality(uint dest_socket_id = 0, long newQuality = ProtocolManager.DEFAULT_QUALITY, bool videoStage = false, PeerEncryption peerEncryption = default)
         {
-            GetPayloadLayer() = OSIManager.BuildPLayer(new SRTControl.QualityUpdate(dest_socket_id, newQuality).GetByted(), videoStage, encryptionType);
+            GetPayloadLayer() = OSIManager.BuildPLayer(new SRTControl.QualityUpdate(dest_socket_id, newQuality).GetByted(), videoStage, peerEncryption);
             return BuildPacket();
         }
     }

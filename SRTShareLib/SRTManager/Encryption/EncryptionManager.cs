@@ -20,7 +20,7 @@
         /// <param name="data">data to encrypt</param>
         /// <param name="encryptionType">encrpytion type</param>
         /// <returns>Encrypted data</returns>
-        public static byte[] Encrypt(EncryptionType encryptionType, byte[] data, byte[] key)
+        public static byte[] Encrypt(byte[] data, EncryptionType encryptionType, byte[] key)
         {
             switch (encryptionType)
             {
