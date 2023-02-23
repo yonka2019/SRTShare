@@ -182,6 +182,7 @@ namespace Server
             SClient clientSocket = SRTSockets[client_id].SocketAddress;
 
             SRTSockets[client_id].Data.StopVideo();
+            SRTSockets[client_id].KeepAlive.Disable();
 
             if (SRTSockets.ContainsKey(client_id))
             {
