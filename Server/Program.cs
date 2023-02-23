@@ -241,7 +241,7 @@ namespace Server
                     }
                     else
                     {
-                        CConsole.WriteLine($"[Server] You can only swith between ({1} - {screens.Length}) screens\n", MessageType.txtWarning);
+                        CConsole.WriteLine($"[Server] You can only switch between ({1} - {screens.Length}) screens\n", MessageType.txtWarning);
                     }
                 }
                 else if (keyInfo.Key == ConsoleKey.RightArrow)
