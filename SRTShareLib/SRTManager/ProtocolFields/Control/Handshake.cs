@@ -44,8 +44,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             MTU = BitConverter.ToUInt32(data, 95);  // [95 96 97 98] (4 bytes)
             TYPE = BitConverter.ToUInt32(data, 99);  // [99 100 101 102] (4 bytes)
             SOCKET_ID = BitConverter.ToUInt32(data, 103);  // [103 104 105 106] (4 bytes)
-            SYN_COOKIE = BitConverter.ToUInt32(data, 107);  // [107 108 109 110] (4 bytes)
-            PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 111));  // [111 112 113 114] (4 bytes)
+            PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 107));  // [107 108 109 114] (4 bytes)
 
             PEER_IP = new IpV4Address(MethodExt.ReverseIp(PEER_IP.ToString()));  // Reverse the ip because the little/big endian
         }
@@ -108,13 +107,6 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         public uint SOCKET_ID { get; private set; }
 
         /// <summary>
-        /// 32 bits (4 bytes). Randomized value for processing a 
-        /// The value of this field is specified by the handshake message
-        /// type.
-        /// </summary>
-        public uint SYN_COOKIE { get; private set; }
-
-        /// <summary>
         /// 32 bits (4 bytes). IPv4 address of the packet's
         /// sender.The value consists of four 32-bit fields.In the case of
         /// IPv4 addresses, fields 2, 3 and 4 are filled with zeroes.
@@ -136,7 +128,6 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
 
             handshake += "Source SId: " + SOCKET_ID + "\n";
             handshake += "Dest SId: " + DEST_SOCKET_ID + "\n";
-            handshake += "Cookie: " + SYN_COOKIE + "\n";
             handshake += "Peer ip: " + PEER_IP.ToString() + "\n";
             handshake += "Handshake type: " + ((HandshakeType)TYPE).ToString() + "\n";
             handshake += "Encryption type: " + ((EncryptionType)ENCRYPTION_TYPE).ToString() + "\n";
