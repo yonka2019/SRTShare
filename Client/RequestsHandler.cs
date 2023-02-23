@@ -33,7 +33,7 @@ namespace Client
             else
                 myPublicKey = new byte[DiffieHellman.PUBLIC_KEY_SIZE];
 
-            Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.client_sid, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey);
+            Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.my_client_sid, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey);
             PacketManager.SendPacket(handshake_packet);
         }
 

@@ -32,7 +32,7 @@ namespace Client
         internal static string server_mac = null;
 
         internal static ushort my_client_port;
-        internal static uint client_sid = 0;  // the server sends this value on the induction answer (SID -> Socket ID) (MY SID)
+        internal static uint my_client_sid = 0;  // the server sends this value on the induction answer (SID -> Socket ID) (MY SID)
 
         internal static bool externalConnection;
         internal static bool AutoQualityControl = false;
@@ -193,9 +193,9 @@ namespace Client
                         // After client got the server's mac, send the first induction message
                         server_mac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
                         CConsole.WriteLine($"[Client] Server/Gateway MAC Found: {server_mac}\n", MessageType.txtSuccess);
-                        client_sid = ProtocolManager.GenerateSocketId(GetAdaptedIP(), my_client_port.ToString());
+                        my_client_sid = ProtocolManager.GenerateSocketId(GetAdaptedIP(), my_client_port.ToString());
 
-                        RequestsHandler.HandleArp(server_mac, my_client_port, client_sid);
+                        RequestsHandler.HandleArp(server_mac, my_client_port, my_client_sid);
                         handledArp = true;
                     }
                 }
@@ -261,7 +261,7 @@ namespace Client
                         Debug.WriteLine("[KEEP-ALIVE] Received request\n");
 
                         KeepAliveRequest keepAlive_response = new KeepAliveRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, my_client_port, ConfigManager.PORT));
-                        Packet keepAlive_confirm = keepAlive_response.Alive(server_sid, client_sid);
+                        Packet keepAlive_confirm = keepAlive_response.Alive(server_sid, my_client_sid);
                         PacketManager.SendPacket(keepAlive_confirm);
 
                         Debug.WriteLine("[KEEP-ALIVE] Sending confirm\n");
@@ -309,7 +309,7 @@ namespace Client
             long newQuality = QualityButtons.FirstOrDefault(quality => quality.Value == qualitySelected).Key;
 
             QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
-            Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(server_sid, client_sid, newQuality);
+            Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(server_sid, my_client_sid, newQuality);
             PacketManager.SendPacket(qualityUpdate_packet);
 
             CConsole.WriteLine($"[Quality Update] Quality updated to: {newQuality}%\n", MessageType.txtInfo);
@@ -334,7 +334,7 @@ namespace Client
             {
                 // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
                 ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, my_client_port, ConfigManager.PORT));
-                Packet shutdown_packet = shutdown_request.Shutdown(server_sid, client_sid);
+                Packet shutdown_packet = shutdown_request.Shutdown(server_sid, my_client_sid);
                 PacketManager.SendPacket(shutdown_packet);
             }
 
