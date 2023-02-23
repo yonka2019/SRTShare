@@ -179,20 +179,20 @@ namespace Server
         /// <param name="client_id">client id who need to be cleaned</param>
         internal static void DisposeClient(uint client_id)
         {
-            SClient clientSocket = SRTSockets[client_id].SocketAddress;
-
-            SRTSockets[client_id].Data.StopVideo();
-            SRTSockets[client_id].KeepAlive.Disable();
-
             if (SRTSockets.ContainsKey(client_id))
             {
+                SClient clientSocket = SRTSockets[client_id].SocketAddress;
+
+                SRTSockets[client_id].Data.StopVideo();
+                SRTSockets[client_id].KeepAlive.Disable();
+
                 string removedClientIP = $"{clientSocket.IPAddress}";
 
                 SRTSockets.Remove(client_id);
-                CConsole.WriteLine($"[Server] Client [{removedClientIP}] was removed\n", MessageType.txtError);
+                CConsole.WriteLine($"[Server] Client [{removedClientIP}] was removed\n", MessageType.txtWarning);
             }
             else
-                CConsole.WriteLine($"[Server] Client [{clientSocket.IPAddress}] wasn't found\n", MessageType.txtError);
+                CConsole.WriteLine($"[Server] Client ID [{client_id}] doesn't exist\n", MessageType.txtError);
         }
 
         /// <summary>
@@ -215,8 +215,7 @@ namespace Server
                 Packet shutdown_packet = shutdown_request.Shutdown(socketId, IsInVideoStage(socketId), GetSocketPeerEncryption(socketId));
                 PacketManager.SendPacket(shutdown_packet);
 
-                socket.KeepAlive.Disable();
-                socket.Data.StopVideo();
+                DisposeClient(socketId);
             }
 
             handlePackets.Abort();
