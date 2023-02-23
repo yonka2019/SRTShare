@@ -104,7 +104,7 @@ namespace Client
                     CurrentVideoQuality -= MainView.DATA_DECREASE_QUALITY_BY;  // down quality and send quality update request 
 
                     QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
-                    Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(MainView.server_sid, CurrentVideoQuality);
+                    Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(MainView.server_sid, MainView.client_sid, CurrentVideoQuality);
                     PacketManager.SendPacket(qualityUpdate_packet);
 
                     Debug.WriteLine($"[QUALITY-CONTROL] Quality reduced to {CurrentVideoQuality}\n" +
@@ -179,10 +179,10 @@ namespace Client
 
         private static void SendMissingPackets(uint[] missedSequenceNumbers)
         {
-            NakRequest nak_request = new NakRequest
+            NAKRequest nak_request = new NAKRequest
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
 
-            Packet nak_packet = nak_request.SendMissingPackets(missedSequenceNumbers.ToList());
+            Packet nak_packet = nak_request.SendMissingPackets(missedSequenceNumbers.ToList(), MainView.server_sid, MainView.client_sid);
             PacketManager.SendPacket(nak_packet);
         }
 
@@ -191,7 +191,7 @@ namespace Client
             ACKRequest ack_request = new ACKRequest
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
 
-            Packet ack_packet = ack_request.NotifyReceived(ackSequenceNumber);
+            Packet ack_packet = ack_request.NotifyReceived(ackSequenceNumber, MainView.server_sid, MainView.client_sid);
             PacketManager.SendPacket(ack_packet);
         }
 

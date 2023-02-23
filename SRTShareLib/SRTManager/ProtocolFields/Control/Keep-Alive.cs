@@ -4,7 +4,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
 {
     public class KeepAlive : SRTHeader
     {
-        public KeepAlive(uint dest_socket_id) : base(ControlType.KEEPALIVE, dest_socket_id)
+        public KeepAlive(uint dest_socket_id, uint source_socket_id) : base(ControlType.KEEPALIVE, dest_socket_id, source_socket_id)
         {
         }
 

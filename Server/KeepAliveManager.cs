@@ -90,7 +90,7 @@ namespace Server
                 KeepAliveRequest keepAlive_request = new KeepAliveRequest
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
-                Packet keepAlive_packet = keepAlive_request.Alive(u_dest_socket_id);
+                Packet keepAlive_packet = keepAlive_request.Alive(u_dest_socket_id, Program.SERVER_SOCKET_ID);
                 PacketManager.SendPacket(keepAlive_packet);
 
                 Thread.Sleep(KA_REFRESH_SECONDS * 1000);

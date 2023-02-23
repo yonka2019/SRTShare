@@ -11,7 +11,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        public NAK(uint dest_socket_id, List<uint> lost_packets) : base(ControlType.NAK, dest_socket_id)
+        public NAK(uint dest_socket_id, uint source_socket_id, List<uint> lost_packets) : base(ControlType.NAK, dest_socket_id, source_socket_id)
         {
             LOST_PACKETS = lost_packets;
             foreach (uint value in LOST_PACKETS)
@@ -28,7 +28,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         {
             LOST_PACKETS = new List<uint>();
 
-            for (int i = 13; i < data.Length; i += 4) // [13 -> end]
+            for (int i = 11; i < data.Length; i += 4) // [11 -> end]
             {
                 uint value = BitConverter.ToUInt32(data.ToArray(), i);
                 LOST_PACKETS.Add(value);

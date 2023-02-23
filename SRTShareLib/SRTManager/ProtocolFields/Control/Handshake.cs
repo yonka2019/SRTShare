@@ -11,7 +11,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        public Handshake(uint version, ushort encryption_type, byte[] encryption_public_key, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, uint syn_cookie, IpV4Address p_ip) : base(ControlType.HANDSHAKE, dest_socket_id)
+        public Handshake(uint version, ushort encryption_type, byte[] encryption_public_key, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, IpV4Address p_ip) : base(ControlType.HANDSHAKE, dest_socket_id, source_socket_id)
         {
             VERSION = version; byteFields.Add(BitConverter.GetBytes(VERSION));
 
@@ -19,11 +19,8 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             ENCRYPTION_PEER_PUBLIC_KEY = encryption_public_key; byteFields.Add(ENCRYPTION_PEER_PUBLIC_KEY);
 
             INTIAL_PSN = intial_psn; byteFields.Add(BitConverter.GetBytes(INTIAL_PSN));
-
-            // (.Mtu - 100; explanation) To avoid errors with sending, because this field used to set fixed size of splitted data packet, while the real mtu that the interface provides refers the whole size of the packet which get sent, and with the whole srt packet and all layers in will much more
-            MTU = (uint)NetworkManager.Device.GetNetworkInterface().GetIPProperties().GetIPv4Properties().Mtu - 100; byteFields.Add(BitConverter.GetBytes(MTU));
+            MTU = (uint)NetworkManager.Device.GetNetworkInterface().GetIPProperties().GetIPv4Properties().Mtu; byteFields.Add(BitConverter.GetBytes(MTU));
             TYPE = type; byteFields.Add(BitConverter.GetBytes(TYPE));
-            SOCKET_ID = source_socket_id; byteFields.Add(BitConverter.GetBytes(SOCKET_ID));
             PEER_IP = p_ip; byteFields.Add(PEER_IP.ToBytes());
         }
 
@@ -32,18 +29,17 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// </summary>
         public Handshake(byte[] data) : base(data)  // initialize SRT Control header fields
         {
-            VERSION = BitConverter.ToUInt32(data, 13);  // [13 14 15 16] (4 bytes)
+            VERSION = BitConverter.ToUInt32(data, 11);  // [11 12 13 14] (4 bytes)
 
-            ENCRYPTION_TYPE = BitConverter.ToUInt16(data, 17);  // [17 18] (2 bytes)
+            ENCRYPTION_TYPE = BitConverter.ToUInt16(data, 15);  // [15 16] (2 bytes)
 
             ENCRYPTION_PEER_PUBLIC_KEY = new byte[DiffieHellman.PUBLIC_KEY_SIZE];
-            Array.Copy(data, 19, ENCRYPTION_PEER_PUBLIC_KEY, 0, DiffieHellman.PUBLIC_KEY_SIZE);  // [19 ... 90] (72 bytes) ! If encryption not used - fulled zeros !
+            Array.Copy(data, 17, ENCRYPTION_PEER_PUBLIC_KEY, 0, DiffieHellman.PUBLIC_KEY_SIZE);  // [17 ... 88] (72 bytes) ! If encryption not used - fulled zeros !
             
-            INTIAL_PSN = BitConverter.ToUInt32(data, 91);  // [91 92 93 94] (4 bytes)
-            MTU = BitConverter.ToUInt32(data, 95);  // [95 96 97 98] (4 bytes)
-            TYPE = BitConverter.ToUInt32(data, 99);  // [99 100 101 102] (4 bytes)
-            SOCKET_ID = BitConverter.ToUInt32(data, 103);  // [103 104 105 106] (4 bytes)
-            PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 107));  // [107 108 109 110] (4 bytes)
+            INTIAL_PSN = BitConverter.ToUInt32(data, 89);  // [89 90 91 92] (4 bytes)
+            MTU = BitConverter.ToUInt32(data, 93);  // [93 94 95 96] (4 bytes)
+            TYPE = BitConverter.ToUInt32(data, 97);  // [97 98 99 100] (4 bytes)
+            PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 101));  // [101 102 103 104] (4 bytes)
 
             PEER_IP = new IpV4Address(MethodExt.ReverseIp(PEER_IP.ToString()));  // Reverse the ip because the little/big endian
         }
@@ -100,12 +96,6 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         public uint TYPE { get; private set; }
 
         /// <summary>
-        /// 32 bits (4 bytes). This field holds the ID of the source SRT
-        /// socket from which a handshake packet is issued.
-        /// </summary>
-        public uint SOCKET_ID { get; private set; }
-
-        /// <summary>
         /// 32 bits (4 bytes). IPv4 address of the packet's
         /// sender.The value consists of four 32-bit fields.In the case of
         /// IPv4 addresses, fields 2, 3 and 4 are filled with zeroes.
@@ -125,7 +115,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         {
             string handshake = "";
 
-            handshake += "Source SId: " + SOCKET_ID + "\n";
+            handshake += "Source SId: " + SOURCE_SOCKET_ID + "\n";
             handshake += "Dest SId: " + DEST_SOCKET_ID + "\n";
             handshake += "Peer ip: " + PEER_IP.ToString() + "\n";
             handshake += "Handshake type: " + ((HandshakeType)TYPE).ToString() + "\n";

@@ -107,32 +107,28 @@ namespace Server
                         else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION)  // (SRT) Conclusion
                         {
                             RequestsHandler.HandleConclusion(packet, handshake_request);
-                            SRTSockets[handshake_request.SOCKET_ID].KeepAlive.StartCheck();  // start keep-alive checking
-                            SRTSockets[handshake_request.SOCKET_ID].Data.StartVideo();  // start keep-alive checking
+                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].KeepAlive.StartCheck();  // start keep-alive checking
+                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].Data.StartVideo();  // start keep-alive checking
                         }
                     }
                     else if (KeepAlive.IsKeepAlive(payload))  // (SRT) KeepAlive
                     {
-                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
+                        KeepAlive keepAlive = new KeepAlive(payload);
 
-                        if (SRTSockets.ContainsKey(clientSocketId))
-                            SRTSockets[clientSocketId].KeepAlive.ConfirmStatus();  // sign as alive
+                        if (SRTSockets.ContainsKey(keepAlive.SOURCE_SOCKET_ID))
+                            SRTSockets[keepAlive.SOURCE_SOCKET_ID].KeepAlive.ConfirmStatus();  // sign as alive
                     }
                     else if (QualityUpdate.IsQualityUpdate(payload))  // (SRT) QualityUpdate - update the quality especially to this client
                     {
-                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
-
                         QualityUpdate qualityUpdate = new QualityUpdate(payload);
 
-                        Console.WriteLine($"[Quality Update] {SRTSockets[clientSocketId].SocketAddress.IPAddress} updated quality: {qualityUpdate.QUALITY}%\n");
+                        Console.WriteLine($"[Quality Update] {SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].SocketAddress.IPAddress} updated quality: {qualityUpdate.QUALITY}%\n");
 
-                        SRTSockets[clientSocketId].Data.CurrentQuality = qualityUpdate.QUALITY;
+                        SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].Data.CurrentQuality = qualityUpdate.QUALITY;
 
                     }
                     else if (NAK.IsNAK(payload))  // (SRT) NAK
                     {
-                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
-
                         NAK nak_request = new NAK(payload);
                         List<uint> missingSequenceNumbers = nak_request.LOST_PACKETS;
 
@@ -141,8 +137,6 @@ namespace Server
                     }
                     else if (ACK.IsACK(payload))  // (SRT) ACK
                     {
-                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
-
                         ACK ack_request = new ACK(payload);
                         uint receivedImageSequenceNumber = ack_request.ACK_SEQUENCE_NUMBER;
 
@@ -212,7 +206,7 @@ namespace Server
                 SRTSocket socket = SRTSockets[socketId];
 
                 ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
-                Packet shutdown_packet = shutdown_request.Shutdown(socketId, IsInVideoStage(socketId), GetSocketPeerEncryption(socketId));
+                Packet shutdown_packet = shutdown_request.Shutdown(socketId, SERVER_SOCKET_ID, IsInVideoStage(socketId), GetSocketPeerEncryption(socketId));
                 PacketManager.SendPacket(shutdown_packet);
 
                 DisposeClient(socketId);
