@@ -21,33 +21,20 @@ namespace Client
         /// <param name="handshake_request">Handshake object</param>
         internal static void HandleInduction(Control.Handshake handshake_request)
         {
-            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(MainView.GetAdaptedIP()))
-            {
-                HandshakeRequest handshake_response = new HandshakeRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
+            HandshakeRequest handshake_response = new HandshakeRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
 
-                // client -> server (conclusion)
+            // client -> server (conclusion)
 
-                IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedIP());
+            IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedIP());
 
-                byte[] myPublicKey;
-                if (MainView.ENCRYPTION != EncryptionType.None)
-                    myPublicKey = DiffieHellman.MyPublicKey;
-                else
-                    myPublicKey = new byte[DiffieHellman.PUBLIC_KEY_SIZE];
-
-                Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.client_sid, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey, handshake_request.SYN_COOKIE);
-                PacketManager.SendPacket(handshake_packet);
-
-            }
+            byte[] myPublicKey;
+            if (MainView.ENCRYPTION != EncryptionType.None)
+                myPublicKey = DiffieHellman.MyPublicKey;
             else
-            {
-                // Exit the prgram and send a shutdwon request
-                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
-                Packet shutdown_packet = shutdown_request.Shutdown(MainView.server_sid);
-                PacketManager.SendPacket(shutdown_packet);
+                myPublicKey = new byte[DiffieHellman.PUBLIC_KEY_SIZE];
 
-                MessageBox.Show("Bad cookie - Stopping", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.client_sid, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey);
+            PacketManager.SendPacket(handshake_packet);
         }
 
         /// <summary>

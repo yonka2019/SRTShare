@@ -45,9 +45,8 @@ namespace SRTShareLib.SRTManager.RequestsFactory
 
                 i += MTU;  // Move the index to the next packet
                 messageNumber++;  // Increment the message number
-                sequence_number += (uint)packet_data.Count;  // increase seq number
             }
-
+            sequence_number++;
             return packets;
         }
     }

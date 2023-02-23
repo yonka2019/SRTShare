@@ -111,7 +111,7 @@ namespace SRTShareLib.PcapManager
         private static PayloadLayer BuildEPLayer(List<byte[]> data, PeerEncryptionData peerEncryption)
         {
             byte[] bytedData = ConcatBytes(data);
-            byte[] encryptedData = EncryptionManager.Encrypt(bytedData, peerEncryption.Type, peerEncryption.SecretKey);
+            byte[] encryptedData = EncryptionManager.Encrypt(bytedData, peerEncryption.Type, peerEncryption.MutualKey);
             
             return BuildPLayer(encryptedData);
         }

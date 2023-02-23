@@ -219,7 +219,7 @@ namespace Client
                 if (!Enum.IsDefined(typeof(EncryptionType), ENCRYPTION))
                     throw new Exception($"'{ENCRYPTION}' This encryption method isn't supported yet");
 
-                payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, serverEncryptionData.SecretKey);
+                payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, serverEncryptionData.MutualKey);
             }
         }
 

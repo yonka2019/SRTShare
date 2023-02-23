@@ -14,7 +14,7 @@
 
         public readonly byte[] PeerPublicKey;
 
-        public readonly byte[] SecretKey;
+        public readonly byte[] MutualKey;  // mutual key with the peer
 
         public PeerEncryptionData(EncryptionType encryptionType, byte[] peerPublicKey)
         {
@@ -22,9 +22,9 @@
             PeerPublicKey = peerPublicKey;
 
             if (encryptionType == EncryptionType.None)  // if encryption type none - peer public key should be fulled zeros
-                SecretKey = new byte[DiffieHellman.SECRET_KEY_SIZE];
+                MutualKey = new byte[DiffieHellman.SECRET_KEY_SIZE];
             else
-                SecretKey = DiffieHellman.GenerateSecretKey(peerPublicKey);
+                MutualKey = DiffieHellman.GenerateSecretKey(peerPublicKey);
 
         }
     }
