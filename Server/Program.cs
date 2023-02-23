@@ -209,7 +209,8 @@ namespace Server
                 Packet shutdown_packet = shutdown_request.Shutdown(socketId, SERVER_SOCKET_ID, IsInVideoStage(socketId), GetSocketPeerEncryption(socketId));
                 PacketManager.SendPacket(shutdown_packet);
 
-                DisposeClient(socketId);
+                SRTSockets[socketId].Data.StopVideo();
+                SRTSockets[socketId].KeepAlive.Disable();
             }
 
             handlePackets.Abort();

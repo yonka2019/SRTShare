@@ -2,6 +2,10 @@
 
 namespace SRTShareLib.SRTManager.Encryption
 {
+    /// <summary>
+    /// This encryption method is problematic when using high quality (such as 100%..)
+    /// It's took too much time to decrypt the packets - which causes to a HUGE delay between the server and the client
+    /// </summary>
     public static class Substitution
     {
         /// <summary>
