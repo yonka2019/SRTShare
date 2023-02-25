@@ -122,8 +122,6 @@ namespace SRTShareLib.PcapManager
         /// </summary>
         /// <param name="data">data to manage</param>
         /// <param name="videoStage">current client stage (on video stage, or before)</param>
-        /// <param name="encryptionType">encryption type to use on video stage reaching</param>
-        /// <param name="layers">current built layers</param>
         /// <returns>Payload layer object (according the need: enc/raw)</returns>
         public static PayloadLayer BuildPLayer(List<byte[]> data, bool videoStage, PeerEncryptionData peerEncryption = default)
         {

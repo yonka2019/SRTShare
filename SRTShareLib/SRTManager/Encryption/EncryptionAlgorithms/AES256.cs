@@ -33,7 +33,8 @@ namespace SRTShareLib.SRTManager.Encryption
 
             using (AesManaged aes = new AesManaged())
             {
-                aes.Padding = PaddingMode.Zeros;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
 
                 ICryptoTransform encryptor = aes.CreateEncryptor(key, IV);
 
@@ -58,17 +59,27 @@ namespace SRTShareLib.SRTManager.Encryption
 
             using (AesManaged aes = new AesManaged())
             {
-                aes.Padding = PaddingMode.Zeros;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
 
                 ICryptoTransform decryptor = aes.CreateDecryptor(key, IV);
 
                 using (MemoryStream ms = new MemoryStream(data))
                 {
-                    using (CryptoStream cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Write))
+                    using (CryptoStream cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
                     {
-                        cs.Write(data, 0, data.Length);
+                        using (MemoryStream msDecrypt = new MemoryStream())
+                        {
+                            byte[] buffer = new byte[1024];
+                            int read;
+
+                            while ((read = cs.Read(buffer, 0, buffer.Length)) > 0)
+                            {
+                                msDecrypt.Write(buffer, 0, read);
+                            }
+                            decrypted = msDecrypt.ToArray();
+                        }
                     }
-                    decrypted = ms.ToArray();
                 }
             }
             return decrypted;
