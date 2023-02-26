@@ -12,7 +12,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
     {
         public DataRequest(params ILayer[] layers) : base(layers) { }
 
-        public List<Packet> SplitToPackets(List<byte> stream, ref uint sequence_number, uint time_stamp, uint dest_socket_id, int MTU, PeerEncryptionData peerEncryption)
+        public List<Packet> SplitToPackets(List<byte> stream, ref uint sequence_number, uint time_stamp, uint dest_socket_id, int MTU, BaseEncryption baseEncryption)
         {
             List<Packet> packets = new List<Packet>();
             List<byte> packet_data;
@@ -38,10 +38,10 @@ namespace SRTShareLib.SRTManager.RequestsFactory
 
                 // Create the SRT packet header and payload
                 srt_packet_data = new SRTData.SRTHeader(sequence_number: sequence_number, packetPositionFlag,
-                    peerEncryption.Type == EncryptionType.None ? SRTData.EncryptionFlags.NOT_ENCRYPTED : SRTData.EncryptionFlags.ENCRYPTED,
+                    baseEncryption.Type == EncryptionType.None ? SRTData.EncryptionFlags.NOT_ENCRYPTED : SRTData.EncryptionFlags.ENCRYPTED,
                     is_retransmitted: false, message_number: messageNumber, time_stamp, dest_socket_id, packet_data);
 
-                GetPayloadLayer() = OSIManager.BuildPLayer(srt_packet_data.GetByted(), true, peerEncryption);
+                GetPayloadLayer() = OSIManager.BuildPLayer(srt_packet_data.GetByted(), true, baseEncryption);
 
                 packets.Add(BuildPacket());  // Add the packet to the list of packets
 

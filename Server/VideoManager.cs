@@ -21,7 +21,7 @@ namespace Server
         private readonly SClient client;
         private bool connected;
 
-        public readonly PeerEncryptionData PeerEncryption;
+        public readonly BaseEncryption ClientEncryption;
         public bool VideoStage { get; private set; }
 
 #if DEBUG
@@ -32,14 +32,14 @@ namespace Server
 
         private static uint current_sequence_number;
 
-        internal VideoManager(SClient client, PeerEncryptionData peerEncryption, uint intial_sequence_number)
+        internal VideoManager(SClient client, BaseEncryption baseEncryption, uint intial_sequence_number)
         {
             current_sequence_number = intial_sequence_number;  // start from init
 
             this.client = client;
             connected = true;
 
-            PeerEncryption = peerEncryption;
+            ClientEncryption = baseEncryption;
             CurrentQuality = ProtocolManager.DEFAULT_QUALITY;  // default quality value
         }
 
@@ -83,7 +83,7 @@ namespace Server
                                 OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
                 // (.MTU - 100; explanation) To avoid errors with sending, because this field used to set fixed size of splitted data packet, while the real mtu that the interface provides refers the whole size of the packet which get sent, and with the whole srt packet and all layers in will much more
-                List<Packet> data_packets = dataRequest.SplitToPackets(stream, ref current_sequence_number, time_stamp: 0, u_dest_socket_id, (int)client.MTU - 100, PeerEncryption);
+                List<Packet> data_packets = dataRequest.SplitToPackets(stream, ref current_sequence_number, time_stamp: 0, u_dest_socket_id, (int)client.MTU - 100, ClientEncryption);
 
                 foreach (Packet packet in data_packets)
                 {

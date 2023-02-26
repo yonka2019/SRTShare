@@ -43,7 +43,7 @@ namespace Client
         // 20% - q_10p (button)
         //  .. .. ..
         internal static Dictionary<long, ToolStripMenuItem> QualityButtons;
-        internal static PeerEncryptionData serverEncryptionData;
+        internal static BaseEncryption Server_EncryptionControl;
 
 
 #if DEBUG
@@ -52,7 +52,7 @@ namespace Client
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.AES256;  // The whole encryption of the conversation (from data stage)
+        internal const EncryptionType ENCRYPTION = EncryptionType.None;  // The whole encryption of the conversation (from data stage)
         internal const int INITIAL_PSN = 0;  // The first sequence number of the conversation
 
         internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
@@ -155,7 +155,7 @@ namespace Client
                             Console.WriteLine($"[Handshake] Got Conclusion: {handshake_request}\n");
 
                             // encryption data received - initialize him for future decrypt necessity
-                            serverEncryptionData = new PeerEncryptionData((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY);
+                            Server_EncryptionControl = EncryptionFactory.CreateEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY);
 
                             Invoke((MethodInvoker)delegate
                             {
@@ -219,7 +219,7 @@ namespace Client
                 if (!Enum.IsDefined(typeof(EncryptionType), ENCRYPTION))
                     throw new Exception($"'{ENCRYPTION}' This encryption method isn't supported yet");
 
-                payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, serverEncryptionData.MutualKey);
+                payload = Server_EncryptionControl.TryDecrypt(payload);
             }
         }
 

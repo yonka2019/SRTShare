@@ -1,33 +1,26 @@
-﻿using System.Text;
-
-namespace SRTShareLib.SRTManager.Encryption
+﻿namespace SRTShareLib.SRTManager.Encryption
 {
-    public static class XOR
+    internal class XOR : BaseEncryption
     {
-        /// <summary>
-        /// Type of the encryption
-        /// </summary>
-        public const EncryptionType Type = EncryptionType.Substitution;
+        internal XOR(byte[] peerPublicKey) : base(EncryptionType.XOR, peerPublicKey) { }
 
-        internal static byte[] Encrypt(byte[] data, byte[] key)
+        internal override byte[] Encrypt(byte[] data)
         {
             return Cipher(data, key);
         }
 
-        internal static byte[] Decrypt(byte[] data, byte[] key)
+        internal override byte[] Decrypt(byte[] data)
         {
-            return Cipher(data, key);  // encrypt to encrypt = decrypted (especially for xor encryption)
+            return Cipher(data, key);  // encrypt to encrypt = decrypted (ESPECIALLY for XOR encryption)
         }
 
         private static byte[] Cipher(byte[] data, byte[] key)
         {
-            int dataLen = data.Length;
-            int keyLen = key.Length;
-            byte[] output = new byte[dataLen];
+            byte[] output = new byte[data.Length];
 
-            for (int i = 0; i < dataLen; ++i)
+            for (int i = 0; i < data.Length; ++i)
             {
-                output[i] = (byte)(data[i] ^ key[i % keyLen]);
+                output[i] = (byte)(data[i] ^ key[i % key.Length]);
             }
 
             return output;

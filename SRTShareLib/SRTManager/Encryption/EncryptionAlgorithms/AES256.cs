@@ -16,20 +16,19 @@ namespace SRTShareLib.SRTManager.Encryption
      * AES256 - depend on the other bytes because the hash encoding which is problematically in UDP based protocol (although, retransmission could help)
      * Substitution / XOR - doesn't depend on other bytes, so they have better performance
      */
-    public static class AES256
-    {
-        /// <summary>
-        /// Type of the encryption
-        /// </summary>
-        public const EncryptionType Type = EncryptionType.AES256;
-        public const int IVSize = 16;  // Bytes. Default to all AES encryption types (AES128, AES192, AES256 ..)
 
-        internal static byte[] Encrypt(byte[] data, byte[] key)
+    internal class AES256 : BaseEncryption
+    {
+        private const int IVSize = 16;  // in Bytes. Default to all AES encryption types (AES128, AES192, AES256 ..)
+
+        internal AES256(byte[] peerPublicKey) : base(EncryptionType.AES256, peerPublicKey) { }
+
+        internal override byte[] Encrypt(byte[] data)
         {
             byte[] encrypted;
 
             byte[] IV = new byte[IVSize];
-            Array.Copy(key, 0, IV, 0, 16);
+            Array.Copy(key, 0, IV, 0, IVSize);
 
             using (AesManaged aes = new AesManaged())
             {
@@ -50,12 +49,12 @@ namespace SRTShareLib.SRTManager.Encryption
             return encrypted;
         }
 
-        internal static byte[] Decrypt(byte[] data, byte[] key)
+        internal override byte[] Decrypt(byte[] data)
         {
             byte[] decrypted;
 
             byte[] IV = new byte[IVSize];
-            Array.Copy(key, 0, IV, 0, 16);
+            Array.Copy(key, 0, IV, 0, IVSize);
 
             using (AesManaged aes = new AesManaged())
             {

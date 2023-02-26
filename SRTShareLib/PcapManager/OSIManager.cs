@@ -105,13 +105,11 @@ namespace SRTShareLib.PcapManager
         /// The function converts a byte list into ENCRYPTED payload layer
         /// </summary>
         /// <param name="data">data to convert</param>
-        /// <param name="encryptionType">encryption type to encrypt the data</param>
-        /// <param name="layers">current layers in using</param>
         /// <returns>Payload layer object (encrypted bytes)</returns>
-        private static PayloadLayer BuildEPLayer(List<byte[]> data, PeerEncryptionData peerEncryption)
+        private static PayloadLayer BuildEPLayer(List<byte[]> data, BaseEncryption baseEncryption)
         {
             byte[] bytedData = ConcatBytes(data);
-            byte[] encryptedData = EncryptionManager.Encrypt(bytedData, peerEncryption.Type, peerEncryption.MutualKey);
+            byte[] encryptedData = baseEncryption.Encrypt(bytedData);
             
             return BuildPLayer(encryptedData);
         }
@@ -123,13 +121,13 @@ namespace SRTShareLib.PcapManager
         /// <param name="data">data to manage</param>
         /// <param name="videoStage">current client stage (on video stage, or before)</param>
         /// <returns>Payload layer object (according the need: enc/raw)</returns>
-        public static PayloadLayer BuildPLayer(List<byte[]> data, bool videoStage, PeerEncryptionData peerEncryption = default)
+        public static PayloadLayer BuildPLayer(List<byte[]> data, bool videoStage, BaseEncryption baseEncryption = null)
         {
             if (videoStage)
             {
-                if (peerEncryption.Type != EncryptionType.None)  // No encryption setted
+                if (baseEncryption.Type != EncryptionType.None)  // No encryption setted
                 {
-                    return BuildEPLayer(data, peerEncryption);
+                    return BuildEPLayer(data, baseEncryption);
                 }
             }
             // not video stage, surely encryption is not should be used /// Encryption disabled (the both cases don't use totally any encryption)
