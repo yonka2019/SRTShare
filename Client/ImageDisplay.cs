@@ -20,40 +20,24 @@ namespace Client
         private static ushort lastDataPosition;
         private static readonly object _lock = new object();
 
-        private static List<Data.SRTHeader> dataPackets = new List<Data.SRTHeader>();
         private static Dictionary<uint, List<Data.SRTHeader>> dataBuffer = new Dictionary<uint, List<Data.SRTHeader>>(); 
+        private static List<uint> lostSequences = new List<uint>();
 
         internal static long CurrentVideoQuality = ProtocolManager.DEFAULT_QUALITY;
 
         private static DateTime lastQualityModify;
         private const int MINIMUM_SECONDS_ELPASED_TO_MODIFY = 3;  // don't allow the algorithm to AUTO modify the quality if there is was a quality change
 
-        private static byte[] FullData
+        private static byte[] GetFullData(uint packetSequenceNumber)
         {
-            get
+            List<byte> fullData = new List<byte>();
+
+            foreach (Data.SRTHeader srtHeader in dataBuffer[packetSequenceNumber])  // add each data into [List<byte> fullData]
             {
-                List<byte> fullData = new List<byte>();
-
-                foreach (Data.SRTHeader srtHeader in dataPackets)  // add each data into [List<byte> fullData]
-                {
-                    fullData.AddRange(srtHeader.DATA);
-                }
-                // convert to byte array and return
-                return fullData.ToArray();
+                fullData.AddRange(srtHeader.DATA);
             }
-        }
-
-        internal static void AddReceivedData(Data.SRTHeader data_request)
-        {
-            if (dataBuffer.ContainsKey(data_request.SEQUENCE_NUMBER))
-                dataBuffer[data_request.SEQUENCE_NUMBER] = new List<Data.SRTHeader>();
-
-            dataBuffer[data_request.SEQUENCE_NUMBER].Add(data_request);
-        }
-
-        internal static void ProduceImage()
-        {
-
+            // convert to byte array and return
+            return fullData.ToArray();
         }
 
         internal static void ProduceImage(Data.SRTHeader data_request)
@@ -66,47 +50,68 @@ namespace Client
                 {
                     if (lastDataPosition == (ushort)Data.PositionFlags.MIDDLE)  // LAST lost, image received [FIRST MID MID MID ---- FIRST]
                     {
-                        ShowImage(false);
-                        dataPackets.Clear();
+                        ShowImage(data_request.SEQUENCE_NUMBER, false);
+                        dataBuffer[data_request.SEQUENCE_NUMBER].Clear(); // last chunk of sequence number -> clear it
                     }
-                    dataPackets.Add(data_request);
+
+                    if (!dataBuffer.ContainsKey(data_request.SEQUENCE_NUMBER))
+                        dataBuffer[data_request.SEQUENCE_NUMBER] = new List<Data.SRTHeader>();
+
+                    dataBuffer[data_request.SEQUENCE_NUMBER].Add(data_request); // adding new chunk to its related sequence number
                 }
 
                 else if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.LAST)  // full image received (but maybe middle packets get lost)
                 {
-                    dataPackets.Add(data_request);
-                    ShowImage(true);
-                    dataPackets.Clear();
+                    dataBuffer[data_request.SEQUENCE_NUMBER].Add(data_request); // adding new chunk to its related sequence number
+
+                    ShowImage(data_request.SEQUENCE_NUMBER, true);
+
+                    dataBuffer[data_request.SEQUENCE_NUMBER].Clear(); // last chunk of sequence number -> clear it
                 }
+
                 else
                 {
-                    dataPackets.Add(data_request);
+                    dataBuffer[data_request.SEQUENCE_NUMBER].Add(data_request); // adding new chunk to its related sequence number
                 }
 
                 lastDataPosition = data_request.PACKET_POSITION_FLAG;
             }
         }
 
-        private static void ShowImage(bool lastChunkReceived)
+        private static List<uint> missingMessageNumbersFromMissingPackets(List<Data.SRTHeader> my_list)
         {
-            (uint corruptedImage_SequenceNumber, uint[] lostChunks_MessageNumber) = MissingPackets();
+            List<uint> my_list_messsages = new List<uint>();
+
+            foreach(var item in my_list)
+            {
+                my_list_messsages.Add(item.MESSAGE_NUMBER);
+            }
+
+            return my_list_messsages;
+        }
+
+        private static void ShowImage(uint packetSequenceNumber, bool lastChunkReceived)
+        {
+            uint[] lostChunks_MessageNumber = MissingPackets(packetSequenceNumber);
 
             // if there are missing packets -> send a nak packet with missing packets
             if (lostChunks_MessageNumber.Length > 0)
             {
-                SendMissingPackets(corruptedImage_SequenceNumber, lostChunks_MessageNumber);
+                lostSequences.Add(packetSequenceNumber);
+                List <uint> CurrentVideoQuality = missingMessageNumbersFromMissingPackets(dataBuffer[packetSequenceNumber]);
+                SendMissingPackets(packetSequenceNumber, lostChunks_MessageNumber);
                 return;
             }
 
-            else // if all the packets of the current image were received -> send an ack packet with the image's sequence number
-                SendImageConfirm(dataPackets[0].SEQUENCE_NUMBER);
+           // else // if all the packets of the current image were received -> send an ack packet with the image's sequence number
+             //   SendImageConfirm(packetSequenceNumber);
 
 
 
             if (!lastChunkReceived)
                 Debug.WriteLine("[IMAGE BUILDER] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
 
-            double packetsShouldLost = Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0));
+            double packetsShouldLost = Math.Ceiling(dataBuffer[packetSequenceNumber].Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0));
             TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
 
             // dataPackets.Last().MESSAGE_NUMBER - the last seq number which is the max
@@ -161,7 +166,7 @@ namespace Client
                 }
             }
 
-            using (MemoryStream ms = new MemoryStream(FullData))
+            using (MemoryStream ms = new MemoryStream(GetFullData(packetSequenceNumber)))
             {
                 try
                 {
@@ -174,24 +179,28 @@ namespace Client
             }
         }
 
-        private static (uint, uint[]) MissingPackets()
+        private static uint[] MissingPackets(uint packetSequenceNumber)
         {
-            dataPackets = dataPackets.OrderBy(dp => dp.MESSAGE_NUMBER).ToList();
+            if(lostSequences.Contains(packetSequenceNumber))
+            {
+                Console.WriteLine("hello");
+            }
+            dataBuffer[packetSequenceNumber] = dataBuffer[packetSequenceNumber].OrderBy(dp => dp.MESSAGE_NUMBER).ToList();
 
             List<uint> missingList = new List<uint>();
-            for (int i = 0; i < dataPackets.Count - 1; i++)
+            for (int i = 0; i < dataBuffer[packetSequenceNumber].Count - 1; i++)
             {
-                uint diff = dataPackets[i + 1].MESSAGE_NUMBER - dataPackets[i].MESSAGE_NUMBER;
+                uint diff = dataBuffer[packetSequenceNumber][i + 1].MESSAGE_NUMBER - dataBuffer[packetSequenceNumber][i].MESSAGE_NUMBER;
                 if (diff > 1)
                 {
                     for (uint j = 1; j < diff; j++)
                     {
-                        missingList.Add(dataPackets[i].MESSAGE_NUMBER + j);
+                        missingList.Add(dataBuffer[packetSequenceNumber][i].MESSAGE_NUMBER + j);
                     }
                 }
             }
 
-            return (dataPackets[0].SEQUENCE_NUMBER, missingList.ToArray());
+            return  missingList.ToArray();
         }
 
         private static void SendMissingPackets(uint corrupted_sequence_number, uint[] missedSequenceNumbers)

@@ -111,6 +111,7 @@ namespace Server
                             SRTSockets[handshake_request.SOURCE_SOCKET_ID].Data.StartVideo();  // start keep-alive checking
                         }
                     }
+
                     else if (KeepAlive.IsKeepAlive(payload))  // (SRT) KeepAlive
                     {
                         KeepAlive keepAlive = new KeepAlive(payload);
@@ -127,20 +128,25 @@ namespace Server
                         SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].Data.CurrentQuality = qualityUpdate.QUALITY;
 
                     }
+
                     else if (NAK.IsNAK(payload))  // (SRT) NAK
                     {
                         NAK nak_request = new NAK(payload);
-                        List<uint> missingSequenceNumbers = nak_request.MESSAGE_NUMBER_LOST_PACKETS;
+                        uint receivedImageSequenceNumber = nak_request.CORRUPTED_SEQUENCE_NUMBER;
 
-                        // resend all the packets for each missing sequence number (each image)
-
+                        Console.WriteLine("client socket id: " + nak_request.SOURCE_SOCKET_ID);
+                        SRTSockets[nak_request.SOURCE_SOCKET_ID].Data.ResendImage(receivedImageSequenceNumber); // resend all the packets for the missing sequence number (each image)
+                        Console.WriteLine($"[{nak_request.SOURCE_SOCKET_ID}] - Resent Seq Number - {receivedImageSequenceNumber}.\n");
                     }
                     else if (ACK.IsACK(payload))  // (SRT) ACK
                     {
                         ACK ack_request = new ACK(payload);
                         uint receivedImageSequenceNumber = ack_request.ACK_SEQUENCE_NUMBER;
 
-                        // clear all the packets of teh received image sequence number
+                        Console.WriteLine("client socket id: " + ack_request.SOURCE_SOCKET_ID);
+
+                        SRTSockets[ack_request.SOURCE_SOCKET_ID].Data.ResendImage(receivedImageSequenceNumber);  // clear all the packets of teh received image sequence number
+                        Console.WriteLine($"[{ack_request.SOURCE_SOCKET_ID}] - Deleted Seq Number - {receivedImageSequenceNumber}.\n");
                     }
 
                     else if (Shutdown.IsShutdown(payload))  // (SRT) Shutdown

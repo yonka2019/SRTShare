@@ -21,6 +21,7 @@ namespace Server
         private readonly SClient client;
         private bool connected;
 
+        internal Dictionary<uint, List<Packet>> dataBuffer = new Dictionary<uint, List<Packet>>();
         public readonly BaseEncryption ClientEncryption;
         public bool VideoStage { get; private set; }
 
@@ -64,6 +65,23 @@ namespace Server
             VideoStage = false;
         }
 
+        internal void ResendImage(uint packetSequenceNumber)
+        {
+            foreach (Packet packet in dataBuffer[packetSequenceNumber])
+            {
+                PacketManager.SendPacket(packet);
+#if DEBUG
+                Console.Title = $"Data sent {++dataSent}";
+#endif
+            }
+        }
+
+        internal void confirmImage(uint packetSequenceNumber)
+        {
+            dataBuffer[packetSequenceNumber].Clear();
+            dataBuffer.Remove(packetSequenceNumber);
+        }
+
         /// <summary>
         /// looping sending screenshots (video) to client
         /// </summary>
@@ -85,8 +103,10 @@ namespace Server
                 // (.MTU - 100; explanation) To avoid errors with sending, because this field used to set fixed size of splitted data packet, while the real mtu that the interface provides refers the whole size of the packet which get sent, and with the whole srt packet and all layers in will much more
                 List<Packet> data_packets = dataRequest.SplitToPackets(stream, ref current_sequence_number, time_stamp: 0, u_dest_socket_id, (int)client.MTU - 100, ClientEncryption);
 
+                dataBuffer[current_sequence_number] = new List<Packet>();
                 foreach (Packet packet in data_packets)
                 {
+                    dataBuffer[current_sequence_number].Add(packet);
                     PacketManager.SendPacket(packet);
 #if DEBUG
                     Console.Title = $"Data sent {++dataSent}";
