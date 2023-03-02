@@ -27,7 +27,7 @@
             }
             catch (System.Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"[CRYPTO] ERROR: Bad decryption ({e.Message})\n");  // cryptography issue
+                System.Diagnostics.Debug.WriteLine($"[ENCRYPTION] ERROR: Decryption issue ({e.Message})\n");  // cryptography issue
                 return data;
             }
         }
