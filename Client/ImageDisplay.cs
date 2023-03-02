@@ -73,17 +73,17 @@ namespace Client
 
         private static void ShowImage(bool lastChunkReceived, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
         {
-            uint[] missedPackets = MissingPackets();
+            (uint corruptedImage_SequenceNumber, uint[] lostChunks_MessageNumber) = MissingPackets();
 
             // if there are missing packets -> send a nak packet with missing packets
-            if (missedPackets.Length > 0)
+            if (lostChunks_MessageNumber.Length > 0)
             {
-                SendMissingPackets(new uint[] { dataPackets[0].SEQUENCE_NUMBER });
+                SendMissingPackets(corruptedImage_SequenceNumber, lostChunks_MessageNumber);
                 return;
             }
 
             else // if all the packets of the current image were received -> send an ack packet with the image's sequence number
-                NotifyReceivedImage(dataPackets[0].SEQUENCE_NUMBER);
+                SendImageConfirm(dataPackets[0].SEQUENCE_NUMBER);
 
 
 
@@ -94,7 +94,7 @@ namespace Client
             TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
 
             // dataPackets.Last().MESSAGE_NUMBER - the last seq number which is the max
-            if ((packetsShouldLost <= missedPackets.Length)  // check if necessary
+            if ((packetsShouldLost <= lostChunks_MessageNumber.Length)  // check if necessary
 
                 && MainView.AutoQualityControl  // check if option enabled
 
@@ -109,7 +109,7 @@ namespace Client
                     PacketManager.SendPacket(qualityUpdate_packet);
 
                     Debug.WriteLine($"[QUALITY-CONTROL] Quality reduced to {CurrentVideoQuality}\n" +
-                        $"[-] LOST: {missedPackets.Length}\n" +
+                        $"[-] LOST: {lostChunks_MessageNumber.Length}\n" +
                         $"[-] MIN-TO-LOST: {packetsShouldLost}");
                     CConsole.WriteLine($"[Auto Quality Control] Quality updated: {CurrentVideoQuality}\n", MessageType.txtWarning);
 
@@ -158,7 +158,7 @@ namespace Client
             }
         }
 
-        private static uint[] MissingPackets()
+        private static (uint, uint[]) MissingPackets()
         {
             dataPackets = dataPackets.OrderBy(dp => dp.MESSAGE_NUMBER).ToList();
 
@@ -175,19 +175,19 @@ namespace Client
                 }
             }
 
-            return missingList.ToArray();
+            return (dataPackets[0].SEQUENCE_NUMBER, missingList.ToArray());
         }
 
-        private static void SendMissingPackets(uint[] missedSequenceNumbers)
+        private static void SendMissingPackets(uint corrupted_sequence_number, uint[] missedSequenceNumbers)
         {
             NAKRequest nak_request = new NAKRequest
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
 
-            Packet nak_packet = nak_request.SendMissingPackets(missedSequenceNumbers.ToList(), MainView.server_sid, MainView.my_client_sid);
+            Packet nak_packet = nak_request.SendMissingPackets(corrupted_sequence_number, missedSequenceNumbers.ToList(), MainView.server_sid, MainView.my_client_sid);
             PacketManager.SendPacket(nak_packet);
         }
 
-        private static void NotifyReceivedImage(uint ackSequenceNumber)
+        private static void SendImageConfirm(uint ackSequenceNumber)
         {
             ACKRequest ack_request = new ACKRequest
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
@@ -195,6 +195,5 @@ namespace Client
             Packet ack_packet = ack_request.NotifyReceived(ackSequenceNumber, MainView.server_sid, MainView.my_client_sid);
             PacketManager.SendPacket(ack_packet);
         }
-
     }
 }

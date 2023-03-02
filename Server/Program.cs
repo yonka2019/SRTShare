@@ -130,7 +130,7 @@ namespace Server
                     else if (NAK.IsNAK(payload))  // (SRT) NAK
                     {
                         NAK nak_request = new NAK(payload);
-                        List<uint> missingSequenceNumbers = nak_request.LOST_PACKETS;
+                        List<uint> missingSequenceNumbers = nak_request.MESSAGE_NUMBER_LOST_PACKETS;
 
                         // resend all the packets for each missing sequence number (each image)
 
