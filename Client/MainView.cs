@@ -93,6 +93,7 @@ namespace Client
 
             InductionCheck();
 
+            ImageDisplay.ImageBoxDisplayIn = VideoBox;
             ServerAliveChecker.LostConnection += Server_LostConnection;  // subscribe the event to avoid unexpectable server shutdown
         }
 
@@ -178,7 +179,7 @@ namespace Client
 #if DEBUG
                     Console.Title = $"Data received {++dataReceived}";
 #endif
-                    RequestsHandler.HandleData(data_request, VideoBox);
+                    RequestsHandler.HandleData(data_request);
                 }
             }
 

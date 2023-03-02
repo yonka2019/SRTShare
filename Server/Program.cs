@@ -199,21 +199,35 @@ namespace Server
 
             CConsole.Write("[Server] Shutting down...", MessageType.bgError);
             CConsole.WriteLine(" (Wait approx. ~5 seconds)", MessageType.txtError);
-            pressedKeyListenerT.Abort();
-
-            foreach (uint socketId in SRTSockets.Keys)  // send to each client shutdown message
+            try
             {
-                SRTSocket socket = SRTSockets[socketId];
+                pressedKeyListenerT.Abort();
 
-                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
-                Packet shutdown_packet = shutdown_request.Shutdown(socketId, SERVER_SOCKET_ID, IsInVideoStage(socketId), GetSocketPeerEncryption(socketId));
-                PacketManager.SendPacket(shutdown_packet);
+                foreach (uint socketId in SRTSockets.Keys)  // send to each client shutdown message
+                {
+                    SRTSocket socket = SRTSockets[socketId];
 
-                SRTSockets[socketId].Data.StopVideo();
-                SRTSockets[socketId].KeepAlive.Disable();
+                    ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
+                    Packet shutdown_packet = shutdown_request.Shutdown(socketId, SERVER_SOCKET_ID, IsInVideoStage(socketId), GetSocketPeerEncryption(socketId));
+                    PacketManager.SendPacket(shutdown_packet);
+
+                    SRTSockets[socketId].Data.StopVideo();
+                    SRTSockets[socketId].KeepAlive.Disable();
+                }
+
+                handlePackets.Abort();
             }
+            catch (Exception exc)
+            {
+                if (pressedKeyListenerT.IsAlive)
+                    pressedKeyListenerT.Abort();
 
-            handlePackets.Abort();
+                if (handlePackets.IsAlive)
+                    handlePackets.Abort();
+
+                CConsole.WriteLine($"[!] Something went wrong while shutdown... ({exc.Message})", MessageType.txtError);
+                Environment.Exit(-1);
+            }
 
             Environment.Exit(0);
         }

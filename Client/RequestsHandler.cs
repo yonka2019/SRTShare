@@ -54,9 +54,9 @@ namespace Client
             PacketManager.SendPacket(handshake_packet);
         }
 
-        internal static void HandleData(Data.SRTHeader data_request, Cyotek.Windows.Forms.ImageBox pictureBoxDisplayIn)
+        internal static void HandleData(Data.SRTHeader data_request)
         {
-            ImageDisplay.ProduceImage(data_request, pictureBoxDisplayIn);
+            ImageDisplay.ProduceImage(data_request);
         }
 
         /// <summary>

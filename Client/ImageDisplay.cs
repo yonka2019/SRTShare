@@ -14,12 +14,15 @@ using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace Client
 {
-    internal class ImageDisplay
+    internal static class ImageDisplay
     {
+        internal static Cyotek.Windows.Forms.ImageBox ImageBoxDisplayIn { private get; set; }
         private static ushort lastDataPosition;
         private static readonly object _lock = new object();
 
         private static List<Data.SRTHeader> dataPackets = new List<Data.SRTHeader>();
+        private static Dictionary<uint, List<Data.SRTHeader>> dataBuffer = new Dictionary<uint, List<Data.SRTHeader>>(); 
+
         internal static long CurrentVideoQuality = ProtocolManager.DEFAULT_QUALITY;
 
         private static DateTime lastQualityModify;
@@ -40,7 +43,20 @@ namespace Client
             }
         }
 
-        internal static void ProduceImage(Data.SRTHeader data_request, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
+        internal static void AddReceivedData(Data.SRTHeader data_request)
+        {
+            if (dataBuffer.ContainsKey(data_request.SEQUENCE_NUMBER))
+                dataBuffer[data_request.SEQUENCE_NUMBER] = new List<Data.SRTHeader>();
+
+            dataBuffer[data_request.SEQUENCE_NUMBER].Add(data_request);
+        }
+
+        internal static void ProduceImage()
+        {
+
+        }
+
+        internal static void ProduceImage(Data.SRTHeader data_request)
         {
             // in case if chunk had received while other chunk is building (in this method), the new chunk will create new task and
             // will intervene the proccess, so to avoid multi access tries, lock the global resource (allChunks) until the task will finish
@@ -50,7 +66,7 @@ namespace Client
                 {
                     if (lastDataPosition == (ushort)Data.PositionFlags.MIDDLE)  // LAST lost, image received [FIRST MID MID MID ---- FIRST]
                     {
-                        ShowImage(false, imageBoxDisplayIn);
+                        ShowImage(false);
                         dataPackets.Clear();
                     }
                     dataPackets.Add(data_request);
@@ -59,7 +75,7 @@ namespace Client
                 else if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.LAST)  // full image received (but maybe middle packets get lost)
                 {
                     dataPackets.Add(data_request);
-                    ShowImage(true, imageBoxDisplayIn);
+                    ShowImage(true);
                     dataPackets.Clear();
                 }
                 else
@@ -71,7 +87,7 @@ namespace Client
             }
         }
 
-        private static void ShowImage(bool lastChunkReceived, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
+        private static void ShowImage(bool lastChunkReceived)
         {
             (uint corruptedImage_SequenceNumber, uint[] lostChunks_MessageNumber) = MissingPackets();
 
@@ -149,7 +165,7 @@ namespace Client
             {
                 try
                 {
-                    imageBoxDisplayIn.Image = System.Drawing.Image.FromStream(ms);
+                    ImageBoxDisplayIn.Image = System.Drawing.Image.FromStream(ms);
                 }
                 catch
                 {
