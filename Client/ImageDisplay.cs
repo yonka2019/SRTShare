@@ -48,11 +48,10 @@ namespace Client
             {
                 if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.FIRST)
                 {
-                    if (lastDataPosition == (ushort)Data.PositionFlags.MIDDLE)  // LAST lost, image received [FIRST MID MID MID ---- FIRST]
-                    {
-                        ShowImage(data_request.SEQUENCE_NUMBER, false);
-                        dataBuffer[data_request.SEQUENCE_NUMBER].Clear(); // last chunk of sequence number -> clear it
-                    }
+                    //if (lastDataPosition == (ushort)Data.PositionFlags.MIDDLE)  // LAST lost, image received [FIRST MID MID MID ---- FIRST]
+                    //{
+                    //    ShowImage(data_request.SEQUENCE_NUMBER, false);
+                    //}
 
                     if (!dataBuffer.ContainsKey(data_request.SEQUENCE_NUMBER))
                         dataBuffer[data_request.SEQUENCE_NUMBER] = new List<Data.SRTHeader>();
@@ -66,7 +65,6 @@ namespace Client
 
                     ShowImage(data_request.SEQUENCE_NUMBER, true);
 
-                    dataBuffer[data_request.SEQUENCE_NUMBER].Clear(); // last chunk of sequence number -> clear it
                 }
 
                 else
@@ -92,11 +90,13 @@ namespace Client
 
         private static void ShowImage(uint packetSequenceNumber, bool lastChunkReceived)
         {
+            Console.WriteLine("last chunk: " + lastChunkReceived);
             uint[] lostChunks_MessageNumber = MissingPackets(packetSequenceNumber);
 
             // if there are missing packets -> send a nak packet with missing packets
             if (lostChunks_MessageNumber.Length > 0)
             {
+                dataBuffer[packetSequenceNumber].Clear(); // last chunk of sequence number -> clear it
                 lostSequences.Add(packetSequenceNumber);
                 List <uint> CurrentVideoQuality = missingMessageNumbersFromMissingPackets(dataBuffer[packetSequenceNumber]);
                 SendMissingPackets(packetSequenceNumber, lostChunks_MessageNumber);
@@ -181,7 +181,7 @@ namespace Client
 
         private static uint[] MissingPackets(uint packetSequenceNumber)
         {
-            if(lostSequences.Contains(packetSequenceNumber))
+            if(!dataBuffer.ContainsKey(packetSequenceNumber))
             {
                 Console.WriteLine("hello");
             }
