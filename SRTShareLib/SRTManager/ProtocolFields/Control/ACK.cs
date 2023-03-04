@@ -38,7 +38,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
 
 
         /// <summary>
-        /// 32 bits (2 bytes). The sequnce number of the successfully received packet
+        /// 32 bits (2 bytes). The sequnce number of the successfully received packet (sequence number / image)
         /// </summary>
         public uint ACK_SEQUENCE_NUMBER { get; private set; }
     }

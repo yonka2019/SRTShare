@@ -70,5 +70,23 @@ namespace Client
             MessageBox.Show("Server have been stopped", "Server Stopped", MessageBoxButtons.OK, MessageBoxIcon.Error);
             Environment.Exit(0);
         }
+
+        internal static void RequestForRetransmit(uint corruptedImage)
+        {
+            NAKRequest nak_request = new NAKRequest
+                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
+
+            Packet nak_packet = nak_request.RequestRetransmit(corruptedImage, MainView.server_sid, MainView.my_client_sid);
+            PacketManager.SendPacket(nak_packet);
+        }
+
+        internal static void SendImageConfirm(uint ackSequenceNumber)
+        {
+            ACKRequest ack_request = new ACKRequest
+                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
+
+            Packet ack_packet = ack_request.NotifyReceived(ackSequenceNumber, MainView.server_sid, MainView.my_client_sid);
+            PacketManager.SendPacket(ack_packet);
+        }
     }
 }

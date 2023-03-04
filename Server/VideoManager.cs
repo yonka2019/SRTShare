@@ -21,7 +21,7 @@ namespace Server
         private readonly SClient client;
         private bool connected;
 
-        internal Dictionary<uint, List<Packet>> dataBuffer = new Dictionary<uint, List<Packet>>();
+        internal Dictionary<uint, List<byte>> ImagesBuffer = new Dictionary<uint, List<byte>>();
         public readonly BaseEncryption ClientEncryption;
         public bool VideoStage { get; private set; }
 
@@ -35,7 +35,7 @@ namespace Server
 
         internal VideoManager(SClient client, BaseEncryption baseEncryption, uint intial_sequence_number)
         {
-            current_sequence_number = intial_sequence_number;  // start from init
+            current_sequence_number = intial_sequence_number;  // start from init seq number
 
             this.client = client;
             connected = true;
@@ -49,7 +49,7 @@ namespace Server
         /// </summary>
         internal void StartVideo()
         {
-            Thread videoStarter = new Thread(new ParameterizedThreadStart(VideoInit));  // create thread of keep-alive checker
+            Thread videoStarter = new Thread(new ThreadStart(VideoInit));  // create thread of keep-alive checker
             videoStarter.Start(client.SocketId);
             VideoStage = true;
 
@@ -65,9 +65,41 @@ namespace Server
             VideoStage = false;
         }
 
-        internal void ResendImage(uint packetSequenceNumber)
+        internal void ResendImage(uint sequenceNumberToRetransmit)
         {
-            foreach (Packet packet in dataBuffer[packetSequenceNumber])
+            SplitAndSend(ImagesBuffer[sequenceNumberToRetransmit]);
+        }
+
+        internal void ConfirmImage(uint packetSequenceNumber)
+        {
+            ImagesBuffer[packetSequenceNumber].Clear();
+            ImagesBuffer.Remove(packetSequenceNumber);
+        }
+
+        private void VideoInit()
+        {
+            while (connected)
+            {
+                Bitmap bmp = TakeScreenShot();
+                MemoryStream mStream = GetJpegStream(bmp);
+                List<byte> stream = mStream.ToArray().ToList();
+                ImagesBuffer[current_sequence_number] = stream;
+
+                SplitAndSend(stream);
+            }
+        }
+
+        private void SplitAndSend(List<byte> image)
+        {
+            DataRequest dataRequest = new DataRequest(
+                               OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
+
+            // (.MTU - 100; explanation) : To avoid errors with sending, because this field used to set fixed size of splitted data packet,
+            // while the real mtu that the interface provides refers the whole size of the packet which get sent,
+            // and with the whole srt packet and all layers in will much more
+            List<Packet> data_packets = dataRequest.SplitToPackets(image, ref current_sequence_number, time_stamp: 0, client.SocketId, (int)client.MTU - 100, ClientEncryption);
+
+            foreach (Packet packet in data_packets)
             {
                 PacketManager.SendPacket(packet);
 #if DEBUG
@@ -76,47 +108,7 @@ namespace Server
             }
         }
 
-        internal void confirmImage(uint packetSequenceNumber)
-        {
-            dataBuffer[packetSequenceNumber].Clear();
-            dataBuffer.Remove(packetSequenceNumber);
-        }
-
-        /// <summary>
-        /// looping sending screenshots (video) to client
-        /// </summary>
-        /// <param name="dest_socket_id">socket id, to indentify the client</param>
-        private void VideoInit(object dest_socket_id)
-        {
-            uint u_dest_socket_id = (uint)dest_socket_id;
-            int count = 0;
-
-            while (connected)
-            {
-                Bitmap bmp = TakeScreenShot();
-                MemoryStream mStream = GetJpegStream(bmp);
-                List<byte> stream = mStream.ToArray().ToList();
-
-                DataRequest dataRequest = new DataRequest(
-                                OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
-
-                // (.MTU - 100; explanation) To avoid errors with sending, because this field used to set fixed size of splitted data packet, while the real mtu that the interface provides refers the whole size of the packet which get sent, and with the whole srt packet and all layers in will much more
-                List<Packet> data_packets = dataRequest.SplitToPackets(stream, ref current_sequence_number, time_stamp: 0, u_dest_socket_id, (int)client.MTU - 100, ClientEncryption);
-
-                dataBuffer[current_sequence_number] = new List<Packet>();
-                foreach (Packet packet in data_packets)
-                {
-                    dataBuffer[current_sequence_number].Add(packet);
-                    PacketManager.SendPacket(packet);
-#if DEBUG
-                    Console.Title = $"Data sent {++dataSent}";
-#endif
-                }
-                count++;
-            }
-        }
-
-        // 'app.manifest' file for auto-scale screenshot - https://stackoverflow.com/questions/47015893/windows-screenshot-with-scaling
+        // 'app.manifest' file modified for auto-scale screenshot - https://stackoverflow.com/questions/47015893/windows-screenshot-with-scaling
         /// <summary>
         /// Screenshots current selected screen (supporting scale (125%, 150%..)
         /// </summary>

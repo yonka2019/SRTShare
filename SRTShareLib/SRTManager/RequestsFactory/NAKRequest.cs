@@ -15,9 +15,9 @@ namespace SRTShareLib.SRTManager.RequestsFactory
         /// </summary>
         /// <param name="dest_socket_id">Destination socket id</param>
         /// <returns>A nak packet</returns>
-        public Packet SendMissingPackets(uint corrupted_sequence_number, List<uint> lost_packets, uint dest_socket_id, uint source_socket_id, bool videoStage = false, BaseEncryption baseEncryption = null)
+        public Packet RequestRetransmit(uint corrupted_sequence_number, uint dest_socket_id, uint source_socket_id, bool videoStage = false, BaseEncryption baseEncryption = null)
         {
-            GetPayloadLayer() = OSIManager.BuildPLayer(new NAK(dest_socket_id, source_socket_id, corrupted_sequence_number, lost_packets).GetByted(), videoStage, baseEncryption);
+            GetPayloadLayer() = OSIManager.BuildPLayer(new NAK(dest_socket_id, source_socket_id, corrupted_sequence_number).GetByted(), videoStage, baseEncryption);
             return BuildPacket();
         }
     }

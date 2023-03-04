@@ -134,18 +134,16 @@ namespace Server
                         NAK nak_request = new NAK(payload);
                         uint receivedImageSequenceNumber = nak_request.CORRUPTED_SEQUENCE_NUMBER;
 
-                        Console.WriteLine("client socket id: " + nak_request.SOURCE_SOCKET_ID);
                         SRTSockets[nak_request.SOURCE_SOCKET_ID].Data.ResendImage(receivedImageSequenceNumber); // resend all the packets for the missing sequence number (each image)
                         Console.WriteLine($"[{nak_request.SOURCE_SOCKET_ID}] - Resent Seq Number - {receivedImageSequenceNumber}.\n");
                     }
+
                     else if (ACK.IsACK(payload))  // (SRT) ACK
                     {
                         ACK ack_request = new ACK(payload);
                         uint receivedImageSequenceNumber = ack_request.ACK_SEQUENCE_NUMBER;
 
-                        Console.WriteLine("client socket id: " + ack_request.SOURCE_SOCKET_ID);
-
-                        SRTSockets[ack_request.SOURCE_SOCKET_ID].Data.ResendImage(receivedImageSequenceNumber);  // clear all the packets of teh received image sequence number
+                        SRTSockets[ack_request.SOURCE_SOCKET_ID].Data.ConfirmImage(receivedImageSequenceNumber);  // clear all the packets of teh received image sequence number
                         Console.WriteLine($"[{ack_request.SOURCE_SOCKET_ID}] - Deleted Seq Number - {receivedImageSequenceNumber}.\n");
                     }
 

@@ -58,6 +58,7 @@ namespace Client
         internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
         internal const int DATA_DECREASE_QUALITY_BY = 10; // (0 - 100)
         internal const bool AUTO_QUALITY_CONTROL = false;
+        internal const bool RETRANSMISSION_MODE = true;
         // DEFAULT QUALITY VALUE (to server and client) - ProtocolManager.cs : DEFAULT_QUALITY
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
@@ -301,11 +302,12 @@ namespace Client
             if (qualitySelected.Checked)  // if already selected - do not do anything
                 return;
 
-            foreach (ToolStripMenuItem item in QualityButtons.Values)
+            foreach (ToolStripMenuItem item in QualityButtons.Values)  // uncheck all quality buttons
             {
                 item.Checked = false;
             }
-            qualitySelected.Checked = true;
+
+            qualitySelected.Checked = true;  // check the selected one 
 
             long newQuality = QualityButtons.FirstOrDefault(quality => quality.Value == qualitySelected).Key;
 
