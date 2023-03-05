@@ -11,18 +11,15 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        public SRTHeader(uint sequence_number, PositionFlags packet_position_flag, EncryptionFlags encryption_flag, bool is_retransmitted, uint message_number, uint time_stamp, uint dest_socket_id, List<byte> data)
+        public SRTHeader(uint sequence_number, PositionFlags packet_position_flag, bool is_retransmitted, uint message_number, uint dest_socket_id, List<byte> data)
         {
             IS_CONTROL_PACKET = false; byteFields.Add(BitConverter.GetBytes(IS_CONTROL_PACKET));
             SEQUENCE_NUMBER = sequence_number; byteFields.Add(BitConverter.GetBytes(SEQUENCE_NUMBER));
 
             PACKET_POSITION_FLAG = (ushort)packet_position_flag; byteFields.Add(BitConverter.GetBytes(PACKET_POSITION_FLAG));
-            ORDER_FLAG = false; byteFields.Add(BitConverter.GetBytes(ORDER_FLAG));
-            KEY_BASED_ENCRYPTION_FLAG = (ushort)encryption_flag; byteFields.Add(BitConverter.GetBytes(KEY_BASED_ENCRYPTION_FLAG));
             RETRANSMITTED_PACKET_FLAG = is_retransmitted; byteFields.Add(BitConverter.GetBytes(RETRANSMITTED_PACKET_FLAG));
 
             MESSAGE_NUMBER = message_number; byteFields.Add(BitConverter.GetBytes(MESSAGE_NUMBER));
-            TIMESTAMP = time_stamp; byteFields.Add(BitConverter.GetBytes(TIMESTAMP));
             DEST_SOCKET_ID = dest_socket_id; byteFields.Add(BitConverter.GetBytes(DEST_SOCKET_ID));
             DATA = data; byteFields.Add(DATA.ToArray());
         }
@@ -36,16 +33,13 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
             SEQUENCE_NUMBER = BitConverter.ToUInt32(data, 1); // [1 2 3 4]
 
             PACKET_POSITION_FLAG = BitConverter.ToUInt16(data, 5); // [5 6]
-            ORDER_FLAG = false; BitConverter.ToBoolean(data, 7); // [7]
-            KEY_BASED_ENCRYPTION_FLAG = BitConverter.ToUInt16(data, 8); // [8 9]
-            RETRANSMITTED_PACKET_FLAG = BitConverter.ToBoolean(data, 10); // [10]
+            RETRANSMITTED_PACKET_FLAG = BitConverter.ToBoolean(data, 7); // [7]
 
-            MESSAGE_NUMBER = BitConverter.ToUInt32(data, 11); // [11 12 13 14]
-            TIMESTAMP = BitConverter.ToUInt32(data, 15); // [15 16 17 18]
-            DEST_SOCKET_ID = BitConverter.ToUInt32(data, 19); // [19 20 21 22]
+            MESSAGE_NUMBER = BitConverter.ToUInt32(data, 8); // [8 9 10 11]
+            DEST_SOCKET_ID = BitConverter.ToUInt32(data, 12); // [12 13 14 15]
 
             DATA = new List<byte>();
-            for (int i = 23; i < data.Length; i++) // [23 -> end]
+            for (int i = 16; i < data.Length; i++) // [16 -> end]
             {
                 DATA.Add(data[i]);
             }
@@ -78,16 +72,6 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
         public ushort PACKET_POSITION_FLAG { get; private set; }
 
         /// <summary>
-        /// 8 bits (1 byte). True if the packets need to be in order. False if not.
-        /// </summary>
-        public bool ORDER_FLAG { get; private set; }
-
-        /// <summary>
-        /// 16 bits (2 bytes). Different flags for each encryption option. 
-        /// </summary>
-        public ushort KEY_BASED_ENCRYPTION_FLAG { get; private set; }
-
-        /// <summary>
         /// 8 bits (1 byte). True if the packet is retransmitted (was sent more than once). False if not.
         /// </summary>
         public bool RETRANSMITTED_PACKET_FLAG { get; private set; }
@@ -96,12 +80,6 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
         /// 32 bits (4 bytes). The sequential number of consecutive data packets that form a message
         /// </summary>
         public uint MESSAGE_NUMBER { get; private set; }
-
-        /// <summary>
-        /// 32 bits (4 bytes). The timestamp of the packet, in microseconds.
-        /// The value is relative to the time the SRT connection was established.
-        /// </summary>
-        public uint TIMESTAMP { get; private set; }
 
         /// <summary>
         /// 32 bits (4 bytes). A fixed-width field providing the

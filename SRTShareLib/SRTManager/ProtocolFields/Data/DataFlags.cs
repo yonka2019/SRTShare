@@ -7,10 +7,4 @@
         LAST = 0x001b,
         SINGLE_DATA_PACKET = 0x011b
     }
-
-    public enum EncryptionFlags : ushort
-    {
-        NOT_ENCRYPTED = 0x000b,
-        ENCRYPTED = 0x001b
-    }
 }

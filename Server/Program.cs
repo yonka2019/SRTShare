@@ -116,16 +116,18 @@ namespace Server
                     {
                         KeepAlive keepAlive = new KeepAlive(payload);
 
-                        if (SRTSockets.ContainsKey(keepAlive.SOURCE_SOCKET_ID))
+                        if (SRTSockets.ContainsKey(keepAlive.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm)
                             SRTSockets[keepAlive.SOURCE_SOCKET_ID].KeepAlive.ConfirmStatus();  // sign as alive
                     }
+
                     else if (QualityUpdate.IsQualityUpdate(payload))  // (SRT) QualityUpdate - update the quality especially to this client
                     {
                         QualityUpdate qualityUpdate = new QualityUpdate(payload);
 
                         Console.WriteLine($"[Quality Update] {SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].SocketAddress.IPAddress} updated quality: {qualityUpdate.QUALITY}%\n");
-
-                        SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].Data.CurrentQuality = qualityUpdate.QUALITY;
+                        
+                        if (SRTSockets.ContainsKey(qualityUpdate.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm)
+                            SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].Data.CurrentQuality = qualityUpdate.QUALITY;
                     }
 
                     else if (NAK.IsNAK(payload))  // (SRT) NAK
@@ -134,7 +136,8 @@ namespace Server
                         uint imageToTransmit = nak_request.CORRUPTED_SEQUENCE_NUMBER;
 
                         Console.WriteLine("NAK: " + imageToTransmit);
-                        SRTSockets[nak_request.SOURCE_SOCKET_ID].Data.ResendImage(imageToTransmit); // resend all the packets for the missing sequence number (each image)
+                        if (SRTSockets.ContainsKey(nak_request.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm)
+                            SRTSockets[nak_request.SOURCE_SOCKET_ID].Data.ResendImage(imageToTransmit); // resend all the packets for the missing sequence number (each image)
                     }
 
                     else if (ACK.IsACK(payload))  // (SRT) ACK
@@ -142,7 +145,8 @@ namespace Server
                         ACK ack_request = new ACK(payload);
                         uint imageToConfirm = ack_request.ACK_SEQUENCE_NUMBER;
 
-                        SRTSockets[ack_request.SOURCE_SOCKET_ID].Data.ConfirmImage(imageToConfirm);  // clear all the packets of teh received image sequence number
+                        if (SRTSockets.ContainsKey(ack_request.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm)
+                            SRTSockets[ack_request.SOURCE_SOCKET_ID].Data.ConfirmImage(imageToConfirm);  // clear all the packets of teh received image sequence number
                     }
 
                     else if (Shutdown.IsShutdown(payload))  // (SRT) Shutdown

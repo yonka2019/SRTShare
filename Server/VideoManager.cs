@@ -97,7 +97,7 @@ namespace Server
             {
                 if (retransmitRequested != 0)  // if retransmit requested, retransmit - and continue
                 {
-                    SplitAndSend(ImagesBuffer[retransmitRequested]);
+                    SplitAndSend(ImagesBuffer[retransmitRequested], true);
                     retransmitRequested = 0;  // reset
                 }
 
@@ -107,12 +107,12 @@ namespace Server
                 ImagesBuffer[current_sequence_number] = stream;  // save image to buffer
                 Console.WriteLine("saved: " + current_sequence_number);
 
-                SplitAndSend(stream);
+                SplitAndSend(stream, false);
                 current_sequence_number++;
             }
         }
 
-        private void SplitAndSend(List<byte> image)
+        private void SplitAndSend(List<byte> image, bool retransmitted)
         {
             DataRequest dataRequest = new DataRequest(
                                OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
@@ -120,7 +120,7 @@ namespace Server
             // (.MTU - 100; explanation) : To avoid errors with sending, because this field used to set fixed size of splitted data packet,
             // while the real mtu that the interface provides refers the whole size of the packet which get sent,
             // and with the whole srt packet and all layers in will much more
-            List<Packet> data_packets = dataRequest.SplitToPackets(image, ref current_sequence_number, time_stamp: 0, client.SocketId, (int)client.MTU - 100, ClientEncryption);
+            List<Packet> data_packets = dataRequest.SplitToPackets(image, ref current_sequence_number, time_stamp: 0, client.SocketId, (int)client.MTU - 100, ClientEncryption, retransmitted);
 
             foreach (Packet packet in data_packets)
             {

@@ -43,6 +43,7 @@ namespace Client
 
         internal static void ProduceImage(Data.SRTHeader data_request)
         {
+            data_request.DATA = null;
             // in case if chunk had received while other chunk is building (in this method), the new chunk will create new task and
             // will intervene the proccess, so to avoid multi access tries, lock the global resource (allChunks) until the task will finish
             lock (_lock)
