@@ -77,6 +77,8 @@ namespace Client
         /// <param name="corruptedImage"></param>
         internal static void RequestForRetransmit(uint corruptedImage)
         {
+            Console.WriteLine("SENT NAK: " + corruptedImage);
+
             NAKRequest nak_request = new NAKRequest
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
 
@@ -90,6 +92,7 @@ namespace Client
         /// <param name="ackSequenceNumber"></param>
         internal static void SendImageConfirm(uint ackSequenceNumber)
         {
+            Console.WriteLine("SENT ACK: " + ackSequenceNumber);
             ACKRequest ack_request = new ACKRequest
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
 

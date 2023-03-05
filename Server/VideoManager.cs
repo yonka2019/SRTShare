@@ -100,6 +100,7 @@ namespace Server
                 Console.WriteLine("saved: " + current_sequence_number);
 
                 SplitAndSend(stream);
+                current_sequence_number++;
             }
         }
 
