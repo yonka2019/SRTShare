@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Xml.Linq;
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace Client
@@ -79,7 +80,12 @@ namespace Client
             if (lostChunks.Length > 0 && MainView.RETRANSMISSION_MODE)
             {
                 Console.WriteLine("need to retr: " + dataPackets[0].SEQUENCE_NUMBER);
-                Console.WriteLine(string.Join(" ", dataPackets));
+                for (int i = 0; i < dataPackets.Count; i++)
+                {
+                    Console.Write($"{dataPackets[i].SEQUENCE_NUMBER}, ");
+                }
+                Console.WriteLine();
+
                 RequestsHandler.RequestForRetransmit(dataPackets[0].SEQUENCE_NUMBER);
                 dataPackets.Clear();
                 return;
