@@ -8,8 +8,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-
-using CConsole = SRTShareLib.CColorManager;  // Colored Console
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace Client
@@ -57,7 +55,6 @@ namespace Client
                     }
                     dataPackets.Add(data_request);
                 }
-
                 else if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.LAST)  // full image received (but maybe middle packets get lost)
                 {
                     dataPackets.Add(data_request);
@@ -82,6 +79,7 @@ namespace Client
             if (lostChunks.Length > 0 && MainView.RETRANSMISSION_MODE)
             {
                 Console.WriteLine("need to retr: " + dataPackets[0].SEQUENCE_NUMBER);
+                Console.WriteLine(string.Join(" ", dataPackets));
                 RequestsHandler.RequestForRetransmit(dataPackets[0].SEQUENCE_NUMBER);
                 dataPackets.Clear();
                 return;
