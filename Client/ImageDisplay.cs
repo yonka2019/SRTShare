@@ -81,6 +81,7 @@ namespace Client
             // (the whole message numbers of those sequence number)
             if (lostChunks.Length > 0 && MainView.RETRANSMISSION_MODE)
             {
+                Console.WriteLine("need to retr: " + dataPackets[0].SEQUENCE_NUMBER);
                 RequestsHandler.RequestForRetransmit(dataPackets[0].SEQUENCE_NUMBER);
                 dataPackets.Clear();
                 return;

@@ -83,6 +83,7 @@ namespace Server
         {
             if (ImagesBuffer.ContainsKey(packetSequenceNumber))  // maybe image already confirmed
             {
+                Console.WriteLine("cleared: " + packetSequenceNumber);
                 ImagesBuffer[packetSequenceNumber].Clear();
                 ImagesBuffer.Remove(packetSequenceNumber);
             }
@@ -96,6 +97,7 @@ namespace Server
                 MemoryStream mStream = GetJpegStream(bmp);
                 List<byte> stream = mStream.ToArray().ToList();
                 ImagesBuffer[current_sequence_number] = stream;  // save image to buffer
+                Console.WriteLine("saved: " + current_sequence_number);
 
                 SplitAndSend(stream);
             }

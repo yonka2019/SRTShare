@@ -133,8 +133,9 @@ namespace Server
                         NAK nak_request = new NAK(payload);
                         uint imageToTransmit = nak_request.CORRUPTED_SEQUENCE_NUMBER;
 
+                        Console.WriteLine("NAK: " + imageToTransmit);
                         SRTSockets[nak_request.SOURCE_SOCKET_ID].Data.ResendImage(imageToTransmit); // resend all the packets for the missing sequence number (each image)
-                        Console.WriteLine($"[{nak_request.SOURCE_SOCKET_ID}] - Resent Seq Number - {imageToTransmit}.\n");
+                        Console.WriteLine($"[{nak_request.SOURCE_SOCKET_ID}] d - Resent Seq Number - {imageToTransmit}.\n");
                     }
 
                     else if (ACK.IsACK(payload))  // (SRT) ACK
@@ -143,7 +144,7 @@ namespace Server
                         uint imageToConfirm = ack_request.ACK_SEQUENCE_NUMBER;
 
                         SRTSockets[ack_request.SOURCE_SOCKET_ID].Data.ConfirmImage(imageToConfirm);  // clear all the packets of teh received image sequence number
-                        Console.WriteLine($"[{ack_request.SOURCE_SOCKET_ID}] - Confirm Seq Number - {imageToConfirm}.\n");
+                        Console.WriteLine($"[{ack_request.SOURCE_SOCKET_ID}] d - Confirm Seq Number - {imageToConfirm}.\n");
 
                     }
 
