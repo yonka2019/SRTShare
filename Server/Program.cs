@@ -143,7 +143,6 @@ namespace Server
                         uint imageToConfirm = ack_request.ACK_SEQUENCE_NUMBER;
 
                         SRTSockets[ack_request.SOURCE_SOCKET_ID].Data.ConfirmImage(imageToConfirm);  // clear all the packets of teh received image sequence number
-
                     }
 
                     else if (Shutdown.IsShutdown(payload))  // (SRT) Shutdown

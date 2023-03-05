@@ -20,6 +20,7 @@ namespace Server
     {
         private readonly SClient client;
         private bool connected;
+        private uint retransmitRequested;
 
         internal Dictionary<uint, List<byte>> ImagesBuffer = new Dictionary<uint, List<byte>>();
         public readonly BaseEncryption ClientEncryption;
@@ -35,7 +36,8 @@ namespace Server
 
         internal VideoManager(SClient client, BaseEncryption baseEncryption, uint intial_sequence_number)
         {
-            current_sequence_number = intial_sequence_number;  // start from init seq number
+            current_sequence_number = intial_sequence_number;  // start from init seq number (MUST BE NOT 0)
+            retransmitRequested = 0;
 
             this.client = client;
             connected = true;
@@ -72,7 +74,7 @@ namespace Server
         /// <param name="sequenceNumberToRetransmit">image (sequence number) which should be retransmitted</param>
         internal void ResendImage(uint sequenceNumberToRetransmit)
         {
-            SplitAndSend(ImagesBuffer[sequenceNumberToRetransmit]);
+            retransmitRequested = sequenceNumberToRetransmit;
         }
 
         /// <summary>
@@ -93,6 +95,12 @@ namespace Server
         {
             while (connected)
             {
+                if (retransmitRequested != 0)  // if retransmit requested, retransmit - and continue
+                {
+                    SplitAndSend(ImagesBuffer[retransmitRequested]);
+                    retransmitRequested = 0;  // reset
+                }
+
                 Bitmap bmp = TakeScreenShot();
                 MemoryStream mStream = GetJpegStream(bmp);
                 List<byte> stream = mStream.ToArray().ToList();

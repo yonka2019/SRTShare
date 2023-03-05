@@ -53,7 +53,7 @@ namespace Client
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
         internal const EncryptionType ENCRYPTION = EncryptionType.AES256;  // The whole encryption of the conversation (from data stage)
-        internal const int INITIAL_PSN = 0;  // The first sequence number of the conversation
+        internal const int INITIAL_PSN = 1;  // The first sequence number of the conversation  ! [ MUST NOT BE 0 ] !
 
         internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
         internal const int DATA_DECREASE_QUALITY_BY = 10; // (0 - 100)
