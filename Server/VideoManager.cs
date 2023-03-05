@@ -50,7 +50,7 @@ namespace Server
         internal void StartVideo()
         {
             Thread videoStarter = new Thread(new ThreadStart(VideoInit));  // create thread of keep-alive checker
-            videoStarter.Start(client.SocketId);
+            videoStarter.Start();
             VideoStage = true;
 
             CConsole.WriteLine($"[Server] [{client.IPAddress}] Video is being shared\n", MessageType.txtInfo);
@@ -65,15 +65,27 @@ namespace Server
             VideoStage = false;
         }
 
+        /// <summary>
+        /// if NAK packet received which means that the server should retransmit the corrupted image
+        /// this function retransmittes the requested image by his sequence number
+        /// </summary>
+        /// <param name="sequenceNumberToRetransmit">image (sequence number) which should be retransmitted</param>
         internal void ResendImage(uint sequenceNumberToRetransmit)
         {
             SplitAndSend(ImagesBuffer[sequenceNumberToRetransmit]);
         }
 
+        /// <summary>
+        /// function which is confirms that the client received the whole image successfully and he can be cleaned from server's buffer
+        /// </summary>
+        /// <param name="packetSequenceNumber">image (sequence number) which should be confirm</param>
         internal void ConfirmImage(uint packetSequenceNumber)
         {
-            ImagesBuffer[packetSequenceNumber].Clear();
-            ImagesBuffer.Remove(packetSequenceNumber);
+            if (ImagesBuffer.ContainsKey(packetSequenceNumber))  // maybe image already confirmed
+            {
+                ImagesBuffer[packetSequenceNumber].Clear();
+                ImagesBuffer.Remove(packetSequenceNumber);
+            }
         }
 
         private void VideoInit()
@@ -83,7 +95,7 @@ namespace Server
                 Bitmap bmp = TakeScreenShot();
                 MemoryStream mStream = GetJpegStream(bmp);
                 List<byte> stream = mStream.ToArray().ToList();
-                ImagesBuffer[current_sequence_number] = stream;
+                ImagesBuffer[current_sequence_number] = stream;  // save image to buffer
 
                 SplitAndSend(stream);
             }

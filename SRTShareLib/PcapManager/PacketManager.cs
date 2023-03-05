@@ -13,7 +13,7 @@ namespace SRTShareLib.PcapManager
         public static void SendPacket(Packet packetToSend)
         {
             using (PacketCommunicator communicator = NetworkManager.Device.Open(100, // name of the device
-                                 PacketDeviceOpenAttributes.DataTransferUdpRemote, // udp mode
+                                 PacketDeviceOpenAttributes.Promiscuous, // udp mode
                                  1000)) // read timeout
             {
                 communicator.SendPacket(packetToSend);
@@ -30,7 +30,7 @@ namespace SRTShareLib.PcapManager
             using (PacketCommunicator communicator =
             NetworkManager.Device.Open(65536,                         // portion of the packet to capture
                                                                       // 65536 guarantees that the whole packet will be captured on all the link layers
-                    PacketDeviceOpenAttributes.DataTransferUdpRemote,  // udp mode
+                    PacketDeviceOpenAttributes.Promiscuous,  // udp mode
                     1000))                                  // read timeout
             {
 #if DEBUG

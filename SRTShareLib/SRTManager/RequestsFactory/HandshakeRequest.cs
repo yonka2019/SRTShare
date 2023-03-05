@@ -12,7 +12,6 @@ namespace SRTShareLib.SRTManager.RequestsFactory
         /// <summary>
         /// The function creates an induction packet (Handshake)
         /// </summary>
-        /// <param name="cookie">Cookie</param>
         /// <param name="init_psn">Init psn</param>
         /// <param name="p_ip">Peer ip</param>
         /// <param name="clientSide">Whether it's the client side or not</param>
@@ -49,7 +48,6 @@ namespace SRTShareLib.SRTManager.RequestsFactory
         /// <param name="clientSide">Whether it's the client side or not</param>
         /// <param name="source_socket_id">Source socket id</param>
         /// <param name="dest_socket_id">Destination socket id</param>
-        /// <param name="cookie">Cookie</param>
         /// <param name="encryption_type">selected encryption type</param>
         /// <param name="encryption_public_key">the encryption key (256 bits / 32 bytes)</param>
         /// <returns>Conclusion packet</returns>

@@ -126,25 +126,25 @@ namespace Server
                         Console.WriteLine($"[Quality Update] {SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].SocketAddress.IPAddress} updated quality: {qualityUpdate.QUALITY}%\n");
 
                         SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].Data.CurrentQuality = qualityUpdate.QUALITY;
-
                     }
 
                     else if (NAK.IsNAK(payload))  // (SRT) NAK
                     {
                         NAK nak_request = new NAK(payload);
-                        uint receivedImageSequenceNumber = nak_request.CORRUPTED_SEQUENCE_NUMBER;
+                        uint imageToTransmit = nak_request.CORRUPTED_SEQUENCE_NUMBER;
 
-                        SRTSockets[nak_request.SOURCE_SOCKET_ID].Data.ResendImage(receivedImageSequenceNumber); // resend all the packets for the missing sequence number (each image)
-                        Console.WriteLine($"[{nak_request.SOURCE_SOCKET_ID}] - Resent Seq Number - {receivedImageSequenceNumber}.\n");
+                        SRTSockets[nak_request.SOURCE_SOCKET_ID].Data.ResendImage(imageToTransmit); // resend all the packets for the missing sequence number (each image)
+                        Console.WriteLine($"[{nak_request.SOURCE_SOCKET_ID}] - Resent Seq Number - {imageToTransmit}.\n");
                     }
 
                     else if (ACK.IsACK(payload))  // (SRT) ACK
                     {
                         ACK ack_request = new ACK(payload);
-                        uint receivedImageSequenceNumber = ack_request.ACK_SEQUENCE_NUMBER;
+                        uint imageToConfirm = ack_request.ACK_SEQUENCE_NUMBER;
 
-                        SRTSockets[ack_request.SOURCE_SOCKET_ID].Data.ConfirmImage(receivedImageSequenceNumber);  // clear all the packets of teh received image sequence number
-                        Console.WriteLine($"[{ack_request.SOURCE_SOCKET_ID}] - Deleted Seq Number - {receivedImageSequenceNumber}.\n");
+                        SRTSockets[ack_request.SOURCE_SOCKET_ID].Data.ConfirmImage(imageToConfirm);  // clear all the packets of teh received image sequence number
+                        Console.WriteLine($"[{ack_request.SOURCE_SOCKET_ID}] - Confirm Seq Number - {imageToConfirm}.\n");
+
                     }
 
                     else if (Shutdown.IsShutdown(payload))  // (SRT) Shutdown

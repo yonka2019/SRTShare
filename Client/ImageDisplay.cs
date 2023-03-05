@@ -82,6 +82,7 @@ namespace Client
             if (lostChunks.Length > 0 && MainView.RETRANSMISSION_MODE)
             {
                 RequestsHandler.RequestForRetransmit(dataPackets[0].SEQUENCE_NUMBER);
+                dataPackets.Clear();
                 return;
             }
 

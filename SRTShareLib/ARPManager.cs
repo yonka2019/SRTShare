@@ -13,7 +13,6 @@ namespace SRTShareLib
         /// <summary>
         /// The function builds a "mac request" packet
         /// </summary>
-        /// <param name="my_device">Device to send to</param>
         /// <param name="to_ip">Ip to get its related mac</param>
         /// <returns>Mac request packet</returns>
         public static Packet Request(string to_ip, out bool sameSubnet)
@@ -48,7 +47,6 @@ namespace SRTShareLib
         /// <summary>
         /// The function builds a "mac response" packet
         /// </summary>
-        /// <param name="my_device">Device to send to</param>
         /// <param name="to_mac">Mac to send to</param>
         /// <param name="to_ip">Ip to send to</param>
         /// <returns></returns>
