@@ -35,6 +35,7 @@ namespace Client
 
                 timer.Stop();
                 timer.Dispose();
+                saChecker.Abort();
             }
         }
 

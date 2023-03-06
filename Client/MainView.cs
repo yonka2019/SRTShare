@@ -264,13 +264,12 @@ namespace Client
         /// </summary>
         internal static void Server_LostConnection()
         {
-            CConsole.WriteLine("[ERROR] Server isn't alive anymore", MessageType.bgError);
-
-            MessageBox.Show("Lost connection with the server", "Connection Problem", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
             handlePackets.Abort();
             handleKeepAlive.Abort();
 
+            CConsole.WriteLine("[ERROR] Server isn't alive anymore", MessageType.bgError);
+
+            MessageBox.Show("Lost connection with the server", "Connection Problem", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             Environment.Exit(-1);
         }
