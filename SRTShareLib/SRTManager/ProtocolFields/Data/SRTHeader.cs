@@ -40,7 +40,9 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
 
             MESSAGE_NUMBER = BitConverter.ToUInt32(payload, 9); // [9 10 11 12]
             DEST_SOCKET_ID = BitConverter.ToUInt32(payload, 13); // [13 14 15 16]
-
+            
+            // SIZES:              17     XXXX  --> PAYLOAD.LENGTH - 17 = DATA SIZE
+            // PACKET PAYLOAD: [METADATA][DATA]
             DATA = new byte[payload.Length - 17];
             Array.Copy(payload, 17, DATA, 0, payload.Length - 17);  // [17 -> end]
         }
