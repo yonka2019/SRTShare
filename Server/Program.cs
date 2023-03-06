@@ -2,7 +2,6 @@
 using PcapDotNet.Packets.Transport;
 using SRTShareLib;
 using SRTShareLib.PcapManager;
-using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.ProtocolFields.Control;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
@@ -125,7 +124,7 @@ namespace Server
                         QualityUpdate qualityUpdate = new QualityUpdate(payload);
 
                         Console.WriteLine($"[Quality Update] {SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].SocketAddress.IPAddress} updated quality: {qualityUpdate.QUALITY}%\n");
-                        
+
                         if (SRTSockets.ContainsKey(qualityUpdate.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm)
                             SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].Data.CurrentQuality = qualityUpdate.QUALITY;
                     }

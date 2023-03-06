@@ -98,7 +98,7 @@ namespace Server
             {
                 if (retransmitRequested != 0)  // if retransmit requested, retransmit - and continue
                 {
-                    SplitAndSend(ImagesBuffer[retransmitRequested], true);
+                    SplitAndSend(ImagesBuffer[retransmitRequested], true, retransmitRequested);
                     retransmitRequested = 0;  // reset
                 }
 
@@ -111,12 +111,12 @@ namespace Server
 
                 Console.WriteLine("saved: " + current_sequence_number);
 
-                SplitAndSend(stream, false);
+                SplitAndSend(stream, false, current_sequence_number);
                 current_sequence_number++;
             }
         }
 
-        private void SplitAndSend(byte[] image, bool retransmitted)
+        private void SplitAndSend(byte[] image, bool retransmitted, uint sequence_number)
         {
             DataRequest dataRequest = new DataRequest(
                                OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
@@ -125,7 +125,7 @@ namespace Server
             // while the real mtu that the interface provides refers the whole size of the packet which get sent,
             // and with the whole srt packet and all layers in will much more.
             // In addition, the encryption will give EXTRA bytes (which is padding for example in AES), it's also one of the reasons why we take extra space
-            List<Packet> data_packets = dataRequest.SplitToPackets(image, ref current_sequence_number, client.SocketId, (int)client.MTU - 150, ClientEncryption, retransmitted);
+            List<Packet> data_packets = dataRequest.SplitToPackets(image, sequence_number, client.SocketId, (int)client.MTU - 150, ClientEncryption, retransmitted);
 
             foreach (Packet packet in data_packets)
             {
@@ -142,9 +142,9 @@ namespace Server
         /// <param name="sequence_number">sequence number which is expired</param>
         private void RemoveImageFromBufferAfterDelay(uint sequence_number)
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                Task.Delay(5000);  // Wait 5 seconds
+                await Task.Delay(5000);  // Wait 5 seconds
                 ConfirmImage(sequence_number);
             });
         }
