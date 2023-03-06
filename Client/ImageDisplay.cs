@@ -107,11 +107,6 @@ namespace Client
             if (lostChunks.Length > 0 && MainView.RETRANSMISSION_MODE)  // retranmission required
             {
                 Console.WriteLine("need to retr: " + dataPackets[0].SEQUENCE_NUMBER);
-                for (int i = 0; i < dataPackets.Count; i++)
-                {
-                    Console.Write($"{dataPackets[i].SEQUENCE_NUMBER}, ");
-                }
-                Console.WriteLine();
 
                 RequestsHandler.RequestForRetransmit(dataPackets[0].SEQUENCE_NUMBER);
                 dataPackets.Clear();
