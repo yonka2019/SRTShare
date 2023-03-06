@@ -134,7 +134,7 @@ namespace Client
             if ((packetsShouldLost <= lostChunks.Length)  // check if necessary
 
                 && MainView.AutoQualityControl  // check if option enabled
-
+                
                 && timeElapsed.TotalSeconds > MINIMUM_SECONDS_ELPASED_TO_MODIFY)  // check if min required time elapsed
             {
                 if (CurrentVideoQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)
