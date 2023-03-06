@@ -5,6 +5,7 @@ using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
+using System.Linq;
 using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;
@@ -33,7 +34,7 @@ namespace Client
             else
                 myPublicKey = new byte[DiffieHellman.PUBLIC_KEY_SIZE];
 
-            Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.my_client_sid, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey);
+            Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.my_client_sid, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey, handshake_request.RETRANSMISSION_MODE);
             PacketManager.SendPacket(handshake_packet);
         }
 
@@ -49,13 +50,20 @@ namespace Client
                     (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
 
             IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedIP());
-            Packet handshake_packet = handshake.Induction(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)MainView.ENCRYPTION, new byte[DiffieHellman.PUBLIC_KEY_SIZE]);
+            Packet handshake_packet = handshake.Induction(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)MainView.ENCRYPTION, new byte[DiffieHellman.PUBLIC_KEY_SIZE], MainView.RETRANSMISSION_MODE);
 
             PacketManager.SendPacket(handshake_packet);
         }
 
         internal static void HandleData(Data.SRTHeader data_request)
         {
+            if (data_request.ENCRYPTION_FLAG)
+            {
+                if (!Enum.IsDefined(typeof(EncryptionType), MainView.ENCRYPTION))
+                    throw new Exception($"'{MainView.ENCRYPTION}' This encryption method isn't supported yet");
+
+                data_request.DATA = MainView.Server_EncryptionControl.TryDecrypt(data_request.DATA.ToArray()).ToList();
+            }
             ImageDisplay.ProduceImage(data_request);
         }
 

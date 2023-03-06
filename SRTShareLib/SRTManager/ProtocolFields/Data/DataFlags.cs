@@ -7,4 +7,10 @@
         LAST = 0x001b,
         SINGLE_DATA_PACKET = 0x011b
     }
+
+    public enum EncryptionFlags : byte
+    {
+        NOT_ENCRYPTED = 0,
+        ENCRYPTED = 1
+    }
 }

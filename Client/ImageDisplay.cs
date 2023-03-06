@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using System.Xml.Linq;
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace Client
@@ -43,7 +42,6 @@ namespace Client
 
         internal static void ProduceImage(Data.SRTHeader data_request)
         {
-            data_request.DATA = null;
             // in case if chunk had received while other chunk is building (in this method), the new chunk will create new task and
             // will intervene the proccess, so to avoid multi access tries, lock the global resource (allChunks) until the task will finish
             lock (_lock)
@@ -76,6 +74,33 @@ namespace Client
         {
             uint[] lostChunks = GetMissingPackets();
 
+            RetransmissionNecessity(lostChunks);
+
+            if (!lastChunkReceived)
+                Debug.WriteLine("[IMAGE BUILDER] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
+
+            LowerQualityNecessity(lostChunks);
+
+
+            using (MemoryStream ms = new MemoryStream(FullData))
+            {
+                try
+                {
+                    ImageBoxDisplayIn.Image = System.Drawing.Image.FromStream(ms);
+                }
+                catch
+                {
+                    Debug.WriteLine("[IMAGE BUILDER] ERROR: Can't build image at all\n");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks if retransmission needed due packet lost
+        /// </summary>
+        /// <param name="lostChunks">lost chunks</param>
+        private static void RetransmissionNecessity(uint[] lostChunks)
+        {
             // if there are missing chnuks -> send a NAK request in order to ask the server to retransmit the image
             // (the whole message numbers of those sequence number)
             if (lostChunks.Length > 0 && MainView.RETRANSMISSION_MODE)
@@ -94,14 +119,18 @@ namespace Client
 
             else  // if all the packets of the current image were received -> send an ack packet with the image's sequence number to clean servers saved images bufer
                 RequestsHandler.SendImageConfirm(dataPackets[0].SEQUENCE_NUMBER);
-
-            if (!lastChunkReceived)
-                Debug.WriteLine("[IMAGE BUILDER] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
-
+        }
+        
+        /// <summary>
+        /// Checks if auto quality control should lower the quality due high packet lost
+        /// </summary>
+        /// <param name="lostChunks">lost chunks</param>
+        private static void LowerQualityNecessity(uint[] lostChunks)
+        {
+            // dataPackets.Last().MESSAGE_NUMBER - the last message number which is the max
             double packetsShouldLost = Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0));
             TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
 
-            // dataPackets.Last().MESSAGE_NUMBER - the last seq number which is the max
             if ((packetsShouldLost <= lostChunks.Length)  // check if necessary
 
                 && MainView.AutoQualityControl  // check if option enabled
@@ -124,18 +153,6 @@ namespace Client
                     qualityButton.PerformClick();  // simulate click
 
                     lastQualityModify = DateTime.Now;
-                }
-            }
-
-            using (MemoryStream ms = new MemoryStream(FullData))
-            {
-                try
-                {
-                    ImageBoxDisplayIn.Image = System.Drawing.Image.FromStream(ms);
-                }
-                catch
-                {
-                    Debug.WriteLine("[IMAGE BUILDER] ERROR: Can't build image at all\n");
                 }
             }
         }

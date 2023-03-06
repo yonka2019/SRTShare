@@ -10,6 +10,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
@@ -91,7 +92,7 @@ namespace Server
             }
         }
 
-        private void VideoInit()
+        private async void VideoInit()
         {
             while (connected)
             {
@@ -103,11 +104,19 @@ namespace Server
 
                 Bitmap bmp = TakeScreenShot();
                 MemoryStream mStream = GetJpegStream(bmp);
-                List<byte> stream = mStream.ToArray().ToList();
-                ImagesBuffer[current_sequence_number] = stream;  // save image to buffer
+                byte[] stream = mStream.ToArray();
+
+                if (ClientEncryption.Type != EncryptionType.None)
+                    ClientEncryption.Encrypt(stream);
+
+                List<byte> lStream = stream.ToList();
+
+                ImagesBuffer[current_sequence_number] = lStream;  // save image to buffer
+                await RemoveImageFromBufferAfterDelay(current_sequence_number);
+
                 Console.WriteLine("saved: " + current_sequence_number);
 
-                SplitAndSend(stream, false);
+                SplitAndSend(lStream, false);
                 current_sequence_number++;
             }
         }
@@ -120,7 +129,7 @@ namespace Server
             // (.MTU - 100; explanation) : To avoid errors with sending, because this field used to set fixed size of splitted data packet,
             // while the real mtu that the interface provides refers the whole size of the packet which get sent,
             // and with the whole srt packet and all layers in will much more
-            List<Packet> data_packets = dataRequest.SplitToPackets(image, ref current_sequence_number, time_stamp: 0, client.SocketId, (int)client.MTU - 100, ClientEncryption, retransmitted);
+            List<Packet> data_packets = dataRequest.SplitToPackets(image, ref current_sequence_number, client.SocketId, (int)client.MTU - 100, ClientEncryption, retransmitted);
 
             foreach (Packet packet in data_packets)
             {
@@ -129,6 +138,16 @@ namespace Server
                 Console.Title = $"Data sent {++dataSent}";
 #endif
             }
+        }
+
+        /// <summary>
+        /// After 5 seconds, if no ACK was sent from the client, remove the image from the buffer in order to save memory
+        /// </summary>
+        /// <param name="sequence_number">sequence number which is expired</param>
+        private async Task RemoveImageFromBufferAfterDelay(uint sequence_number)
+        {
+            await Task.Delay(5000);  // Wait 5 seconds
+            ImagesBuffer.Remove(sequence_number);
         }
 
         // 'app.manifest' file modified for auto-scale screenshot - https://stackoverflow.com/questions/47015893/windows-screenshot-with-scaling

@@ -53,7 +53,7 @@ namespace Server
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, packet.Ethernet.Source.ToString(), NetworkManager.LocalIp, packet.Ethernet.IpV4.Source.ToString(), ConfigManager.PORT, datagram.SourcePort));
 
             IpV4Address peer_ip = new IpV4Address(NetworkManager.PublicIp);
-            Packet handshake_packet = handshake_response.Induction(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, new byte[DiffieHellman.PUBLIC_KEY_SIZE]);
+            Packet handshake_packet = handshake_response.Induction(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, new byte[DiffieHellman.PUBLIC_KEY_SIZE], handshake_request.RETRANSMISSION_MODE);
             PacketManager.SendPacket(handshake_packet);
         }
 
@@ -75,11 +75,9 @@ namespace Server
 
             byte[] myPublicKey = new byte[DiffieHellman.PUBLIC_KEY_SIZE];
             if ((EncryptionType)handshake_request.ENCRYPTION_TYPE != EncryptionType.None)  // save peer (client) public key, send mine public key to him
-            {
                 myPublicKey = DiffieHellman.MyPublicKey;
-            }
 
-            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey);
+            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey, handshake_request.RETRANSMISSION_MODE);
             PacketManager.SendPacket(handshake_packet);
 
             #region New client information set

@@ -23,7 +23,7 @@ namespace SRTShareLib.SRTManager.Encryption
 
         internal AES256(byte[] peerPublicKey) : base(EncryptionType.AES256, peerPublicKey) { }
 
-        internal override byte[] Encrypt(byte[] data)
+        public override byte[] Encrypt(byte[] data)
         {
             byte[] encrypted;
 

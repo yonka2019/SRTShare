@@ -4,7 +4,7 @@
     {
         internal XOR(byte[] peerPublicKey) : base(EncryptionType.XOR, peerPublicKey) { }
 
-        internal override byte[] Encrypt(byte[] data)
+        public override byte[] Encrypt(byte[] data)
         {
             return Cipher(data, key);
         }

@@ -16,7 +16,7 @@
                 key = DiffieHellman.GenerateSecretKey(peerPublicKey);
         }
 
-        internal abstract byte[] Encrypt(byte[] data);
+        public abstract byte[] Encrypt(byte[] data);
         internal abstract byte[] Decrypt(byte[] data);
 
         public byte[] TryDecrypt(byte[] data)

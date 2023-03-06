@@ -1,6 +1,5 @@
 ﻿using PcapDotNet.Packets;
 using SRTShareLib.PcapManager;
-using SRTShareLib.SRTManager.Encryption;
 using SRTControl = SRTShareLib.SRTManager.ProtocolFields.Control;
 
 namespace SRTShareLib.SRTManager.RequestsFactory

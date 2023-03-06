@@ -214,7 +214,7 @@ namespace Server
                     SRTSocket socket = SRTSockets[socketId];
 
                     ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
-                    Packet shutdown_packet = shutdown_request.Shutdown(socketId, SERVER_SOCKET_ID, IsInVideoStage(socketId), GetSocketPeerEncryption(socketId));
+                    Packet shutdown_packet = shutdown_request.Shutdown(socketId, SERVER_SOCKET_ID);
                     PacketManager.SendPacket(shutdown_packet);
 
                     SRTSockets[socketId].Data.StopVideo();
@@ -272,25 +272,6 @@ namespace Server
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// returns true if the given socket id (client) in the video stage (server sending data)
-        /// </summary>
-        /// <param name="socketId">socket id (client)</param>
-        private static bool IsInVideoStage(uint socketId)
-        {
-            return SRTSockets[socketId].Data.VideoStage;
-        }
-
-        /// <summary>
-        /// returns the selected encryption type by the client at the handshake part
-        /// </summary>
-        /// <param name="socketId">socket id (client)</param>
-        /// <returns>chosen encryption method</returns>
-        private static BaseEncryption GetSocketPeerEncryption(uint socketId)
-        {
-            return SRTSockets[socketId].Data.ClientEncryption;
         }
     }
 }

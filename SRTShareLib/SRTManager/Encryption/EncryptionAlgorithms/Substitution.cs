@@ -25,7 +25,7 @@
             return table;
         }
 
-        internal override byte[] Encrypt(byte[] data)
+        public override byte[] Encrypt(byte[] data)
         {
             byte[] subTable = BuildTable(key);
 

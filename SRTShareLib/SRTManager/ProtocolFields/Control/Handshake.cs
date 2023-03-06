@@ -11,12 +11,13 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        public Handshake(uint version, ushort encryption_type, byte[] encryption_public_key, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, IpV4Address p_ip) : base(ControlType.HANDSHAKE, dest_socket_id, source_socket_id)
+        public Handshake(uint version, ushort encryption_type, byte[] encryption_public_key, bool retransmission_mode, uint intial_psn, uint type, uint source_socket_id, uint dest_socket_id, IpV4Address p_ip) : base(ControlType.HANDSHAKE, dest_socket_id, source_socket_id)
         {
             VERSION = version; byteFields.Add(BitConverter.GetBytes(VERSION));
 
             ENCRYPTION_TYPE = encryption_type; byteFields.Add(BitConverter.GetBytes(ENCRYPTION_TYPE));
             ENCRYPTION_PEER_PUBLIC_KEY = encryption_public_key; byteFields.Add(ENCRYPTION_PEER_PUBLIC_KEY);
+            RETRANSMISSION_MODE = retransmission_mode; byteFields.Add(BitConverter.GetBytes(RETRANSMISSION_MODE));
 
             INTIAL_PSN = intial_psn; byteFields.Add(BitConverter.GetBytes(INTIAL_PSN));
             MTU = (uint)NetworkManager.Device.GetNetworkInterface().GetIPProperties().GetIPv4Properties().Mtu; byteFields.Add(BitConverter.GetBytes(MTU));
@@ -35,11 +36,12 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
 
             ENCRYPTION_PEER_PUBLIC_KEY = new byte[DiffieHellman.PUBLIC_KEY_SIZE];
             Array.Copy(data, 17, ENCRYPTION_PEER_PUBLIC_KEY, 0, DiffieHellman.PUBLIC_KEY_SIZE);  // [17 ... 88] (72 bytes) ! If encryption not used - fulled zeros !
-            
-            INTIAL_PSN = BitConverter.ToUInt32(data, 89);  // [89 90 91 92] (4 bytes)
-            MTU = BitConverter.ToUInt32(data, 93);  // [93 94 95 96] (4 bytes)
-            TYPE = BitConverter.ToUInt32(data, 97);  // [97 98 99 100] (4 bytes)
-            PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 101));  // [101 102 103 104] (4 bytes)
+
+            RETRANSMISSION_MODE = BitConverter.ToBoolean(data, 89);  // [89]
+            INTIAL_PSN = BitConverter.ToUInt32(data, 90);  // [90 91 92 93] (4 bytes)
+            MTU = BitConverter.ToUInt32(data, 94);  // [94 95 96 97] (4 bytes)
+            TYPE = BitConverter.ToUInt32(data, 99);  // [98 99 100 101] (4 bytes)
+            PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 102));  // [102 103 104 105] (4 bytes)
 
             PEER_IP = new IpV4Address(MethodExt.ReverseIp(PEER_IP.ToString()));  // Reverse the ip because the little/big endian
         }
@@ -74,6 +76,11 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// NOTICE: if there is no encryption at all, the encryption will be fulled '0' bytes ({0x0, 0x0, 0x0, ...}) as well.
         /// </summary>
         public byte[] ENCRYPTION_PEER_PUBLIC_KEY { get; private set; }
+
+        /// <summary>
+        /// 8 bits (1 byte). true if client enabled retransmission mode (in purpose of save images to buffer if retranmission requested)
+        /// </summary>
+        public bool RETRANSMISSION_MODE { get; private set; }
 
         /// <summary>
         /// 32 bits (4 bytes). The sequence number of the

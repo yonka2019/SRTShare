@@ -25,9 +25,6 @@ namespace Client
         private bool serverAlive = false;  // for icmp request - answer check
         private bool handledArp = false;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
 
-        private bool videoStage = false;  // when the client reaches the video stage, he knows that each packet from the server will be encrypted,
-                                          // so he should be ready to decrypt each received packet
-
         internal static uint server_sid = 0;  // we getting know this value on the induction that the server returns to us (SID -> Socket ID)
         internal static string server_mac = null;
 
@@ -135,7 +132,8 @@ namespace Client
         {
             if (packet.IsValidUDP(my_client_port, ConfigManager.PORT))  // UDP Packet
             {
-                DecryptionNecessity(packet, out byte[] payload);
+                UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
+                byte[] payload = datagram.Payload.ToArray();
 
                 if (Control.SRTHeader.IsControl(payload))  // (SRT) Control
                 {
@@ -165,7 +163,6 @@ namespace Client
                             });
 
                             CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
-                            videoStage = true;
                             EnableQualityButtons();
                         }
                     }
@@ -201,27 +198,6 @@ namespace Client
                         handledArp = true;
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// If the client is in the video stage, and he enabled encryption, he should to decrypt each packet which is received from the server (only KeepAlive packets still raw)
-        /// (according the after-video policy)
-        /// </summary>
-        /// <param name="packet">packet to check his state</param>
-        /// <param name="payload">payload which is returned after check (raw/decrypted)</param>
-        private void DecryptionNecessity(Packet packet, out byte[] payload)
-        {
-            UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
-            payload = datagram.Payload.ToArray();
-
-            if (videoStage && ENCRYPTION != EncryptionType.None)  // if video stage reached and the encryption enabled -
-                                                                  // the server will send each packet encrypted (data/shutdown/keepalive)
-            {
-                if (!Enum.IsDefined(typeof(EncryptionType), ENCRYPTION))
-                    throw new Exception($"'{ENCRYPTION}' This encryption method isn't supported yet");
-
-                payload = Server_EncryptionControl.TryDecrypt(payload);
             }
         }
 
