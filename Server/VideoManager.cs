@@ -140,9 +140,9 @@ namespace Server
         /// After 5 seconds, if no ACK was sent from the client, remove the image from the buffer in order to save memory
         /// </summary>
         /// <param name="sequence_number">sequence number which is expired</param>
-        private async void RemoveImageFromBufferAfterDelay(uint sequence_number)
+        private void RemoveImageFromBufferAfterDelay(uint sequence_number)
         {
-            await Task.Run(() =>
+            Task.Run(() =>
             {
                 Task.Delay(5000);  // Wait 5 seconds
                 ConfirmImage(sequence_number);

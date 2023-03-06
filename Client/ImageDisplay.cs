@@ -74,7 +74,8 @@ namespace Client
         {
             uint[] lostChunks = GetMissingPackets();
 
-            RetransmissionNecessity(lostChunks);
+            if (RetransmissionRequired(lostChunks))
+                return;
 
             if (!lastChunkReceived)
                 Debug.WriteLine("[IMAGE BUILDER] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
@@ -99,11 +100,11 @@ namespace Client
         /// Checks if retransmission needed due packet lost
         /// </summary>
         /// <param name="lostChunks">lost chunks</param>
-        private static void RetransmissionNecessity(uint[] lostChunks)
+        private static bool RetransmissionRequired(uint[] lostChunks)
         {
             // if there are missing chnuks -> send a NAK request in order to ask the server to retransmit the image
             // (the whole message numbers of those sequence number)
-            if (lostChunks.Length > 0 && MainView.RETRANSMISSION_MODE)
+            if (lostChunks.Length > 0 && MainView.RETRANSMISSION_MODE)  // retranmission required
             {
                 Console.WriteLine("need to retr: " + dataPackets[0].SEQUENCE_NUMBER);
                 for (int i = 0; i < dataPackets.Count; i++)
@@ -114,13 +115,16 @@ namespace Client
 
                 RequestsHandler.RequestForRetransmit(dataPackets[0].SEQUENCE_NUMBER);
                 dataPackets.Clear();
-                return;
+                return true;
             }
 
             else  // if all the packets of the current image were received -> send an ack packet with the image's sequence number to clean servers saved images bufer
+            {
                 RequestsHandler.SendImageConfirm(dataPackets[0].SEQUENCE_NUMBER);
+                return false;
+            }
         }
-        
+
         /// <summary>
         /// Checks if auto quality control should lower the quality due high packet lost
         /// </summary>
@@ -134,7 +138,7 @@ namespace Client
             if ((packetsShouldLost <= lostChunks.Length)  // check if necessary
 
                 && MainView.AutoQualityControl  // check if option enabled
-                
+
                 && timeElapsed.TotalSeconds > MINIMUM_SECONDS_ELPASED_TO_MODIFY)  // check if min required time elapsed
             {
                 if (CurrentVideoQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)
