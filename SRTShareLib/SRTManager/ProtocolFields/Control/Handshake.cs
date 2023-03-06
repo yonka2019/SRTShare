@@ -40,7 +40,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             RETRANSMISSION_MODE = BitConverter.ToBoolean(data, 89);  // [89]
             INTIAL_PSN = BitConverter.ToUInt32(data, 90);  // [90 91 92 93] (4 bytes)
             MTU = BitConverter.ToUInt32(data, 94);  // [94 95 96 97] (4 bytes)
-            TYPE = BitConverter.ToUInt32(data, 99);  // [98 99 100 101] (4 bytes)
+            TYPE = BitConverter.ToUInt32(data, 98);  // [98 99 100 101] (4 bytes)
             PEER_IP = new IpV4Address(BitConverter.ToUInt32(data, 102));  // [102 103 104 105] (4 bytes)
 
             PEER_IP = new IpV4Address(MethodExt.ReverseIp(PEER_IP.ToString()));  // Reverse the ip because the little/big endian
