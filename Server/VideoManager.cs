@@ -23,7 +23,7 @@ namespace Server
         private bool connected;
         private uint retransmitRequested;
 
-        internal Dictionary<uint, List<byte>> ImagesBuffer = new Dictionary<uint, List<byte>>();
+        internal Dictionary<uint, byte[]> ImagesBuffer = new Dictionary<uint, byte[]>();
         public readonly BaseEncryption ClientEncryption;
         public bool VideoStage { get; private set; }
 
@@ -87,7 +87,7 @@ namespace Server
             if (ImagesBuffer.ContainsKey(packetSequenceNumber))  // maybe image already confirmed
             {
                 Console.WriteLine("cleared: " + packetSequenceNumber);
-                ImagesBuffer[packetSequenceNumber].Clear();
+                Array.Clear(ImagesBuffer[packetSequenceNumber], 0, ImagesBuffer[packetSequenceNumber].Length);
                 ImagesBuffer.Remove(packetSequenceNumber);
             }
         }
@@ -106,30 +106,26 @@ namespace Server
                 MemoryStream mStream = GetJpegStream(bmp);
                 byte[] stream = mStream.ToArray();
 
-                if (ClientEncryption.Type != EncryptionType.None)
-                    ClientEncryption.Encrypt(stream);
-
-                List<byte> lStream = stream.ToList();
-
-                ImagesBuffer[current_sequence_number] = lStream;  // save image to buffer
+                ImagesBuffer[current_sequence_number] = stream;  // save image to buffer
                 await RemoveImageFromBufferAfterDelay(current_sequence_number);
 
                 Console.WriteLine("saved: " + current_sequence_number);
 
-                SplitAndSend(lStream, false);
+                SplitAndSend(stream, false);
                 current_sequence_number++;
             }
         }
 
-        private void SplitAndSend(List<byte> image, bool retransmitted)
+        private void SplitAndSend(byte[] image, bool retransmitted)
         {
             DataRequest dataRequest = new DataRequest(
                                OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
-            // (.MTU - 100; explanation) : To avoid errors with sending, because this field used to set fixed size of splitted data packet,
+            // (.MTU - 150; explanation) : To avoid errors with sending, because this field used to set fixed size of splitted data packet,
             // while the real mtu that the interface provides refers the whole size of the packet which get sent,
-            // and with the whole srt packet and all layers in will much more
-            List<Packet> data_packets = dataRequest.SplitToPackets(image, ref current_sequence_number, client.SocketId, (int)client.MTU - 100, ClientEncryption, retransmitted);
+            // and with the whole srt packet and all layers in will much more.
+            // In addition, the encryption will give EXTRA bytes (which is padding for example in AES), it's also one of the reasons why we take extra space
+            List<Packet> data_packets = dataRequest.SplitToPackets(image, ref current_sequence_number, client.SocketId, (int)client.MTU - 150, ClientEncryption, retransmitted);
 
             foreach (Packet packet in data_packets)
             {

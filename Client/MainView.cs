@@ -217,7 +217,7 @@ namespace Client
                 }
                 else
                     button.Enabled = true;
-                     
+
             }
         }
 
@@ -267,6 +267,10 @@ namespace Client
             CConsole.WriteLine("[ERROR] Server isn't alive anymore", MessageType.bgError);
 
             MessageBox.Show("Lost connection with the server", "Connection Problem", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            handlePackets.Abort();
+            handleKeepAlive.Abort();
+
 
             Environment.Exit(-1);
         }

@@ -11,7 +11,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        public SRTHeader(uint sequence_number, PositionFlags packet_position_flag, EncryptionFlags encryption_flag, bool is_retransmitted, uint message_number, uint dest_socket_id, List<byte> data)
+        public SRTHeader(uint sequence_number, PositionFlags packet_position_flag, EncryptionFlags encryption_flag, bool is_retransmitted, uint message_number, uint dest_socket_id, byte[] data)
         {
             IS_CONTROL_PACKET = false; byteFields.Add(BitConverter.GetBytes(IS_CONTROL_PACKET));
             SEQUENCE_NUMBER = sequence_number; byteFields.Add(BitConverter.GetBytes(SEQUENCE_NUMBER));
@@ -23,29 +23,25 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
 
             MESSAGE_NUMBER = message_number; byteFields.Add(BitConverter.GetBytes(MESSAGE_NUMBER));
             DEST_SOCKET_ID = dest_socket_id; byteFields.Add(BitConverter.GetBytes(DEST_SOCKET_ID));
-            DATA = data; byteFields.Add(DATA.ToArray());
+            DATA = data; byteFields.Add(DATA);
         }
 
         /// <summary>
         /// Byte[] -> Fields (To extract)
         /// </summary>
-        public SRTHeader(byte[] data)
+        public SRTHeader(byte[] payload)
         {
-            IS_CONTROL_PACKET = BitConverter.ToBoolean(data, 0); // [0]
-            SEQUENCE_NUMBER = BitConverter.ToUInt32(data, 1); // [1 2 3 4]
+            IS_CONTROL_PACKET = BitConverter.ToBoolean(payload, 0); // [0]
+            SEQUENCE_NUMBER = BitConverter.ToUInt32(payload, 1); // [1 2 3 4]
 
-            PACKET_POSITION_FLAG = BitConverter.ToUInt16(data, 5); // [5 6]
-            ENCRYPTION_FLAG = BitConverter.ToBoolean(data, 7); // [7]
-            RETRANSMITTED_PACKET_FLAG = BitConverter.ToBoolean(data, 8); // [8]
+            PACKET_POSITION_FLAG = BitConverter.ToUInt16(payload, 5); // [5 6]
+            ENCRYPTION_FLAG = BitConverter.ToBoolean(payload, 7); // [7]
+            RETRANSMITTED_PACKET_FLAG = BitConverter.ToBoolean(payload, 8); // [8]
 
-            MESSAGE_NUMBER = BitConverter.ToUInt32(data, 9); // [9 10 11 12]
-            DEST_SOCKET_ID = BitConverter.ToUInt32(data, 13); // [13 14 15 16]
+            MESSAGE_NUMBER = BitConverter.ToUInt32(payload, 9); // [9 10 11 12]
+            DEST_SOCKET_ID = BitConverter.ToUInt32(payload, 13); // [13 14 15 16]
 
-            DATA = new List<byte>();
-            for (int i = 16; i < data.Length; i++) // [16 -> end]
-            {
-                DATA.Add(data[i]);
-            }
+            Array.Copy(payload, 17, DATA, 0, payload.Length - 17);  // [17 -> end]
         }
 
         /// <summary>
@@ -99,7 +95,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
         /// <summary>
         /// The actual data of the packet.
         /// </summary>
-        public List<byte> DATA { get; set; }
+        public byte[] DATA { get; set; }
     }
 }
 

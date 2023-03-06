@@ -62,7 +62,7 @@ namespace Client
                 if (!Enum.IsDefined(typeof(EncryptionType), MainView.ENCRYPTION))
                     throw new Exception($"'{MainView.ENCRYPTION}' This encryption method isn't supported yet");
 
-                data_request.DATA = MainView.Server_EncryptionControl.TryDecrypt(data_request.DATA.ToArray()).ToList();
+                data_request.DATA = MainView.Server_EncryptionControl.TryDecrypt(data_request.DATA);
             }
             ImageDisplay.ProduceImage(data_request);
         }
