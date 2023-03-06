@@ -100,11 +100,11 @@ namespace Client
         /// Checks if retransmission needed due packet lost
         /// </summary>
         /// <param name="lostChunks">lost chunks</param>
-        private static bool RetransmissionRequired(uint[] lostChunks)
+        private static bool RetransmissionRequired()
         {
             // if there are missing chnuks -> send a NAK request in order to ask the server to retransmit the image
             // (the whole message numbers of those sequence number)
-            if (lostChunks.Length > 0 && MainView.RETRANSMISSION_MODE)  // retranmission required
+            if ((lostChunks.Length > 0) && MainView.RETRANSMISSION_MODE)  // retranmission required
             {
                 Console.WriteLine("need to retr: " + dataPackets[0].SEQUENCE_NUMBER);
 

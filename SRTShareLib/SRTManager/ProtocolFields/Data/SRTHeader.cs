@@ -23,6 +23,8 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
 
             MESSAGE_NUMBER = message_number; byteFields.Add(BitConverter.GetBytes(MESSAGE_NUMBER));
             DEST_SOCKET_ID = dest_socket_id; byteFields.Add(BitConverter.GetBytes(DEST_SOCKET_ID));
+
+            DATA_CHECKSUM = data.CalculateChecksum(); byteFields.Add(BitConverter.GetBytes(DATA_CHECKSUM));
             DATA = data; byteFields.Add(DATA);
         }
 
@@ -40,11 +42,13 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
 
             MESSAGE_NUMBER = BitConverter.ToUInt32(payload, 9); // [9 10 11 12]
             DEST_SOCKET_ID = BitConverter.ToUInt32(payload, 13); // [13 14 15 16]
-            
-            // SIZES:              17     XXXX  --> PAYLOAD.LENGTH - 17 = DATA SIZE
+
+            DATA_CHECKSUM = BitConverter.ToUInt16(payload, 17);  // [17 18]
+
+            // SIZES:              19     XXXX  --> PAYLOAD.LENGTH - 19 = DATA SIZE
             // PACKET PAYLOAD: [METADATA][DATA]
-            DATA = new byte[payload.Length - 17];
-            Array.Copy(payload, 17, DATA, 0, payload.Length - 17);  // [17 -> end]
+            DATA = new byte[payload.Length - 19];
+            Array.Copy(payload, 19, DATA, 0, payload.Length - 19);  // [19 -> end]
         }
 
         /// <summary>
@@ -94,6 +98,12 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
         /// may have the special value "0" when the packet is a connection request.
         /// </summary>
         public uint DEST_SOCKET_ID { get; private set; }
+
+        /// <summary>
+        /// 16 bits (2 bytes). Data checksum which is calculated via internet checksum method in order to identify corrupted data
+        /// (also sensitive in a case if the bytes order changed ==> ORDER DEPENDED)
+        /// </summary>
+        public ushort DATA_CHECKSUM { get; private set; }
 
         /// <summary>
         /// The actual data of the packet.
