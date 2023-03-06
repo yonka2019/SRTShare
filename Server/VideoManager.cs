@@ -92,7 +92,7 @@ namespace Server
             }
         }
 
-        private async void VideoInit()
+        private void VideoInit()
         {
             while (connected)
             {
@@ -107,7 +107,7 @@ namespace Server
                 byte[] stream = mStream.ToArray();
 
                 ImagesBuffer[current_sequence_number] = stream;  // save image to buffer
-                await RemoveImageFromBufferAfterDelay(current_sequence_number);
+                RemoveImageFromBufferAfterDelay(current_sequence_number);
 
                 Console.WriteLine("saved: " + current_sequence_number);
 
@@ -140,10 +140,13 @@ namespace Server
         /// After 5 seconds, if no ACK was sent from the client, remove the image from the buffer in order to save memory
         /// </summary>
         /// <param name="sequence_number">sequence number which is expired</param>
-        private async Task RemoveImageFromBufferAfterDelay(uint sequence_number)
+        private async void RemoveImageFromBufferAfterDelay(uint sequence_number)
         {
-            await Task.Delay(5000);  // Wait 5 seconds
-            ImagesBuffer.Remove(sequence_number);
+            await Task.Run(() =>
+            {
+                Task.Delay(5000);  // Wait 5 seconds
+                ConfirmImage(sequence_number);
+            });
         }
 
         // 'app.manifest' file modified for auto-scale screenshot - https://stackoverflow.com/questions/47015893/windows-screenshot-with-scaling
