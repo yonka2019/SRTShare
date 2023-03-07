@@ -153,7 +153,7 @@ namespace SRTShareLib
         }
 
         /// <summary>
-        /// Calculating checksum via internet method
+        /// Calculating checksum via internet method [ORDER DEPENDED]
         /// </summary>
         /// <param name="data">data to calculate his checksum</param>
         /// <returns>data checksum</returns>

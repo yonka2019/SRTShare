@@ -25,18 +25,28 @@ namespace Client
         private static DateTime lastQualityModify;
         private const int MINIMUM_SECONDS_ELPASED_TO_MODIFY = 3;  // don't allow the algorithm to AUTO modify the quality if there is was a quality change
 
-        private static byte[] FullData
+        private static byte[] image = null;
+
+        private static byte[] Image  // if full image already built, return it. otherwise, build the full image from the all chunks 
         {
             get
             {
-                List<byte> fullData = new List<byte>();
+                if (image != null)
+                    return image;
 
-                foreach (Data.SRTHeader srtHeader in dataPackets)  // add each data into [List<byte> fullData]
+                else
                 {
-                    fullData.AddRange(srtHeader.DATA);
+                    List<byte> fullData = new List<byte>();
+
+                    foreach (Data.SRTHeader srtHeader in dataPackets)  // add each data into [List<byte> fullData]
+                    {
+                        fullData.AddRange(srtHeader.DATA);
+                    }
+                    // convert to byte array and return
+                    image = fullData.ToArray();
+
+                    return image;
                 }
-                // convert to byte array and return
-                return fullData.ToArray();
             }
         }
 
@@ -84,7 +94,7 @@ namespace Client
             if (!lastChunkReceived)
                 Debug.WriteLine("[IMAGE BUILDER] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
 
-            using (MemoryStream ms = new MemoryStream(FullData))
+            using (MemoryStream ms = new MemoryStream(image))
             {
                 try
                 {
@@ -122,16 +132,18 @@ namespace Client
         }
 
         /// <summary>
-        /// Checks each packet in data packet sequence if his checksum equals to ours checksum
-        /// if not - it means the packet isn't the same as he was sent, which means that he should be retransmitted
+        /// Checks if the image checksum is the same which is our built image checksum
+        /// if not - it means the image isn't the same as he was splitted at the server, or one of the packets (or more) got lost, which means that he should be retransmitted
         /// </summary>
         /// <returns>true if the whole checksums matched, neither - false, which means that retransmission required</returns>
+        // {SERVER} IMAGE: [CHUNK 1][CHUNK 2][CHUNK 3][CHUNK 4] -> IMAGE CHECKSUM: 0x12
+        // {CLIENT} RECEIVED IMAGE: [CHUNK 1][CHUNK 3][CHNUK 4] -> IMAGE CHECKSUM: 0x17 (not the same)
         private static bool ChecksumMatches()
         {
             foreach (Data.SRTHeader header in dataPackets)
             {
-                Console.WriteLine($"{header.DATA_CHECKSUM} {header.DATA.CalculateChecksum()}");
-                if (header.DATA_CHECKSUM != header.DATA.CalculateChecksum())  // compare between chunks' checksum and our checksum
+                Console.WriteLine($"{header.IMAGE_CHECKSUM} {Image.CalculateChecksum()}");
+                if (header.IMAGE_CHECKSUM != header.DATA.CalculateChecksum())  // compare between chunks' checksum and our checksum
                 {
                     return false;  // mismatch - need retransmission
                 }

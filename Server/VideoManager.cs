@@ -100,23 +100,22 @@ namespace Server
             {
                 if (retransmitRequested != 0)  // if retransmit requested, retransmit - and continue
                 {
-                    SplitAndSend(ImagesBuffer[retransmitRequested], true, retransmitRequested);  // need to add check if removed
-                    retransmitRequested = 0;  // reset
+                    byte[] retransmitted_image = ImagesBuffer[retransmitRequested];
+                    SplitAndSend(retransmitted_image, true, retransmitRequested);  // need to add check if removed
+                    retransmitRequested = 0;  // reset request
                 }
 
-                Bitmap bmp = TakeScreenShot();
-                MemoryStream mStream = GetJpegStream(bmp);
-                byte[] stream = mStream.ToArray();
+                byte[] currentImage = TakeReadyScreenshot();
 
-                if (retransmission_mode)
+                if (retransmission_mode)  // save image to retransmission buffer (only for RETR mode)
                 {
-                    ImagesBuffer[current_sequence_number] = stream;  // save image to buffer if retransmission enabled (otherwise - there is no reason to save and auto remove, because no NAK will be received)
+                    ImagesBuffer[current_sequence_number] = currentImage;  // save image to buffer if retransmission enabled (otherwise - there is no reason to save and auto remove, because no NAK will be received)
                     RemoveImageFromBufferAfterDelay(current_sequence_number);
                 }
 
                 Console.WriteLine("saved: " + current_sequence_number);
+                SplitAndSend(currentImage, false, current_sequence_number);
 
-                SplitAndSend(stream, false, current_sequence_number);
                 current_sequence_number++;
             }
         }
@@ -159,7 +158,7 @@ namespace Server
         /// Screenshots current selected screen (supporting scale (125%, 150%..)
         /// </summary>
         /// <returns>Bitmap of the screenshot</returns>
-        private Bitmap TakeScreenShot()
+        private Bitmap TakeScreenshot()
         {
             int width, height;
 
@@ -179,6 +178,17 @@ namespace Server
                 g.CopyFromScreen(x, y, 0, 0, bmp.Size);
                 return bmp;
             }
+        }
+
+        /// <summary>
+        /// Takes a screenshot which is ready to be sent (already converted to byte[] array)
+        /// </summary>
+        /// <returns>ready byte array of the taken image</returns>
+        private byte[] TakeReadyScreenshot()
+        {
+            Bitmap bmp = TakeScreenshot();
+            MemoryStream mStream = GetJpegStream(bmp);
+            return mStream.ToArray();
         }
 
         /// <summary>

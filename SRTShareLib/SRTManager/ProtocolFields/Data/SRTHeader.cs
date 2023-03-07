@@ -11,7 +11,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        public SRTHeader(uint sequence_number, PositionFlags packet_position_flag, EncryptionFlags encryption_flag, bool is_retransmitted, uint message_number, uint dest_socket_id, byte[] data)
+        public SRTHeader(uint sequence_number, PositionFlags packet_position_flag, EncryptionFlags encryption_flag, bool is_retransmitted, uint message_number, uint dest_socket_id, ushort imageChecksum, byte[] data)
         {
             IS_CONTROL_PACKET = false; byteFields.Add(BitConverter.GetBytes(IS_CONTROL_PACKET));
             SEQUENCE_NUMBER = sequence_number; byteFields.Add(BitConverter.GetBytes(SEQUENCE_NUMBER));
@@ -24,7 +24,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
             MESSAGE_NUMBER = message_number; byteFields.Add(BitConverter.GetBytes(MESSAGE_NUMBER));
             DEST_SOCKET_ID = dest_socket_id; byteFields.Add(BitConverter.GetBytes(DEST_SOCKET_ID));
 
-            DATA_CHECKSUM = data.CalculateChecksum(); byteFields.Add(BitConverter.GetBytes(DATA_CHECKSUM));
+            IMAGE_CHECKSUM = imageChecksum; byteFields.Add(BitConverter.GetBytes(IMAGE_CHECKSUM));
             DATA = data; byteFields.Add(DATA);
 
 
@@ -45,8 +45,8 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
             MESSAGE_NUMBER = BitConverter.ToUInt32(payload, 9); // [9 10 11 12]
             DEST_SOCKET_ID = BitConverter.ToUInt32(payload, 13); // [13 14 15 16]
 
-            DATA_CHECKSUM = BitConverter.ToUInt16(payload, 17);  // [17 18]
-            Console.WriteLine(DATA_CHECKSUM);
+            IMAGE_CHECKSUM = BitConverter.ToUInt16(payload, 17);  // [17 18]
+            Console.WriteLine(IMAGE_CHECKSUM);
 
             // SIZES:              19     XXXX  --> PAYLOAD.LENGTH - 19 = DATA SIZE
             // PACKET PAYLOAD: [METADATA][DATA]
@@ -103,10 +103,11 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
         public uint DEST_SOCKET_ID { get; private set; }
 
         /// <summary>
-        /// 16 bits (2 bytes). Data checksum which is calculated via internet checksum method in order to identify corrupted data
+        /// 16 bits (2 bytes). whole image checksum which is calculated via internet checksum method in order to identify corrupted data
         /// (also sensitive in a case if the bytes order changed ==> ORDER DEPENDED)
+        /// The checksum of the ALL chunks (of same image) is the SAME, it's the checksum of the WHOLE image (all chunks concated => image)
         /// </summary>
-        public ushort DATA_CHECKSUM { get; private set; }
+        public ushort IMAGE_CHECKSUM { get; private set; }
 
         /// <summary>
         /// The actual data of the packet.
