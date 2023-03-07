@@ -101,12 +101,13 @@ namespace Client
         internal static void SendImageConfirm(uint ackSequenceNumber)
         {
             Console.WriteLine("SENT ACK: " + ackSequenceNumber);
+
             ACKRequest ack_request = new ACKRequest
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
 
             Packet ack_packet = ack_request.ConfirmReceivedImage(ackSequenceNumber, MainView.server_sid, MainView.my_client_sid);
 
-            // send triple ack confirm (if one of AKCs them lost or corruped)
+            // send triple ack confirm (if one of AKCs them lost or corruped) - server will get only the one he receive and ignore the others
             PacketManager.SendPacket(ack_packet);
             PacketManager.SendPacket(ack_packet);
             PacketManager.SendPacket(ack_packet);

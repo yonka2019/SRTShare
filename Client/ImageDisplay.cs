@@ -72,16 +72,17 @@ namespace Client
 
         private static void ShowImage(bool lastChunkReceived)
         {
-            uint[] lostChunks = GetMissingPackets();
+            if (MainView.RETRANSMISSION_MODE)  // check if retransmission mode enabled 
+                if (RetransmissionRequired())
+                    return;  // stop the showing, wait till good image would be received
 
-            if (RetransmissionRequired(lostChunks))
-                return;
+
+            if (MainView.AutoQualityControl)  // check if option enabled (not the const)
+                LowerQualityNecessity();
+
 
             if (!lastChunkReceived)
                 Debug.WriteLine("[IMAGE BUILDER] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
-
-            LowerQualityNecessity(lostChunks);
-
 
             using (MemoryStream ms = new MemoryStream(FullData))
             {
@@ -99,14 +100,14 @@ namespace Client
         /// <summary>
         /// Checks if retransmission needed due packet lost
         /// </summary>
-        /// <param name="lostChunks">lost chunks</param>
         private static bool RetransmissionRequired()
         {
             // if there are missing chnuks -> send a NAK request in order to ask the server to retransmit the image
             // (the whole message numbers of those sequence number)
-            if ((lostChunks.Length > 0) && MainView.RETRANSMISSION_MODE)  // retranmission required
+
+            if (!ChecksumMatches())  // retranmission required due checksum mismatch
             {
-                Console.WriteLine("need to retr: " + dataPackets[0].SEQUENCE_NUMBER);
+                Console.WriteLine("need to retr - checksum mismatch: " + dataPackets[0].SEQUENCE_NUMBER);
 
                 RequestsHandler.RequestForRetransmit(dataPackets[0].SEQUENCE_NUMBER);
                 dataPackets.Clear();
@@ -121,11 +122,29 @@ namespace Client
         }
 
         /// <summary>
+        /// Checks each packet in data packet sequence if his checksum equals to ours checksum
+        /// if not - it means the packet isn't the same as he was sent, which means that he should be retransmitted
+        /// </summary>
+        /// <returns>true if the whole checksums matched, neither - false, which means that retransmission required</returns>
+        private static bool ChecksumMatches()
+        {
+            foreach (Data.SRTHeader header in dataPackets)
+            {
+                if (header.DATA_CHECKSUM != header.DATA.CalculateChecksum())  // compare between chunks' checksum and our checksum
+                    return false;  // mismatch - need retransmission
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Checks if auto quality control should lower the quality due high packet lost
         /// </summary>
-        /// <param name="lostChunks">lost chunks</param>
-        private static void LowerQualityNecessity(uint[] lostChunks)
+        private static void LowerQualityNecessity()
         {
+            // sort the data (inside the function) in order to get the max message number which is the total packets, and find the missing packets, and his percent
+            uint[] lostChunks = GetMissingPackets();
+
             // dataPackets.Last().MESSAGE_NUMBER - the last message number which is the max
             double packetsShouldLost = Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0));
             TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
@@ -175,6 +194,5 @@ namespace Client
 
             return missingList.ToArray();
         }
-
     }
 }

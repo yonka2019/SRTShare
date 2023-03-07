@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -22,6 +21,7 @@ namespace Server
         private readonly SClient client;
         private bool connected;
         private uint retransmitRequested;
+        private readonly bool retransmission_mode;
 
         internal Dictionary<uint, byte[]> ImagesBuffer = new Dictionary<uint, byte[]>();
         public readonly BaseEncryption ClientEncryption;
@@ -35,7 +35,7 @@ namespace Server
 
         private static uint current_sequence_number;
 
-        internal VideoManager(SClient client, BaseEncryption baseEncryption, uint intial_sequence_number)
+        internal VideoManager(SClient client, BaseEncryption baseEncryption, uint intial_sequence_number, bool retransmission_mode)
         {
             current_sequence_number = intial_sequence_number;  // start from init seq number (MUST BE NOT 0)
             retransmitRequested = 0;
@@ -45,6 +45,8 @@ namespace Server
 
             ClientEncryption = baseEncryption;
             CurrentQuality = ProtocolManager.DEFAULT_QUALITY;  // default quality value
+
+            this.retransmission_mode = retransmission_mode;
         }
 
         /// <summary>
@@ -106,8 +108,11 @@ namespace Server
                 MemoryStream mStream = GetJpegStream(bmp);
                 byte[] stream = mStream.ToArray();
 
-                ImagesBuffer[current_sequence_number] = stream;  // save image to buffer
-                RemoveImageFromBufferAfterDelay(current_sequence_number);
+                if (retransmission_mode)
+                {
+                    ImagesBuffer[current_sequence_number] = stream;  // save image to buffer if retransmission enabled (otherwise - there is no reason to save and auto remove, because no NAK will be received)
+                    RemoveImageFromBufferAfterDelay(current_sequence_number);
+                }
 
                 Console.WriteLine("saved: " + current_sequence_number);
 
