@@ -130,9 +130,9 @@ namespace Client
         {
             foreach (Data.SRTHeader header in dataPackets)
             {
+                Console.WriteLine($"{header.DATA_CHECKSUM} {header.DATA.CalculateChecksum()}");
                 if (header.DATA_CHECKSUM != header.DATA.CalculateChecksum())  // compare between chunks' checksum and our checksum
                 {
-                    Console.WriteLine($"{header.DATA_CHECKSUM} {header.DATA.CalculateChecksum()}");
                     return false;  // mismatch - need retransmission
                 }
             }

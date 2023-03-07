@@ -27,7 +27,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
             while (i < stream.Length)  // Iterate until all bytes in the stream have been processed
             {
                 int packetLength = Math.Min(MTU, stream.Length - i);  // Calculate the length of the packet to be sent (if the packet length smaller than the mtu, take it)
-                packet_data = new ArraySegment<byte>(stream, i, packetLength).ToArray();  // Get the packet data from the stream by the size)
+                packet_data = new ArraySegment<byte>(stream, i, packetLength).ToArray();  // Get the packet data from the stream by the size) (same as List<>.GetRange)
                 byte[] bPacket_data = packet_data.ToArray();
 
                 if (clientEncryption.Type != EncryptionType.None)
@@ -47,6 +47,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
                 srt_packet_data = new SRTData.SRTHeader(sequence_number: sequence_number, packetPositionFlag,
                     clientEncryption.Type == EncryptionType.None ? SRTData.EncryptionFlags.NOT_ENCRYPTED : SRTData.EncryptionFlags.ENCRYPTED,
                     is_retransmitted: retransmitted, message_number: messageNumber, dest_socket_id, packet_data);
+                Console.WriteLine(srt_packet_data.DATA_CHECKSUM);
 
                 GetPayloadLayer() = OSIManager.BuildPLayer(srt_packet_data.GetByted());
 
