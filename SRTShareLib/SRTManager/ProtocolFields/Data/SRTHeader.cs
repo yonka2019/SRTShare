@@ -26,6 +26,8 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
 
             DATA_CHECKSUM = data.CalculateChecksum(); byteFields.Add(BitConverter.GetBytes(DATA_CHECKSUM));
             DATA = data; byteFields.Add(DATA);
+
+
         }
 
         /// <summary>
@@ -44,6 +46,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
             DEST_SOCKET_ID = BitConverter.ToUInt32(payload, 13); // [13 14 15 16]
 
             DATA_CHECKSUM = BitConverter.ToUInt16(payload, 17);  // [17 18]
+            Console.WriteLine(DATA_CHECKSUM);
 
             // SIZES:              19     XXXX  --> PAYLOAD.LENGTH - 19 = DATA SIZE
             // PACKET PAYLOAD: [METADATA][DATA]

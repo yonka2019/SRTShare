@@ -100,7 +100,7 @@ namespace Server
             {
                 if (retransmitRequested != 0)  // if retransmit requested, retransmit - and continue
                 {
-                    SplitAndSend(ImagesBuffer[retransmitRequested], true, retransmitRequested);
+                    SplitAndSend(ImagesBuffer[retransmitRequested], true, retransmitRequested);  // need to add check if removed
                     retransmitRequested = 0;  // reset
                 }
 

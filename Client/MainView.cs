@@ -166,7 +166,7 @@ namespace Client
                             EnableQualityButtons();
                         }
                     }
-                    else if (Control.Shutdown.IsShutdown(payload))  // (SRT) Server Shutdown ! [HANDLES ONLY CTRL + C EVENT ON SERVER SIDE] !
+                    else if (Control.Shutdown.IsShutdown(payload))  // (SRT) Server Shutdown ! [HANDLES ONLY WITH CTRL + C EVENT ON SERVER SIDE] !
                         RequestsHandler.HandleShutDown();
                 }
 

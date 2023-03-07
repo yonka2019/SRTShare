@@ -152,6 +152,11 @@ namespace SRTShareLib
             return num % 10 >= 5 ? (((num / 10) + 1) * 10) : (num / 10 * 10);
         }
 
+        /// <summary>
+        /// Calculating checksum via internet method
+        /// </summary>
+        /// <param name="data">data to calculate his checksum</param>
+        /// <returns>data checksum</returns>
         public static ushort CalculateChecksum(this byte[] data)
         {
             uint sum = 0;
