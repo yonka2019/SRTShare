@@ -25,28 +25,19 @@ namespace Client
         private static DateTime lastQualityModify;
         private const int MINIMUM_SECONDS_ELPASED_TO_MODIFY = 3;  // don't allow the algorithm to AUTO modify the quality if there is was a quality change
 
-        private static byte[] image = null;
 
         private static byte[] Image  // if full image already built, return it. otherwise, build the full image from the all chunks 
         {
             get
             {
-                if (image != null)
-                    return image;
+                List<byte> fullData = new List<byte>();
 
-                else
+                foreach (Data.SRTHeader srtHeader in dataPackets)  // add each data into [List<byte> fullData]
                 {
-                    List<byte> fullData = new List<byte>();
-
-                    foreach (Data.SRTHeader srtHeader in dataPackets)  // add each data into [List<byte> fullData]
-                    {
-                        fullData.AddRange(srtHeader.DATA);
-                    }
-                    // convert to byte array and return
-                    image = fullData.ToArray();
-
-                    return image;
+                    fullData.AddRange(srtHeader.DATA);
                 }
+                // convert to byte array and return
+                return fullData.ToArray();
             }
         }
 
@@ -60,7 +51,7 @@ namespace Client
                 {
                     if (lastDataPosition == (ushort)Data.PositionFlags.MIDDLE)  // LAST lost, image received [FIRST MID MID MID ---- FIRST]
                     {
-                        ShowImage(false);
+                        ShowImage(Image, false);
                         dataPackets.Clear();
                     }
                     dataPackets.Add(data_request);
@@ -68,7 +59,7 @@ namespace Client
                 else if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.LAST)  // full image received (but maybe middle packets get lost)
                 {
                     dataPackets.Add(data_request);
-                    ShowImage(true);
+                    ShowImage(Image, true);
                     dataPackets.Clear();
                 }
                 else
@@ -80,10 +71,10 @@ namespace Client
             }
         }
 
-        private static void ShowImage(bool lastChunkReceived)
+        private static void ShowImage(byte[] image, bool lastChunkReceived)
         {
             if (MainView.RETRANSMISSION_MODE)  // check if retransmission mode enabled 
-                if (RetransmissionRequired())
+                if (RetransmissionRequired(image))
                     return;  // stop the showing, wait till good image would be received
 
 
@@ -110,12 +101,12 @@ namespace Client
         /// <summary>
         /// Checks if retransmission needed due packet lost
         /// </summary>
-        private static bool RetransmissionRequired()
+        private static bool RetransmissionRequired(byte[] image)
         {
             // if there are missing chnuks -> send a NAK request in order to ask the server to retransmit the image
             // (the whole message numbers of those sequence number)
 
-            if (!ChecksumMatches())  // retranmission required due checksum mismatch
+            if (!ChecksumMatches(image))  // retranmission required due checksum mismatch
             {
                 Console.WriteLine("need to retr - checksum mismatch: " + dataPackets[0].SEQUENCE_NUMBER);
 
@@ -138,18 +129,9 @@ namespace Client
         /// <returns>true if the whole checksums matched, neither - false, which means that retransmission required</returns>
         // {SERVER} IMAGE: [CHUNK 1][CHUNK 2][CHUNK 3][CHUNK 4] -> IMAGE CHECKSUM: 0x12
         // {CLIENT} RECEIVED IMAGE: [CHUNK 1][CHUNK 3][CHNUK 4] -> IMAGE CHECKSUM: 0x17 (not the same)
-        private static bool ChecksumMatches()
+        private static bool ChecksumMatches(byte[] image)
         {
-            foreach (Data.SRTHeader header in dataPackets)
-            {
-                Console.WriteLine($"{header.IMAGE_CHECKSUM} {Image.CalculateChecksum()}");
-                if (header.IMAGE_CHECKSUM != header.DATA.CalculateChecksum())  // compare between chunks' checksum and our checksum
-                {
-                    return false;  // mismatch - need retransmission
-                }
-            }
-
-            return true;
+            return dataPackets[0].IMAGE_CHECKSUM != image.CalculateChecksum();  // compare between images' checksum and our checksum calculation
         }
 
         /// <summary>

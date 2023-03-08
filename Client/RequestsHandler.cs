@@ -82,30 +82,30 @@ namespace Client
         /// <summary>
         /// send request of transmit corrupted image
         /// </summary>
-        /// <param name="corruptedImage"></param>
-        internal static void RequestForRetransmit(uint corruptedImage)
+        /// <param name="corruptedImageSequenceNumber"></param>
+        internal static void RequestForRetransmit(uint corruptedImageSequenceNumber)
         {
-            Console.WriteLine("SENT NAK: " + corruptedImage);
+            Console.WriteLine("SENT NAK: " + corruptedImageSequenceNumber);
 
             NAKRequest nak_request = new NAKRequest
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
 
-            Packet nak_packet = nak_request.RequestRetransmit(corruptedImage, MainView.server_sid, MainView.my_client_sid);
+            Packet nak_packet = nak_request.RequestRetransmit(corruptedImageSequenceNumber, MainView.server_sid, MainView.my_client_sid);
             PacketManager.SendPacket(nak_packet);
         }
 
         /// <summary>
         /// When image fully received send to server confirm that the whole image received correctly and can be cleaned from server buffer
         /// </summary>
-        /// <param name="ackSequenceNumber"></param>
-        internal static void SendImageConfirm(uint ackSequenceNumber)
+        /// <param name="goodImageSequenceNumber"></param>
+        internal static void SendImageConfirm(uint goodImageSequenceNumber)
         {
-            Console.WriteLine("SENT ACK: " + ackSequenceNumber);
+            Console.WriteLine("SENT ACK: " + goodImageSequenceNumber);
 
             ACKRequest ack_request = new ACKRequest
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
 
-            Packet ack_packet = ack_request.ConfirmReceivedImage(ackSequenceNumber, MainView.server_sid, MainView.my_client_sid);
+            Packet ack_packet = ack_request.ConfirmReceivedImage(goodImageSequenceNumber, MainView.server_sid, MainView.my_client_sid);
 
             // send triple ack confirm (if one of AKCs them lost or corruped) - server will get only the one he receive and ignore the others
             PacketManager.SendPacket(ack_packet);
