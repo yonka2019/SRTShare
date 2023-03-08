@@ -1,16 +1,12 @@
-﻿using PcapDotNet.Packets;
-using SRTShareLib;
-using SRTShareLib.PcapManager;
-using SRTShareLib.SRTManager.RequestsFactory;
+﻿using SRTShareLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-
-using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
+using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 
 namespace Client
@@ -111,9 +107,10 @@ namespace Client
 
             if (!ChecksumMatches(image))  // retranmission required due checksum mismatch (comparing the checksums already after the decryption)
             {
-                CConsole.WriteLine($"[Retransmission] Image retransmission requested successfully\n", MessageType.txtInfo);
-
                 RequestsHandler.RequestForRetransmit(dataPackets[0].SEQUENCE_NUMBER);
+
+                CConsole.WriteLine($"[Retransmission] Image [{dataPackets[0].SEQUENCE_NUMBER}] retransmission requested\n", MessageType.txtInfo);
+
                 dataPackets.Clear();
                 return true;
             }
@@ -146,29 +143,30 @@ namespace Client
             uint[] lostChunks = GetMissingPackets();
 
             // dataPackets.Last().MESSAGE_NUMBER - the last message number which is the max
-            double packetsShouldLost = Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0));
+            double minChunksToGetLost = Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0));
             TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
 
-            if ((packetsShouldLost <= lostChunks.Length)  // check if necessary
-
-                && MainView.AutoQualityControl  // check if option enabled
-
+            if ((minChunksToGetLost <= lostChunks.Length)  // check if necessary
                 && timeElapsed.TotalSeconds > MINIMUM_SECONDS_ELPASED_TO_MODIFY)  // check if min required time elapsed
             {
-                if (CurrentVideoQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)
+                if (CurrentVideoQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)  // check if current quality isn't the lowest
                 {
-                    CurrentVideoQuality -= MainView.DATA_DECREASE_QUALITY_BY;  // down quality and send quality update request 
-
-                    QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.server_mac, NetworkManager.LocalIp, ConfigManager.IP, MainView.my_client_port, ConfigManager.PORT));
-                    Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(MainView.server_sid, MainView.my_client_sid, CurrentVideoQuality);
-                    PacketManager.SendPacket(qualityUpdate_packet);
+                    CurrentVideoQuality -= MainView.DATA_DECREASE_QUALITY_BY;  // down quality and send quality update request later (after button click)
 
                     Debug.WriteLine($"[QUALITY-CONTROL] Quality reduced to {CurrentVideoQuality}\n" +
                         $"[-] LOST: {lostChunks.Length}\n" +
-                        $"[-] MIN-TO-LOST: {packetsShouldLost}");
+                        $"[-] MIN-TO-LOST: {minChunksToGetLost}");
 
                     ToolStripMenuItem qualityButton = MainView.QualityButtons[CurrentVideoQuality.RoundToNearestTen()];
-                    qualityButton.PerformClick();  // simulate click
+
+                    CConsole.WriteLine("[Auto Quality Control] High packet loss - reducing quality", MessageType.txtInfo);
+                    if (qualityButton.Owner.InvokeRequired && qualityButton.Owner.IsHandleCreated)  // check if invoke required and if the handle built at all
+                    {
+                        qualityButton.Owner.Invoke((MethodInvoker)delegate
+                        {
+                            qualityButton.PerformClick();  // simulate click
+                        });
+                    }
 
                     lastQualityModify = DateTime.Now;
                 }

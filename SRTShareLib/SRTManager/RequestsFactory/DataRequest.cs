@@ -25,7 +25,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
             int i = 0;
             uint messageNumber = 0;
 
-            while (i < image.Length)  // Iterate until all bytes in the stream have been processed
+            while (i < image.Length)  // Iterate over the image until all bytes in the stream have been processed
             {
                 int packetLength = Math.Min(MTU, image.Length - i);  // Calculate the length of the packet to be sent (if the packet length smaller than the mtu, take it)
                 packet_data = new ArraySegment<byte>(image, i, packetLength).ToArray();  // Get the packet data from the stream by the size) (same as List<>.GetRange)

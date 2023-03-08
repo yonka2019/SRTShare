@@ -104,7 +104,7 @@ namespace Server
                         byte[] retransmitted_image = ImagesBuffer[retransmitRequestedTo];
                         SplitAndSend(retransmitted_image, true, retransmitRequestedTo);  // need to add check if removed
 
-                        CConsole.WriteLine($"[Retransmission] {client.IPAddress} Image resent successfully\n", MessageType.txtInfo);
+                        CConsole.WriteLine($"[Retransmission] {client.IPAddress} Image [{retransmitRequestedTo}] resent successfully\n", MessageType.txtInfo);
                     }
                     retransmitRequestedTo = 0;  // reset request
                 }
