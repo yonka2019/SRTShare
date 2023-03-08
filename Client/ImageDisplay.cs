@@ -131,7 +131,7 @@ namespace Client
         // {CLIENT} RECEIVED IMAGE: [CHUNK 1][CHUNK 3][CHNUK 4] -> IMAGE CHECKSUM: 0x17 (not the same)
         private static bool ChecksumMatches(byte[] image)
         {
-            return dataPackets[0].IMAGE_CHECKSUM != image.CalculateChecksum();  // compare between images' checksum and our checksum calculation
+            return dataPackets[0].IMAGE_CHECKSUM == image.CalculateChecksum();  // compare between images' checksum and our checksum calculation
         }
 
         /// <summary>
