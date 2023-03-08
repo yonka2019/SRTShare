@@ -17,7 +17,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
         {
             List<Packet> packets = new List<Packet>();
             byte[] packet_data;
-            ushort imageChecksum = image.CalculateChecksum();
+            ushort imageChecksum = image.CalculateChecksum();  // ! calculating image checksum before any encryption !
 
             SRTData.SRTHeader srt_packet_data;
             SRTData.PositionFlags packetPositionFlag;

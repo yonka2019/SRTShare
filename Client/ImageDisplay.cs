@@ -109,7 +109,7 @@ namespace Client
             // if there are missing chnuks -> send a NAK request in order to ask the server to retransmit the image
             // (the whole message numbers of those sequence number)
 
-            if (!ChecksumMatches(image))  // retranmission required due checksum mismatch
+            if (!ChecksumMatches(image))  // retranmission required due checksum mismatch (comparing the checksums already after the decryption)
             {
                 CConsole.WriteLine($"[Retransmission] Image retransmission requested successfully\n", MessageType.txtInfo);
 
