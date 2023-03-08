@@ -8,7 +8,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
+using CConsole = SRTShareLib.CColorManager;  // Colored Console
+
 
 namespace Client
 {
@@ -108,7 +111,7 @@ namespace Client
 
             if (!ChecksumMatches(image))  // retranmission required due checksum mismatch
             {
-                Console.WriteLine("need to retr - checksum mismatch: " + dataPackets[0].SEQUENCE_NUMBER);
+                CConsole.WriteLine($"[Retransmission] Image retransmission requested successfully\n", MessageType.txtInfo);
 
                 RequestsHandler.RequestForRetransmit(dataPackets[0].SEQUENCE_NUMBER);
                 dataPackets.Clear();

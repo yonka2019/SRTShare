@@ -134,7 +134,6 @@ namespace Server
                         NAK nak_request = new NAK(payload);
                         uint imageToTransmit = nak_request.CORRUPTED_SEQUENCE_NUMBER;
 
-                        Console.WriteLine("NAK: " + imageToTransmit);
                         if (SRTSockets.ContainsKey(nak_request.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm)
                             SRTSockets[nak_request.SOURCE_SOCKET_ID].Data.ResendImage(imageToTransmit); // resend all the packets for the missing sequence number (each image)
                     }

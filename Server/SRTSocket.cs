@@ -4,9 +4,9 @@ namespace Server
 {
     internal class SRTSocket
     {
-        internal SClient SocketAddress { get; } // address & port
-        internal KeepAliveManager KeepAlive { get; }
-        internal VideoManager Data { get; }
+        internal SClient SocketAddress { get; private set; } // address & port
+        internal KeepAliveManager KeepAlive { get; private set; }
+        internal VideoManager Data { get; private set; }
 
         internal SRTSocket(SClient socketAddress, KeepAliveManager kaManager, VideoManager dataManager)
         {
