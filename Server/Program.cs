@@ -101,54 +101,66 @@ namespace Server
                         Handshake handshake_request = new Handshake(payload);
 
                         if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION)  // (SRT) Induction
+                        {
+                            Console.WriteLine($"[Handshake] Induction: {handshake_request}\n");
                             RequestsHandler.HandleInduction(packet, handshake_request);
+                        }
 
                         else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION)  // (SRT) Conclusion
                         {
+                            Console.WriteLine($"[Handshake] Conclusion: {handshake_request}\n");
                             RequestsHandler.HandleConclusion(packet, handshake_request);
-                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].KeepAlive.StartCheck();  // start keep-alive checking
-                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].Data.StartVideo();  // start keep-alive checking
                         }
                     }
 
                     else if (KeepAlive.IsKeepAlive(payload))  // (SRT) KeepAlive
                     {
-                        KeepAlive keepAlive = new KeepAlive(payload);
+                        KeepAlive keepAlive_request = new KeepAlive(payload);
 
-                        if (SRTSockets.ContainsKey(keepAlive.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm)
-                            SRTSockets[keepAlive.SOURCE_SOCKET_ID].KeepAlive.ConfirmStatus();  // sign as alive
+                        if (SRTSockets.ContainsKey(keepAlive_request.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm) - check if he exist  // for case if the client was disposed (shutdown/keep alive unconfirm)
+                        {
+                            CConsole.WriteLine($"[{DateTime.Now:HH:mm:ss}] [Keep-Alive] {SRTSockets[keepAlive_request.SOURCE_SOCKET_ID].SocketAddress.IPAddress} is alive\n", MessageType.txtSuccess);
+                            RequestsHandler.HandleKeepAlive(keepAlive_request);
+                        }
                     }
 
                     else if (QualityUpdate.IsQualityUpdate(payload))  // (SRT) QualityUpdate - update the quality especially to this client
                     {
                         QualityUpdate qualityUpdate = new QualityUpdate(payload);
 
-                        Console.WriteLine($"[Quality Update] {SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].SocketAddress.IPAddress} updated quality: {qualityUpdate.QUALITY}%\n");
-
-                        if (SRTSockets.ContainsKey(qualityUpdate.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm)
-                            SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].Data.CurrentQuality = qualityUpdate.QUALITY;
+                        if (SRTSockets.ContainsKey(qualityUpdate.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm) - check if he exist
+                        {
+                            Console.WriteLine($"[Quality Update] {SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].SocketAddress.IPAddress} updated quality: {qualityUpdate.QUALITY}%\n");
+                            RequestsHandler.HandleQualityUpdate(qualityUpdate);
+                        }
                     }
 
                     else if (NAK.IsNAK(payload))  // (SRT) NAK
                     {
-                        NAK nak_request = new NAK(payload);
-                        uint imageToTransmit = nak_request.CORRUPTED_SEQUENCE_NUMBER;
+                        NAK NAK_request = new NAK(payload);
 
-                        if (SRTSockets.ContainsKey(nak_request.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm)
-                            SRTSockets[nak_request.SOURCE_SOCKET_ID].Data.ResendImage(imageToTransmit); // resend all the packets for the missing sequence number (each image)
+                        if (SRTSockets.ContainsKey(NAK_request.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm) - check if he exist  // for case if the client was disposed (shutdown/keep alive unconfirm)
+                            RequestsHandler.HandleNAK(NAK_request);
                     }
 
                     else if (ACK.IsACK(payload))  // (SRT) ACK
                     {
-                        ACK ack_request = new ACK(payload);
-                        uint imageToConfirm = ack_request.ACK_SEQUENCE_NUMBER;
+                        ACK ACK_request = new ACK(payload);
 
-                        if (SRTSockets.ContainsKey(ack_request.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm)
-                            SRTSockets[ack_request.SOURCE_SOCKET_ID].Data.ConfirmImage(imageToConfirm);  // clear all the packets of teh received image sequence number
+                        if (SRTSockets.ContainsKey(ACK_request.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm) - check if he exist  // for case if the client was disposed (shutdown/keep alive unconfirm)
+                            RequestsHandler.HandleACK(ACK_request);
                     }
 
                     else if (Shutdown.IsShutdown(payload))  // (SRT) Shutdown
-                        RequestsHandler.HandleShutDown(packet);
+                    {
+                        Shutdown shutdown_request = new Shutdown(payload);
+
+                        if (SRTSockets.ContainsKey(shutdown_request.SOURCE_SOCKET_ID))
+                        {
+                            Console.WriteLine($"[Shutdown] Got shutdown request from: {SRTSockets[shutdown_request.SOURCE_SOCKET_ID].SocketAddress.IPAddress}\n");
+                            RequestsHandler.HandleShutdown(shutdown_request);
+                        }
+                    }
                 }
             }
 

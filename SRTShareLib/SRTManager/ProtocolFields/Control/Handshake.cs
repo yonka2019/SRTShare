@@ -120,7 +120,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
 
         public override string ToString()
         {
-            string handshake = "";
+            string handshake = "\n";
 
             handshake += "Source SId: " + SOURCE_SOCKET_ID + "\n";
             handshake += "Dest SId: " + DEST_SOCKET_ID + "\n";
@@ -129,6 +129,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             handshake += "Encryption type: " + ((EncryptionType)ENCRYPTION_TYPE).ToString() + "\n";
             handshake += "Encryption peer public key: " + BitConverter.ToString(ENCRYPTION_PEER_PUBLIC_KEY) + "\n";
             handshake += "Initial PSN: " + INTIAL_PSN;
+            handshake += "Retransmission mode: " + (RETRANSMISSION_MODE ? "Enabled" : "Disabled");
 
             return handshake;
         }

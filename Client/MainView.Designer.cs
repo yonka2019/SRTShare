@@ -95,7 +95,7 @@
             this.QualitySetter.ShowCheckMargin = true;
             this.QualitySetter.ShowImageMargin = false;
             this.QualitySetter.ShowItemToolTips = false;
-            this.QualitySetter.Size = new System.Drawing.Size(185, 268);
+            this.QualitySetter.Size = new System.Drawing.Size(185, 246);
             this.QualitySetter.Text = "Set new quality";
             // 
             // autoQualityControl
@@ -217,8 +217,6 @@
         #endregion
 
         private System.Windows.Forms.Panel panel1;
-        private Cyotek.Windows.Forms.ImageBox VideoBox;
-        private System.Windows.Forms.ContextMenuStrip QualitySetter;
         private System.Windows.Forms.ToolStripMenuItem q_100p;
         private System.Windows.Forms.ToolStripMenuItem q_90p;
         private System.Windows.Forms.ToolStripMenuItem q_80p;
@@ -230,6 +228,8 @@
         private System.Windows.Forms.ToolStripMenuItem q_20p;
         private System.Windows.Forms.ToolStripMenuItem q_10p;
         private System.Windows.Forms.ToolStripMenuItem autoQualityControl;
+        internal System.Windows.Forms.ContextMenuStrip QualitySetter;
+        internal Cyotek.Windows.Forms.ImageBox VideoBox;
     }
 }
 
