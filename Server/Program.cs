@@ -110,6 +110,10 @@ namespace Server
                         {
                             Console.WriteLine($"[Handshake] Conclusion: {handshake_request}\n");
                             RequestsHandler.HandleConclusion(packet, handshake_request);
+
+                            // Handshake stage done. starting send keepAlive packets and starting to send data (video) packets
+                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].KeepAlive.StartCheck();  // start keep-alive checking
+                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].Data.StartVideo();  // start keep-alive checking
                         }
                     }
 

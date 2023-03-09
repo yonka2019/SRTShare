@@ -44,9 +44,6 @@ namespace Server
         /// <param name="handshake_request">The handshake object</param>
         internal static void HandleConclusion(Packet packet, Handshake handshake_request)  // [SERVER] -> [CLIENT]
         {
-            Program.SRTSockets[handshake_request.SOURCE_SOCKET_ID].KeepAlive.StartCheck();  // start keep-alive checking
-            Program.SRTSockets[handshake_request.SOURCE_SOCKET_ID].Data.StartVideo();  // start keep-alive checking
-
             UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
 
             HandshakeRequest handshake_response = new HandshakeRequest
@@ -74,7 +71,6 @@ namespace Server
             Program.SRTSockets.Add(handshake_request.SOURCE_SOCKET_ID, newSRTSocket);
 
             kaManager.LostConnection += Program.Client_LostConnection;
-
             #endregion
         }
 

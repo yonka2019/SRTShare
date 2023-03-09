@@ -38,7 +38,8 @@ namespace SRTShareLib
                     CConsole.WriteLine("[ERROR] Can't find config file (or maybe he is duplicated at the same directory?)\n" +
                         "You can create your own config file, press [C] key to create it, or any another key to exit", MessageType.txtWarning);
 
-                    if (Console.ReadKey().Key == ConsoleKey.C)
+                    if (
+                        Key().Key == ConsoleKey.C)
                     {
                         GetConfigData(out string ip, out string port);
                         CreateConfig(ip, port);
