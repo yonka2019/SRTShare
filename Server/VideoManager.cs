@@ -20,7 +20,7 @@ namespace Server
     {
         private readonly SClient client;
         private bool connected;
-        private uint retransmitRequestedTo;
+        private uint retransmitRequestedToSeq;
         private readonly bool retransmission_mode;
 
         internal Dictionary<uint, byte[]> ImagesBuffer = new Dictionary<uint, byte[]>();
@@ -37,8 +37,8 @@ namespace Server
 
         internal VideoManager(SClient client, BaseEncryption baseEncryption, uint intial_sequence_number, bool retransmission_mode)
         {
-            current_sequence_number = intial_sequence_number;  // start from init seq number (MUST BE NOT 0)
-            retransmitRequestedTo = 0;
+            current_sequence_number = intial_sequence_number;  // start from init seq number (MUST BE NOT 0 (because of retransmitRequestedToSeq var))
+            retransmitRequestedToSeq = 0;
 
             this.client = client;
             connected = true;
@@ -77,7 +77,7 @@ namespace Server
         /// <param name="sequenceNumberToRetransmit">image (sequence number) which should be retransmitted</param>
         internal void ResendImage(uint sequenceNumberToRetransmit)
         {
-            retransmitRequestedTo = sequenceNumberToRetransmit;
+            retransmitRequestedToSeq = sequenceNumberToRetransmit;
         }
 
         /// <summary>
@@ -97,16 +97,16 @@ namespace Server
         {
             while (connected)
             {
-                if (retransmitRequestedTo != 0)  // if retransmit requested, retransmit - and continue
+                if (retransmitRequestedToSeq != 0)  // if retransmit requested, retransmit - and continue
                 {
-                    if (ImagesBuffer.ContainsKey(retransmitRequestedTo))  // maybe requested image which was already removed by the auto-cleaner (RemoveImageFromBufferAfterDelay function)
+                    if (ImagesBuffer.ContainsKey(retransmitRequestedToSeq))  // maybe requested image which was already removed by the auto-cleaner (RemoveImageFromBufferAfterDelay function)
                     {
-                        byte[] retransmitted_image = ImagesBuffer[retransmitRequestedTo];
-                        SplitAndSend(retransmitted_image, true, retransmitRequestedTo);  // need to add check if removed
+                        byte[] retransmitted_image = ImagesBuffer[retransmitRequestedToSeq];
+                        SplitAndSend(retransmitted_image, true, retransmitRequestedToSeq);  // need to add check if removed
 
-                        CConsole.WriteLine($"[Retransmission] {client.IPAddress} Image [{retransmitRequestedTo}] resent successfully\n", MessageType.txtInfo);
+                        CConsole.WriteLine($"[Retransmission] {client.IPAddress} Image [{retransmitRequestedToSeq}] resent successfully\n", MessageType.txtInfo);
                     }
-                    retransmitRequestedTo = 0;  // reset request
+                    retransmitRequestedToSeq = 0;  // reset request
                 }
 
                 byte[] currentImage = TakeReadyScreenshot();
