@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SRTShareLib.SRTManager.ProtocolFields.Control
 {
@@ -11,7 +7,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        public ACK(uint dest_socket_id, uint ack_sequence_number) : base(ControlType.NAK, dest_socket_id)
+        public ACK(uint dest_socket_id, uint source_socket_id, uint ack_sequence_number) : base(ControlType.ACK, dest_socket_id, source_socket_id)
         {
             ACK_SEQUENCE_NUMBER = ack_sequence_number; byteFields.Add(BitConverter.GetBytes(ACK_SEQUENCE_NUMBER));
         }
@@ -22,7 +18,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// </summary>
         public ACK(byte[] data) : base(data)  // initialize SRT Control header fields
         {
-            ACK_SEQUENCE_NUMBER = BitConverter.ToUInt32(data, 13); // [13 14 15 16]
+            ACK_SEQUENCE_NUMBER = BitConverter.ToUInt32(data, 11); // [11 12 13 14]
         }
 
 
@@ -38,7 +34,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
 
 
         /// <summary>
-        /// 32 bits (2 bytes). The sequnce number of the successfully received packet
+        /// 32 bits (2 bytes). The sequnce number of the successfully received packet (sequence number / image)
         /// </summary>
         public uint ACK_SEQUENCE_NUMBER { get; private set; }
     }

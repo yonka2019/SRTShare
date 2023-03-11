@@ -9,30 +9,17 @@ namespace SRTShareLib
         public const long DEFAULT_QUALITY = 50L;  // video default quality value
 
         /// <summary>
-        /// The function generates a syn cookie for the handshake
-        /// </summary>
-        /// <param name="ip">Client's ip</param>
-        /// <param name="port">Client's port</param>
-        /// <param name="current_time">Current time</param>
-        /// <returns></returns>
-        public static uint GenerateCookie(string ip)
-        {
-            string textToEncrypt = "";
-            textToEncrypt += ip + "&cookie";  // add ip
-
-            return Md5Encrypt(textToEncrypt);  // return the encrypted socket id
-        }
-
-        /// <summary>
         /// The function generates a socket id for the handshake
         /// </summary>
         /// <param name="ip">Client's ip</param>
         /// <param name="port">Client's port</param>
         /// <returns></returns>
-        public static uint GenerateSocketId(string ip)
+        public static uint GenerateSocketId(string ip, string port)
         {
             string textToEncrypt = "";
-            textToEncrypt += ip + "&socket_id";  // add ip
+            textToEncrypt += ip;
+            textToEncrypt += "&socket_id&";
+            textToEncrypt += port;
 
             return Md5Encrypt(textToEncrypt);  // return the encrypted socket id
         }

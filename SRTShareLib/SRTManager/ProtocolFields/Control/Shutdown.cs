@@ -4,7 +4,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
 {
     public class Shutdown : SRTHeader
     {
-        public Shutdown(uint dest_socket_id) : base(ControlType.SHUTDOWN, dest_socket_id)
+        public Shutdown(uint dest_socket_id, uint source_socket_id) : base(ControlType.SHUTDOWN, dest_socket_id, source_socket_id)
         {
         }
 

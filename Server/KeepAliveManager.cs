@@ -2,11 +2,8 @@
 using SRTShareLib;
 using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.RequestsFactory;
-using System;
 using System.Threading;
 using System.Timers;
-
-using CConsole = SRTShareLib.CColorManager;
 
 namespace Server
 {
@@ -70,10 +67,7 @@ namespace Server
         /// </summary>
         internal void ConfirmStatus()  // reset timeout seconds
         {
-            SClient clientSocket = Program.SRTSockets[client.SocketId].SocketAddress;
-
             timeoutSeconds = 0;
-            CConsole.WriteLine($"[{DateTime.Now:HH:mm:ss}] [Keep-Alive] {clientSocket.IPAddress} is alive\n", MessageType.txtSuccess);
         }
 
         /// <summary>
@@ -90,7 +84,7 @@ namespace Server
                 KeepAliveRequest keepAlive_request = new KeepAliveRequest
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
-                Packet keepAlive_packet = keepAlive_request.Alive(u_dest_socket_id);
+                Packet keepAlive_packet = keepAlive_request.Alive(u_dest_socket_id, Program.SERVER_SOCKET_ID);
                 PacketManager.SendPacket(keepAlive_packet);
 
                 Thread.Sleep(KA_REFRESH_SECONDS * 1000);

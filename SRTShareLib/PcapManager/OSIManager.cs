@@ -2,7 +2,6 @@
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.Transport;
-using SRTShareLib.SRTManager.Encryption;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -95,47 +94,10 @@ namespace SRTShareLib.PcapManager
         /// </summary>
         /// <param name="data">Data to convert</param>
         /// <returns>Payload layer object</returns>
-        private static PayloadLayer BuildPLayer(List<byte[]> data)
+        public static PayloadLayer BuildPLayer(List<byte[]> data)
         {
             byte[] bytedData = ConcatBytes(data);
             return BuildPLayer(bytedData);
-        }
-
-        /// <summary>
-        /// The function converts a byte list into ENCRYPTED payload layer
-        /// </summary>
-        /// <param name="data">data to convert</param>
-        /// <param name="encryptionType">encryption type to encrypt the data</param>
-        /// <param name="layers">current layers in using</param>
-        /// <returns>Payload layer object (encrypted bytes)</returns>
-        private static PayloadLayer BuildEPLayer(List<byte[]> data, PeerEncryptionData peerEncryption)
-        {
-            byte[] bytedData = ConcatBytes(data);
-            byte[] encryptedData = EncryptionManager.Encrypt(bytedData, peerEncryption.Type, peerEncryption.SecretKey);
-            
-            return BuildPLayer(encryptedData);
-        }
-
-        /// <summary>
-        /// Smart build payload layer according the need, if the client reached stage mode and encryption enabled - every packet (not only data) should be send encrypted
-        /// on the other hand, if the client totally disabled encryption - the packets should be totally raw without any encryption on them.
-        /// </summary>
-        /// <param name="data">data to manage</param>
-        /// <param name="videoStage">current client stage (on video stage, or before)</param>
-        /// <param name="encryptionType">encryption type to use on video stage reaching</param>
-        /// <param name="layers">current built layers</param>
-        /// <returns>Payload layer object (according the need: enc/raw)</returns>
-        public static PayloadLayer BuildPLayer(List<byte[]> data, bool videoStage, PeerEncryptionData peerEncryption = default)
-        {
-            if (videoStage)
-            {
-                if (peerEncryption.Type != EncryptionType.None)  // No encryption setted
-                {
-                    return BuildEPLayer(data, peerEncryption);
-                }
-            }
-            // not video stage, surely encryption is not should be used /// Encryption disabled (the both cases don't use totally any encryption)
-            return BuildPLayer(data);
         }
 
         /// <summary>

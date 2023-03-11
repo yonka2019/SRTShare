@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
@@ -20,8 +20,11 @@ namespace Server
     {
         private readonly SClient client;
         private bool connected;
+        private uint retransmitRequestedToSeq;
+        private readonly bool retransmission_mode;
 
-        public readonly PeerEncryptionData PeerEncryption;
+        internal Dictionary<uint, byte[]> ImagesBuffer = new Dictionary<uint, byte[]>();
+        public readonly BaseEncryption ClientEncryption;
         public bool VideoStage { get; private set; }
 
 #if DEBUG
@@ -32,15 +35,18 @@ namespace Server
 
         private static uint current_sequence_number;
 
-        internal VideoManager(SClient client, PeerEncryptionData peerEncryption, uint intial_sequence_number)
+        internal VideoManager(SClient client, BaseEncryption baseEncryption, uint intial_sequence_number, bool retransmission_mode)
         {
-            current_sequence_number = intial_sequence_number;  // start from init
+            current_sequence_number = intial_sequence_number;  // start from init seq number (MUST BE NOT 0 (because of retransmitRequestedToSeq var))
+            retransmitRequestedToSeq = 0;
 
             this.client = client;
             connected = true;
 
-            PeerEncryption = peerEncryption;
+            ClientEncryption = baseEncryption;
             CurrentQuality = ProtocolManager.DEFAULT_QUALITY;  // default quality value
+
+            this.retransmission_mode = retransmission_mode;
         }
 
         /// <summary>
@@ -48,8 +54,8 @@ namespace Server
         /// </summary>
         internal void StartVideo()
         {
-            Thread videoStarter = new Thread(new ParameterizedThreadStart(VideoInit));  // create thread of keep-alive checker
-            videoStarter.Start(client.SocketId);
+            Thread videoStarter = new Thread(new ThreadStart(VideoInit));  // create thread of keep-alive checker
+            videoStarter.Start();
             VideoStage = true;
 
             CConsole.WriteLine($"[Server] [{client.IPAddress}] Video is being shared\n", MessageType.txtInfo);
@@ -65,42 +71,97 @@ namespace Server
         }
 
         /// <summary>
-        /// looping sending screenshots (video) to client
+        /// if NAK packet received which means that the server should retransmit the corrupted image
+        /// this function retransmittes the requested image by his sequence number
         /// </summary>
-        /// <param name="dest_socket_id">socket id, to indentify the client</param>
-        private void VideoInit(object dest_socket_id)
+        /// <param name="sequenceNumberToRetransmit">image (sequence number) which should be retransmitted</param>
+        internal void ResendImage(uint sequenceNumberToRetransmit)
         {
-            uint u_dest_socket_id = (uint)dest_socket_id;
-            int count = 0;
+            retransmitRequestedToSeq = sequenceNumberToRetransmit;
+        }
 
-            while (connected)
+        /// <summary>
+        /// function which is confirms that the client received the whole image successfully and he can be cleaned from server's buffer
+        /// </summary>
+        /// <param name="packetSequenceNumber">image (sequence number) which should be confirm</param>
+        internal void ConfirmImage(uint packetSequenceNumber)
+        {
+            if (ImagesBuffer.ContainsKey(packetSequenceNumber))  // maybe image already confirmed
             {
-                Bitmap bmp = TakeScreenShot();
-                MemoryStream mStream = GetJpegStream(bmp);
-                List<byte> stream = mStream.ToArray().ToList();
-
-                DataRequest dataRequest = new DataRequest(
-                                OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
-
-                List<Packet> data_packets = dataRequest.SplitToPackets(stream, ref current_sequence_number, time_stamp: 0, u_dest_socket_id, (int)client.MTU, PeerEncryption);
-
-                foreach (Packet packet in data_packets)
-                {
-                    PacketManager.SendPacket(packet);
-#if DEBUG
-                    Console.Title = $"Data sent {++dataSent}";
-#endif
-                }
-                count++;
+                Array.Clear(ImagesBuffer[packetSequenceNumber], 0, ImagesBuffer[packetSequenceNumber].Length);
+                ImagesBuffer.Remove(packetSequenceNumber);
             }
         }
 
-        // 'app.manifest' file for auto-scale screenshot - https://stackoverflow.com/questions/47015893/windows-screenshot-with-scaling
+        private void VideoInit()
+        {
+            while (connected)
+            {
+                if (retransmitRequestedToSeq != 0)  // if retransmit requested, retransmit - and continue
+                {
+                    if (ImagesBuffer.ContainsKey(retransmitRequestedToSeq))  // maybe requested image which was already removed by the auto-cleaner (RemoveImageFromBufferAfterDelay function)
+                    {
+                        byte[] retransmitted_image = ImagesBuffer[retransmitRequestedToSeq];
+                        SplitAndSend(retransmitted_image, true, retransmitRequestedToSeq);  // need to add check if removed
+
+                        CConsole.WriteLine($"[Retransmission] {client.IPAddress} Image [{retransmitRequestedToSeq}] resent successfully\n", MessageType.txtInfo);
+                    }
+                    retransmitRequestedToSeq = 0;  // reset request
+                }
+
+                byte[] currentImage = TakeReadyScreenshot();
+
+                if (retransmission_mode)  // save image to retransmission buffer (only for RETR mode)
+                {
+                    ImagesBuffer[current_sequence_number] = currentImage;  // save image to buffer if retransmission enabled (otherwise - there is no reason to save and auto remove, because no NAK will be received)
+                    RemoveImageFromBufferAfterDelay(current_sequence_number);
+                }
+
+                SplitAndSend(currentImage, false, current_sequence_number);
+
+                current_sequence_number++;
+            }
+        }
+
+        private void SplitAndSend(byte[] image, bool retransmitted, uint sequence_number)
+        {
+            DataRequest dataRequest = new DataRequest(
+                               OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
+
+            // (.MTU - 150; explanation) : To avoid errors with sending, because this field used to set fixed size of splitted data packet,
+            // while the real mtu that the interface provides refers the whole size of the packet which get sent,
+            // and with the whole srt packet and all layers in will much more.
+            // In addition, the encryption will give EXTRA bytes (which is padding for example in AES), it's also one of the reasons why we take extra space
+            List<Packet> data_packets = dataRequest.SplitToPackets(image, sequence_number, client.SocketId, (int)client.MTU - 150, ClientEncryption, retransmitted);
+
+            foreach (Packet packet in data_packets)
+            {
+                PacketManager.SendPacket(packet);
+#if DEBUG
+                Console.Title = $"Data sent {++dataSent}";
+#endif
+            }
+        }
+
+        /// <summary>
+        /// After 10 seconds, if no ACK was sent from the client, remove the image from the buffer in order to save memory
+        /// </summary>
+        /// <param name="sequence_number">sequence number which is expired</param>
+        private void RemoveImageFromBufferAfterDelay(uint sequence_number)
+        {
+            Task.Run(async () =>
+            {
+                await Task.Delay(10000);  // Wait 10 seconds
+                ConfirmImage(sequence_number);  // simulate confirm (if not already confirmed (which means - exist in buffer) - remove)
+            });
+        }
+
+        // 'app.manifest' file modified for auto-scale screenshot - https://stackoverflow.com/questions/47015893/windows-screenshot-with-scaling
         /// <summary>
         /// Screenshots current selected screen (supporting scale (125%, 150%..)
         /// </summary>
         /// <returns>Bitmap of the screenshot</returns>
-        private Bitmap TakeScreenShot()
+        private Bitmap TakeScreenshot()
         {
             int width, height;
 
@@ -120,6 +181,17 @@ namespace Server
                 g.CopyFromScreen(x, y, 0, 0, bmp.Size);
                 return bmp;
             }
+        }
+
+        /// <summary>
+        /// Takes a screenshot which is ready to be sent (already converted to byte[] array)
+        /// </summary>
+        /// <returns>ready byte array of the taken image</returns>
+        private byte[] TakeReadyScreenshot()
+        {
+            Bitmap bmp = TakeScreenshot();
+            MemoryStream mStream = GetJpegStream(bmp);
+            return mStream.ToArray();
         }
 
         /// <summary>

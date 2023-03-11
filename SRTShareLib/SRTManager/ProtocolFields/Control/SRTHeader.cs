@@ -8,29 +8,26 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         protected readonly List<byte[]> byteFields = new List<byte[]>();
         public List<byte[]> GetByted() { return byteFields; }
 
-
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        public SRTHeader(ControlType packet_type, uint dest_socket_id, uint type_specific_info = 0)
+        public SRTHeader(ControlType packet_type, uint dest_socket_id, uint source_socket_id)
         {
             IS_CONTROL_PACKET = true; byteFields.Add(BitConverter.GetBytes(IS_CONTROL_PACKET));
             CONTROL_TYPE = (ushort)packet_type; byteFields.Add(BitConverter.GetBytes(CONTROL_TYPE));
-            SUB_TYPE = 0x0; byteFields.Add(BitConverter.GetBytes(SUB_TYPE));
-            TYPE_SPECIFIC_INFO = type_specific_info; byteFields.Add(BitConverter.GetBytes(TYPE_SPECIFIC_INFO));
             DEST_SOCKET_ID = dest_socket_id; byteFields.Add(BitConverter.GetBytes(DEST_SOCKET_ID));
+            SOURCE_SOCKET_ID = source_socket_id; byteFields.Add(BitConverter.GetBytes(SOURCE_SOCKET_ID));
         }
 
         /// <summary>
-        /// Byte[] -> Fields (To extract) [0 -> 12]
+        /// Byte[] -> Fields (To extract) [0 -> 10]
         /// </summary>
         public SRTHeader(byte[] data)
         {
             IS_CONTROL_PACKET = BitConverter.ToBoolean(data, 0); // [0] (1 byte)
             CONTROL_TYPE = BitConverter.ToUInt16(data, 1); // [1 2] (2 bytes)
-            SUB_TYPE = BitConverter.ToUInt16(data, 3); // [3 4] (2 bytes)
-            TYPE_SPECIFIC_INFO = BitConverter.ToUInt32(data, 5); // [5 6 7 8] (4 bytes)
-            DEST_SOCKET_ID = BitConverter.ToUInt32(data, 9); // [9 10 11 12] (4 bytes)
+            DEST_SOCKET_ID = BitConverter.ToUInt32(data, 3); // [3 4 5 6] (4 bytes)
+            SOURCE_SOCKET_ID = BitConverter.ToUInt32(data, 7); // [7 8 9 10] (4 bytes)
         }
 
         /// <summary>
@@ -56,29 +53,17 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         public ushort CONTROL_TYPE { get; private set; }
 
         /// <summary>
-        /// 16 bits (2 bytes). This field specifies an additional subtype for
-        /// specific packets.
-        /// </summary>
-        public ushort SUB_TYPE { get; private set; }
-
-        /// <summary>
-        /// 32 bits (4 bytes). The use of this field depends on
-        /// the particular control packet type.Handshake packets do not use
-        /// this field.
-        /// </summary>
-        public uint TYPE_SPECIFIC_INFO { get; private set; }
-
-        /// <summary>
-        /// 32 bits (4 bytes). The timestamp of the packet, in microseconds.
-        /// The value is relative to the time the SRT connection was established.
-        /// </summary>
-        public uint TIMESTAMP { get; private set; }
-
-        /// <summary>
         /// 32 bits (4 bytes). A fixed-width field providing the
-        /// SRT socket ID to which a packet should be dispatched.The field
+        /// Destination SRT socket ID to which a packet should be dispatched. The field
         /// may have the special value "0" when the packet is a connection request.
         /// </summary>
         public uint DEST_SOCKET_ID { get; private set; }
+
+        /// <summary>
+        /// 32 bits (4 bytes). A fixed-width field providing the
+        /// Source SRT socket ID to which a packet should be dispatched. The field
+        /// may have the special value "0" when the packet is a connection request.
+        /// </summary>
+        public uint SOURCE_SOCKET_ID { get; private set; }
     }
 }

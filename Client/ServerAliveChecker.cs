@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Timers;
 
 namespace Client
@@ -34,6 +35,7 @@ namespace Client
 
                 timer.Stop();
                 timer.Dispose();
+                saChecker.Abort();
             }
         }
 

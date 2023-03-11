@@ -1,19 +1,18 @@
-﻿using System;
-
-namespace SRTShareLib.SRTManager.Encryption
+﻿namespace SRTShareLib.SRTManager.Encryption
 {
-    public static class Substitution
+    /// <summary>
+    /// This encryption method is problematic when using high quality (such as 100%..)
+    /// It's took too much time to decrypt the packets - which causes to a HUGE delay between the server and the client
+    /// </summary>
+    internal class Substitution : BaseEncryption
     {
-        /// <summary>
-        /// Type of the encryption
-        /// </summary>
-        public const EncryptionType Type = EncryptionType.Substitution;
+        internal Substitution(byte[] peerPublicKey) : base(EncryptionType.Substitution, peerPublicKey) { }
 
         /// <summary>
         /// Build substitution rules table
         /// </summary>
         /// <returns>Ready substituted table</returns>
-        private static byte[] BuildTable(byte[] _key)
+        private byte[] BuildTable(byte[] _key)
         {
             byte key = _key[0];
 
@@ -26,7 +25,7 @@ namespace SRTShareLib.SRTManager.Encryption
             return table;
         }
 
-        internal static byte[] Encrypt(byte[] data, byte[] key)
+        public override byte[] Encrypt(byte[] data)
         {
             byte[] subTable = BuildTable(key);
 
@@ -39,7 +38,7 @@ namespace SRTShareLib.SRTManager.Encryption
             return encrypted;
         }
 
-        internal static byte[] Decrypt(byte[] data, byte[] key)
+        internal override byte[] Decrypt(byte[] data)
         {
             byte[] subTable = BuildTable(key);
 
