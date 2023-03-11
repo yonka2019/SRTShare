@@ -165,7 +165,11 @@ namespace Client
 
                     Data.SRTHeader data_request = new Data.SRTHeader(payload);
                     RequestsHandler.HandleData(data_request);
-
+                    mainView.Invoke((MethodInvoker)delegate
+                    {
+                        mainView.VideoBox.Refresh();
+                        mainView.VideoBox.Update();
+                    });
                     VideoBox.Refresh();
                     VideoBox.Update();
                 }
