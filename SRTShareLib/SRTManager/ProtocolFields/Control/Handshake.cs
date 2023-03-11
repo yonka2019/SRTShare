@@ -128,7 +128,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
             handshake += "Handshake type: " + ((HandshakeType)TYPE).ToString() + "\n";
             handshake += "Encryption type: " + ((EncryptionType)ENCRYPTION_TYPE).ToString() + "\n";
             handshake += "Encryption peer public key: " + BitConverter.ToString(ENCRYPTION_PEER_PUBLIC_KEY) + "\n";
-            handshake += "Initial PSN: " + INTIAL_PSN;
+            handshake += "Initial PSN: " + INTIAL_PSN + "\n";
             handshake += "Retransmission mode: " + (RETRANSMISSION_MODE ? "Enabled" : "Disabled");
 
             return handshake;

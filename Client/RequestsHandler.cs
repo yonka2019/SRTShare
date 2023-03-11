@@ -49,6 +49,12 @@ namespace Client
             });
 
             CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
+
+            mainView.Invoke((MethodInvoker)delegate
+            {
+                mainView.VideoBox.Refresh();
+            });
+
             EnableQualityButtons(mainView);
         }
 
@@ -104,7 +110,7 @@ namespace Client
             ServerAliveChecker.Disable();
 
             CConsole.WriteLine("[Shutdown] Server stopped", MessageType.txtError);
-            MessageBox.Show("Server have been stopped", "Server Stopped", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Server has been stopped", "Server Stopped", MessageBoxButtons.OK, MessageBoxIcon.Error);
             Environment.Exit(0);
         }
 
