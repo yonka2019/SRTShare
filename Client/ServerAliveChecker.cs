@@ -50,7 +50,6 @@ namespace Client
                 firstCheck = false;
                 saChecker = new Thread(new ThreadStart(AliveChecker));  // create thread of keep-alive checker
                 saChecker.Start();
-                Console.WriteLine("start sak");
             }
             else
             {

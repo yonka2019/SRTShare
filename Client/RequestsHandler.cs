@@ -50,11 +50,6 @@ namespace Client
 
             CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
 
-            mainView.Invoke((MethodInvoker)delegate
-            {
-                mainView.VideoBox.Refresh();
-            });
-
             EnableQualityButtons(mainView);
         }
 
