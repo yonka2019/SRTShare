@@ -46,7 +46,6 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
             DEST_SOCKET_ID = BitConverter.ToUInt32(payload, 13); // [13 14 15 16]
 
             IMAGE_CHECKSUM = BitConverter.ToUInt16(payload, 17);  // [17 18]
-            Console.WriteLine(IMAGE_CHECKSUM);
 
             // SIZES:              19     XXXX  --> PAYLOAD.LENGTH - 19 = DATA SIZE
             // PACKET PAYLOAD: [METADATA][DATA]

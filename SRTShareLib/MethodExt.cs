@@ -185,7 +185,6 @@ namespace SRTShareLib
             ushort checksum = (ushort)~sum;
 
             return checksum;
-
         }
     }
 }
