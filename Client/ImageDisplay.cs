@@ -111,7 +111,7 @@ namespace Client
 
                 CConsole.WriteLine($"[Retransmission] Image [{dataPackets[0].SEQUENCE_NUMBER}] retransmission requested\n", MessageType.txtInfo);
 
-                dataPackets.Clear();
+                dataPackets.Clear();  // bad data (corrupted) clean and get new one
                 return true;
             }
 

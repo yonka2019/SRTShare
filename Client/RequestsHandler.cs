@@ -123,7 +123,7 @@ namespace Client
         }
 
         /// <summary>
-        /// When image fully received send to server confirm that the whole image received correctly and can be cleaned from server buffer
+        /// When image fully received send to server confirm (via ACK) that the whole image received correctly and can be cleaned from server buffer
         /// </summary>
         /// <param name="goodImageSequenceNumber"></param>
         internal static void SendImageConfirm(uint goodImageSequenceNumber)
