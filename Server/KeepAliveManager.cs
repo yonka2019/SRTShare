@@ -9,8 +9,8 @@ namespace Server
 {
     internal class KeepAliveManager
     {
-        private const int TIMEOUT_SECONDS = 5;
-        private const int KA_REFRESH_SECONDS = 3;
+        private const int TIMEOUT_SECONDS = 10;
+        private const int KA_REFRESH_SECONDS = 5;
 
         private readonly SClient client;
         private int timeoutSeconds;

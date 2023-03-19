@@ -6,7 +6,7 @@ namespace Client
 {
     internal static class ServerAliveChecker
     {
-        private const int TIMEOUT_SECONDS = 5;
+        private const int TIMEOUT_SECONDS = 10;
         private static bool firstCheck = true;
 
         private static int timeoutSeconds;
