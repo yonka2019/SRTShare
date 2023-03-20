@@ -16,7 +16,7 @@ namespace SRTShareLib
     /// </summary>
     public static class ConfigManager
     {
-        private const bool ALWAYS_CREATE_NEW = true;  // even if the config exist - create a new one and overwrite the old one
+        private const bool ALWAYS_CREATE_NEW = true;  // even if the config exist - create a new one and overwrite the old one, if it's false, it will take the last created config (if exists)
 
         internal const string CONFIG_NAME = "settings.json";
         public static string IP { get; private set; }
