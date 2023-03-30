@@ -71,6 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AudioManager.cs" />
     <Compile Include="VideoManager.cs" />
     <Compile Include="KeepAliveManager.cs" />
     <Compile Include="Program.cs" />

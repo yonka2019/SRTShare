@@ -85,7 +85,8 @@
     <Compile Include="SRTManager\ProtocolFields\Data\SRTHeader.cs" />
     <Compile Include="SRTManager\ProtocolManager.cs" />
     <Compile Include="SRTManager\RequestsFactory\ACKRequest.cs" />
-    <Compile Include="SRTManager\RequestsFactory\DataRequest.cs" />
+    <Compile Include="SRTManager\RequestsFactory\AudioDataRequest.cs" />
+    <Compile Include="SRTManager\RequestsFactory\ImageDataRequest.cs" />
     <Compile Include="SRTManager\RequestsFactory\NAKRequest.cs" />
     <Compile Include="SRTManager\RequestsFactory\QualityUpdateRequest.cs" />
     <Compile Include="SRTManager\SClient.cs" />

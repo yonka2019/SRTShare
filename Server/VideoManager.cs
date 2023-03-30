@@ -25,7 +25,6 @@ namespace Server
 
         internal Dictionary<uint, byte[]> ImagesBuffer = new Dictionary<uint, byte[]>();
         public readonly BaseEncryption ClientEncryption;
-        public bool VideoStage { get; private set; }
 
 #if DEBUG
         private static ulong dataSent = 0;  // count data sent packets (included chunks)
@@ -56,7 +55,6 @@ namespace Server
         {
             Thread videoStarter = new Thread(new ThreadStart(VideoInit));  // create thread of keep-alive checker
             videoStarter.Start();
-            VideoStage = true;
 
             CConsole.WriteLine($"[Server] [{client.IPAddress}] Video is being shared\n", MessageType.txtInfo);
         }
@@ -67,7 +65,6 @@ namespace Server
         internal void StopVideo()
         {
             connected = false;
-            VideoStage = false;
         }
 
         /// <summary>
@@ -125,7 +122,7 @@ namespace Server
 
         private void SplitAndSend(byte[] image, bool retransmitted, uint sequence_number)
         {
-            DataRequest dataRequest = new DataRequest(
+            ImageDataRequest dataRequest = new ImageDataRequest(
                                OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
             // (.MTU - 150; explanation) : To avoid errors with sending, because this field used to set fixed size of splitted data packet,

@@ -163,7 +163,7 @@ namespace Client
                 {
                     ServerAliveChecker.Check();
 
-                    Data.SRTHeader data_request = new Data.SRTHeader(payload);
+                    Data.ImageData data_request = new Data.ImageData(payload);
                     RequestsHandler.HandleData(data_request);
                 }
             }

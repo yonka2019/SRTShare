@@ -18,7 +18,7 @@ namespace Client
         private static ushort lastDataPosition;
         private static readonly object _lock = new object();
 
-        private static List<Data.SRTHeader> dataPackets = new List<Data.SRTHeader>();
+        private static List<Data.ImageData> dataPackets = new List<Data.ImageData>();
         internal static long CurrentVideoQuality = ProtocolManager.DEFAULT_QUALITY;
 
         private static DateTime lastQualityModify;
@@ -31,7 +31,7 @@ namespace Client
             {
                 List<byte> fullData = new List<byte>();
 
-                foreach (Data.SRTHeader srtHeader in dataPackets)  // add each data into [List<byte> fullData]
+                foreach (Data.ImageData srtHeader in dataPackets)  // add each data into [List<byte> fullData]
                 {
                     fullData.AddRange(srtHeader.DATA);
                 }

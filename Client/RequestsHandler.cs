@@ -81,7 +81,7 @@ namespace Client
             Debug.WriteLine("[KEEP-ALIVE] Sending confirm\n");
         }
 
-        internal static void HandleData(Data.SRTHeader data_request)
+        internal static void HandleData(Data.ImageData data_request)
         {
 #if DEBUG
             Console.Title = $"Data received {++MainView.dataReceived}";

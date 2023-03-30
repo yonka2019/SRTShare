@@ -9,9 +9,9 @@ using SRTData = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace SRTShareLib.SRTManager.RequestsFactory
 {
-    public class DataRequest : UdpPacket
+    public class ImageDataRequest : UdpPacket
     {
-        public DataRequest(params ILayer[] layers) : base(layers) { }
+        public ImageDataRequest(params ILayer[] layers) : base(layers) { }
 
         public List<Packet> SplitToPackets(byte[] image, uint sequence_number, uint dest_socket_id, int MTU, BaseEncryption clientEncryption, bool retransmitted)
         {
