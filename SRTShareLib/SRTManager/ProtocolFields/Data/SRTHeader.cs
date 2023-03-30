@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SRTShareLib.SRTManager.ProtocolFields.Data
 {
-    public class SRTHeader
+    public abstract class SRTHeader
     {
         protected readonly List<byte[]> byteFields = new List<byte[]>();
         public List<byte[]> GetByted() { return byteFields; }
@@ -19,14 +19,13 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Data
         }
 
         /// <summary>
-        /// Byte[] -> Fields (To extract)
+        /// Byte[] -> Fields (To extract) [0 -> 6]
         /// </summary>
         public SRTHeader(byte[] payload)
         {
             IS_CONTROL_PACKET = BitConverter.ToBoolean(payload, 0); // [0]
-
-            SEQUENCE_NUMBER = BitConverter.ToUInt32(payload, 1); // [1 2 3 4]
-
+            DATA_TYPE = BitConverter.ToUInt16(payload, 1);  // [1 2]
+            SEQUENCE_NUMBER = BitConverter.ToUInt32(payload, 3); // [3 4 5 6]
         }
 
         /// <summary>

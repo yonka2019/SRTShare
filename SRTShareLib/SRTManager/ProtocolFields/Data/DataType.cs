@@ -3,6 +3,6 @@
     public enum DataType : ushort
     {
         IMAGE = 0x0000,
-        SOUND = 0x0001
+        AUDIO = 0x0001
     }
 }

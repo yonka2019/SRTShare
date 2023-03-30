@@ -40,13 +40,19 @@ namespace Client
             }
         }
 
-        internal static void ProduceImage(Data.SRTHeader data_request)
+        internal static void ProduceImage(Data.ImageData data_request)
         {
             // in case if chunk had received while other chunk is building (in this method), the new chunk will create new task and
             // will intervene the proccess, so to avoid multi access tries, lock the global resource (allChunks) until the task will finish
             lock (_lock)
             {
-                if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.FIRST)
+                if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.SINGLE_DATA_PACKET)
+                {
+                    dataPackets.Add(data_request);
+                    ShowImage(Image, true);
+                    dataPackets.Clear();
+                }
+                else if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.FIRST)
                 {
                     if (lastDataPosition == (ushort)Data.PositionFlags.MIDDLE)  // LAST lost, image received [FIRST MID MID MID ---- FIRST]
                     {
