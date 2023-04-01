@@ -240,17 +240,7 @@ namespace Client
 
                         if (firstImage)
                         {
-                            Task.Run(async () =>
-                            {
-                                await Task.Delay(500);
-                                Invoke(
-    (MethodInvoker)delegate
-    {
-        WindowState = FormWindowState.Maximized;
-
-    });
-                                firstImage = false;
-                            });
+                            MaximizeWindow(500);  // short delay of 500ms and maximize the window
                         }
                     }
                 }
@@ -371,6 +361,26 @@ namespace Client
             handleAudioPackets.Abort();
 
             AudioPlay.DisposeAudio();
+        }
+
+        /// <summary>
+        /// Maximize the window only when first image received, in order to prevent the bug when the image isn't full screened 
+        /// (this could be fixed if maximizing the window, so instead of do it manually, this code maximizes it after a short delay to give time to the client to build and show the image)
+        /// </summary>
+        /// <param name="delay">short delay to give time to the client in order to finish the image building and showing</param>
+        private void MaximizeWindow(int delay = 0)
+        {
+            Task.Run(async () =>
+            {
+                await Task.Delay(delay);
+
+                Invoke((MethodInvoker)delegate
+                {
+                    WindowState = FormWindowState.Maximized;
+                });
+
+                firstImage = false;
+            });
         }
     }
 
