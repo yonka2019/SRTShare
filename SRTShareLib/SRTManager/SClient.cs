@@ -1,5 +1,7 @@
 ﻿using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
+using SRTShareLib.SRTManager.Encryption;
+using System.Security.Cryptography;
 
 namespace SRTShareLib
 {
@@ -19,6 +21,7 @@ namespace SRTShareLib
             SocketId = socketId;
             this.MTU = MTU;
         }
+
 
         public override string ToString()  // combine to "IPAddress:Port" 
         {

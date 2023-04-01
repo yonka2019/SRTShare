@@ -140,5 +140,51 @@ namespace SRTShareLib
             }
             return true;
         }
+
+        /// <summary>
+        /// Rounds the given number to ten, for example:
+        /// 23 -> 30 | 29 -> 30 | 40 -> 40 | 41 -> 50
+        /// </summary>
+        /// <param name="num">number to round up to ten's</param>
+        /// <returns>rounded number</returns>
+        public static long RoundToNearestTen(this long num)
+        {
+            return num % 10 >= 5 ? (((num / 10) + 1) * 10) : (num / 10 * 10);
+        }
+
+        /// <summary>
+        /// Calculating checksum via internet method [ORDER DEPENDED]
+        /// </summary>
+        /// <param name="data">data to calculate his checksum</param>
+        /// <returns>data checksum</returns>
+        public static ushort CalculateChecksum(this byte[] data)
+        {
+            uint sum = 0;
+            int i = 0;
+
+            // Sum all 16-bit words in the data
+            while (i < data.Length - 1)
+            {
+                sum += (uint)((data[i] << 8) | data[i + 1]);
+                i += 2;
+            }
+
+            // If the length of the data is odd, add the last byte as a padding byte
+            if (i == data.Length - 1)
+            {
+                sum += (uint)(data[i] << 8);
+            }
+
+            // Fold the 32-bit sum to a 16-bit value
+            while (sum >> 16 != 0)
+            {
+                sum = (sum & 0xFFFF) + (sum >> 16);
+            }
+
+            // Take the one's complement of the sum
+            ushort checksum = (ushort)~sum;
+
+            return checksum;
+        }
     }
 }

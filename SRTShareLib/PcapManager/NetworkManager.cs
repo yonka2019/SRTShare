@@ -109,8 +109,8 @@ namespace SRTShareLib.PcapManager
 
             if (publicIp == null)  // still null
             {
-                CConsole.Write("[ERROR] Can't find public IP, ", MessageType.bgError);  // no external connection, only LAN supported (public ip switched with the local ip)
-                CConsole.WriteLine("using only LAN supported connection (public ip changed with local ip)", MessageType.txtError);
+                CConsole.Write("[ERROR] Can't find public IP", MessageType.bgError);  // no external connection, only LAN supported (public ip switched with the local ip)
+                CConsole.WriteLine(", using only LAN supported connection (public ip changed with local ip)", MessageType.txtError);
                 return LocalIp;
             }
 

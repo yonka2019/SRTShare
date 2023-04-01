@@ -1,11 +1,12 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Timers;
 
 namespace Client
 {
     internal static class ServerAliveChecker
     {
-        private const int TIMEOUT_SECONDS = 5;
+        private const int TIMEOUT_SECONDS = 10;
         private static bool firstCheck = true;
 
         private static int timeoutSeconds;
@@ -34,6 +35,7 @@ namespace Client
 
                 timer.Stop();
                 timer.Dispose();
+                saChecker.Abort();
             }
         }
 

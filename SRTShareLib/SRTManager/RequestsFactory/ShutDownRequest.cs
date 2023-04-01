@@ -1,6 +1,5 @@
 ﻿using PcapDotNet.Packets;
 using SRTShareLib.PcapManager;
-using SRTShareLib.SRTManager.Encryption;
 using SRTControl = SRTShareLib.SRTManager.ProtocolFields.Control;
 
 namespace SRTShareLib.SRTManager.RequestsFactory
@@ -14,9 +13,9 @@ namespace SRTShareLib.SRTManager.RequestsFactory
         /// </summary>
         /// <param name="dest_socket_id">Destination socket id</param>
         /// <returns>A shutdown packet</returns>
-        public Packet Shutdown(uint dest_socket_id = 0, bool videoStage = false, EncryptionType encryptionType = EncryptionType.None)
+        public Packet Shutdown(uint dest_socket_id, uint source_socket_id)
         {
-            GetPayloadLayer() = OSIManager.BuildPLayer(new SRTControl.Shutdown(dest_socket_id).GetByted(), videoStage, encryptionType, GetLayers());
+            GetPayloadLayer() = OSIManager.BuildPLayer(new SRTControl.Shutdown(dest_socket_id, source_socket_id).GetByted());
             return BuildPacket();
         }
     }

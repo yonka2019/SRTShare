@@ -2,7 +2,6 @@
 using PcapDotNet.Packets.Transport;
 using SRTShareLib;
 using SRTShareLib.PcapManager;
-using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.ProtocolFields.Control;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
@@ -10,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
@@ -26,6 +26,8 @@ namespace Server
 
         private static Thread pressedKeyListenerT;
         private static Thread handlePackets;
+
+        private const int DATA_DELAY_MS = 2000;
 
         private static void Main()
         {
@@ -102,58 +104,84 @@ namespace Server
                         Handshake handshake_request = new Handshake(payload);
 
                         if (handshake_request.TYPE == (uint)Handshake.HandshakeType.INDUCTION)  // (SRT) Induction
+                        {
+                            Console.WriteLine($"[Handshake] Induction: {handshake_request}\n");
                             RequestsHandler.HandleInduction(packet, handshake_request);
+                        }
 
                         else if (handshake_request.TYPE == (uint)Handshake.HandshakeType.CONCLUSION)  // (SRT) Conclusion
                         {
+                            Console.WriteLine($"[Handshake] Conclusion: {handshake_request}\n");
                             RequestsHandler.HandleConclusion(packet, handshake_request);
-                            SRTSockets[handshake_request.SOCKET_ID].KeepAlive.StartCheck();  // start keep-alive checking
-                            SRTSockets[handshake_request.SOCKET_ID].Data.StartVideo();  // start keep-alive checking
+
+                            // Handshake stage done. waiting X seconds before starting send keepAlive packets and starting to send data (video & audio) packets
+                            Task.Run(async () =>
+                            {
+                                CConsole.WriteLine($"[Server] [{SRTSockets[handshake_request.SOURCE_SOCKET_ID].SocketAddress.IPAddress}] Handshake finished. Waiting {DATA_DELAY_MS / 1000} seconds before sending data..\n", MessageType.txtWarning);
+
+                                /*
+                                 * Because the client reeceives the packets in four differents threads (to avoid thread-blocking)
+                                 * the video packets receives before the client set server encryption tokens, which leads to exception because 
+                                 * data can't be decrypted.
+                                 * To avoid that, we are waiting 2 seconds before sending data, to give time to the client to get prepared (set encryption data, prepare audio, etc..)
+                                 */
+                                await Task.Delay(DATA_DELAY_MS);
+
+                                SRTSockets[handshake_request.SOURCE_SOCKET_ID].KeepAlive.Start();  // start keep-alive checking
+                                SRTSockets[handshake_request.SOURCE_SOCKET_ID].Video.Start();  // start video transmit
+                                SRTSockets[handshake_request.SOURCE_SOCKET_ID].Audio.Start();  // start audio transmit
+                            });
                         }
                     }
+
                     else if (KeepAlive.IsKeepAlive(payload))  // (SRT) KeepAlive
                     {
-                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
+                        KeepAlive keepAlive_request = new KeepAlive(payload);
 
-                        if (SRTSockets.ContainsKey(clientSocketId))
-                            SRTSockets[clientSocketId].KeepAlive.ConfirmStatus();  // sign as alive
+                        if (SRTSockets.ContainsKey(keepAlive_request.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm) - check if he exist  // for case if the client was disposed (shutdown/keep alive unconfirm)
+                        {
+                            CConsole.WriteLine($"[{DateTime.Now:HH:mm:ss}] [Keep-Alive] {SRTSockets[keepAlive_request.SOURCE_SOCKET_ID].SocketAddress.IPAddress} is alive\n", MessageType.txtSuccess);
+                            RequestsHandler.HandleKeepAlive(keepAlive_request);
+                        }
                     }
-                    else if (QualityUpdate.IsQualityUpdate(payload))  // update the quality especially to this client
-                    {
-                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
 
+                    else if (QualityUpdate.IsQualityUpdate(payload))  // (SRT) QualityUpdate - update the quality especially to this client
+                    {
                         QualityUpdate qualityUpdate = new QualityUpdate(payload);
 
-                        Console.WriteLine($"[Quality Update] {SRTSockets[clientSocketId].SocketAddress.IPAddress} updated quality: {qualityUpdate.QUALITY}%\n");
-
-                        SRTSockets[clientSocketId].Data.CurrentQuality = qualityUpdate.QUALITY;
-
+                        if (SRTSockets.ContainsKey(qualityUpdate.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm) - check if he exist
+                        {
+                            Console.WriteLine($"[Quality Update] {SRTSockets[qualityUpdate.SOURCE_SOCKET_ID].SocketAddress.IPAddress} updated quality: {qualityUpdate.QUALITY}%\n");
+                            RequestsHandler.HandleQualityUpdate(qualityUpdate);
+                        }
                     }
 
-                    else if(Nak.isNak(payload))
+                    else if (NAK.IsNAK(payload))  // (SRT) NAK
                     {
-                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
+                        NAK NAK_request = new NAK(payload);
 
-                        Nak nak_request = new Nak(payload);
-                        List<uint> missingSequenceNumbers = nak_request.LOST_PACKETS; 
-
-                        // resend all the packets for each missing sequence number (each image)
-                        
+                        if (SRTSockets.ContainsKey(NAK_request.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm) - check if he exist  // for case if the client was disposed (shutdown/keep alive unconfirm)
+                            RequestsHandler.HandleNAK(NAK_request);
                     }
 
-                    else if(Ack.isAck(payload))
+                    else if (ACK.IsACK(payload))  // (SRT) ACK
                     {
-                        uint clientSocketId = ProtocolManager.GenerateSocketId(packet.Ethernet.IpV4.Source.ToString());
+                        ACK ACK_request = new ACK(payload);
 
-                        Ack ack_request = new Ack(payload);
-                        uint receivedImageSequenceNumber = ack_request.ACK_SEQUENCE_NUMBER;
-
-                        // clear all the packets of teh received image sequence number
+                        if (SRTSockets.ContainsKey(ACK_request.SOURCE_SOCKET_ID))  // for case if the client was disposed (shutdown/keep alive unconfirm) - check if he exist  // for case if the client was disposed (shutdown/keep alive unconfirm)
+                            RequestsHandler.HandleACK(ACK_request);
                     }
-
 
                     else if (Shutdown.IsShutdown(payload))  // (SRT) Shutdown
-                        RequestsHandler.HandleShutDown(packet);
+                    {
+                        Shutdown shutdown_request = new Shutdown(payload);
+
+                        if (SRTSockets.ContainsKey(shutdown_request.SOURCE_SOCKET_ID))
+                        {
+                            Console.WriteLine($"[Shutdown] Got shutdown request from: {SRTSockets[shutdown_request.SOURCE_SOCKET_ID].SocketAddress.IPAddress}\n");
+                            RequestsHandler.HandleShutdown(shutdown_request);
+                        }
+                    }
                 }
             }
 
@@ -172,7 +200,7 @@ namespace Server
         {
             SClient clientSocket = SRTSockets[socket_id].SocketAddress;
 
-            CConsole.WriteLine($"[Keep-Alive] {clientSocket.IPAddress}:{clientSocket.Port} is dead, disposing resources..\n", MessageType.bgError);
+            CConsole.WriteLine($"[Keep-Alive] {clientSocket.IPAddress} is dead, disposing resources..\n", MessageType.bgError);
             DisposeClient(socket_id);
         }
 
@@ -182,19 +210,21 @@ namespace Server
         /// <param name="client_id">client id who need to be cleaned</param>
         internal static void DisposeClient(uint client_id)
         {
-            SClient clientSocket = SRTSockets[client_id].SocketAddress;
-
-            SRTSockets[client_id].Data.StopVideo();
-
             if (SRTSockets.ContainsKey(client_id))
             {
-                string removedClient = $"{clientSocket.IPAddress}:{clientSocket.Port}";
+                SClient clientSocket = SRTSockets[client_id].SocketAddress;
+
+                SRTSockets[client_id].Video.Stop();
+                SRTSockets[client_id].Audio.Stop();
+                SRTSockets[client_id].KeepAlive.Stop();
+
+                string removedClientIP = $"{clientSocket.IPAddress}";
 
                 SRTSockets.Remove(client_id);
-                CConsole.WriteLine($"[Server] Client [{removedClient}] was removed\n", MessageType.txtError);
+                CConsole.WriteLine($"[Server] Client [{removedClientIP}] was removed\n", MessageType.txtWarning);
             }
             else
-                CConsole.WriteLine($"[Server] Client [{clientSocket.IPAddress}:{clientSocket.Port}] wasn't found\n", MessageType.txtError);
+                CConsole.WriteLine($"[Server] Client ID [{client_id}] doesn't exist\n", MessageType.txtError);
         }
 
         /// <summary>
@@ -207,21 +237,38 @@ namespace Server
 
             CConsole.Write("[Server] Shutting down...", MessageType.bgError);
             CConsole.WriteLine(" (Wait approx. ~5 seconds)", MessageType.txtError);
-            pressedKeyListenerT.Abort();
-
-            foreach (uint socketId in SRTSockets.Keys)  // send to each client shutdown message
+            try
             {
-                SRTSocket socket = SRTSockets[socketId];
+                pressedKeyListenerT.Abort();
 
-                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
-                Packet shutdown_packet = shutdown_request.Shutdown(socketId, IsInVideoStage(socketId), GetSocketEncryptionType(socketId));
-                PacketManager.SendPacket(shutdown_packet);
+                foreach (uint socketId in SRTSockets.Keys)  // send to each client shutdown message
+                {
+                    SRTSocket socket = SRTSockets[socketId];
 
-                socket.KeepAlive.Disable();
-                socket.Data.StopVideo();
+                    ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
+
+                    // send shutdown
+                    Packet shutdown_packet = shutdown_request.Shutdown(socketId, SERVER_SOCKET_ID);
+                    PacketManager.SendPacket(shutdown_packet);
+
+                    SRTSockets[socketId].Video.Stop();
+                    SRTSockets[socketId].Audio.Stop();
+                    SRTSockets[socketId].KeepAlive.Stop();
+                }
+
+                handlePackets.Abort();
             }
+            catch (Exception exc)
+            {
+                if (pressedKeyListenerT.IsAlive)
+                    pressedKeyListenerT.Abort();
 
-            handlePackets.Abort();
+                if (handlePackets.IsAlive)
+                    handlePackets.Abort();
+
+                CConsole.WriteLine($"[!] Something went wrong while shutdown... ({exc.Message})", MessageType.txtError);
+                Environment.Exit(-1);
+            }
 
             Environment.Exit(0);
         }
@@ -244,7 +291,7 @@ namespace Server
                     }
                     else
                     {
-                        CConsole.WriteLine($"[Server] You can only swith between ({1} - {screens.Length}) screens\n", MessageType.txtWarning);
+                        CConsole.WriteLine($"[Server] You can only switch between ({1} - {screens.Length}) screens\n", MessageType.txtWarning);
                     }
                 }
                 else if (keyInfo.Key == ConsoleKey.RightArrow)
@@ -261,24 +308,28 @@ namespace Server
                 }
             }
         }
+    }
+    internal static class DataDebug
+    {
+        // NUMBER OF SENT PACKETS
+        private static ulong videoSent = 0;
+        private static ulong audioSent = 0;
 
-        /// <summary>
-        /// returns true if the given socket id (client) in the video stage (server sending data)
-        /// </summary>
-        /// <param name="socketId">socket id (client)</param>
-        private static bool IsInVideoStage(uint socketId)
+        public static void IncVideoSent()
         {
-            return SRTSockets[socketId].Data.VideoStage;
+#if DEBUG
+            videoSent++;
+            Console.Title = $"V {videoSent} | A {audioSent}";
+#endif
         }
 
-        /// <summary>
-        /// returns the selected encryption type by the client at the handshake part
-        /// </summary>
-        /// <param name="socketId">socket id (client)</param>
-        /// <returns>chosen encryption method</returns>
-        private static EncryptionType GetSocketEncryptionType(uint socketId)
+
+        public static void IncAudioSent()
         {
-            return SRTSockets[socketId].Data.EncryptionMethod;
+#if DEBUG
+            audioSent++;
+            Console.Title = $"V {videoSent} | A {audioSent}";
+#endif
         }
     }
 }

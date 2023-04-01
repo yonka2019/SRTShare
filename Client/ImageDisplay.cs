@@ -1,37 +1,38 @@
-﻿using PcapDotNet.Packets;
-using SRTShareLib;
-using SRTShareLib.PcapManager;
-using SRTShareLib.SRTManager.RequestsFactory;
+﻿using SRTShareLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
-using SRTShareLib.SRTManager.RequestsFactory;
+
 
 namespace Client
 {
-    internal class ImageDisplay
+    internal static class ImageDisplay
     {
+        internal static Cyotek.Windows.Forms.ImageBox ImageBoxDisplayIn { private get; set; }
+
         private static ushort lastDataPosition;
         private static readonly object _lock = new object();
 
-        private static List<Data.SRTHeader> dataPackets = new List<Data.SRTHeader>();
-        internal static byte CurrentVideoQuality = 50;
+        private static List<Data.ImageData> imageDataPackets = new List<Data.ImageData>();
+        internal static long CurrentVideoQuality = ProtocolManager.DEFAULT_QUALITY;
 
         private static DateTime lastQualityModify;
-        private const int minimum_SecondsElapsedToModify = 3;  // don't allow the algorithm to AUTO modify the quality if there is was a quality change
+        private const int MINIMUM_SECONDS_ELPASED_TO_MODIFY = 3;  // don't allow the algorithm to AUTO modify the quality if there is was a quality change
 
-        private static byte[] FullData
+
+        private static byte[] Image  // if full image already built, return it. otherwise, build the full image from the all chunks 
         {
             get
             {
                 List<byte> fullData = new List<byte>();
 
-                foreach (Data.SRTHeader srtHeader in dataPackets)  // add each data into [List<byte> fullData]
+                foreach (Data.ImageData srtHeader in imageDataPackets)  // add each data into [List<byte> fullData]
                 {
                     fullData.AddRange(srtHeader.DATA);
                 }
@@ -40,155 +41,167 @@ namespace Client
             }
         }
 
-        internal static void ProduceImage(Data.SRTHeader data_request, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
+        internal static void ProduceImage(Data.ImageData image_chunk)
         {
             // in case if chunk had received while other chunk is building (in this method), the new chunk will create new task and
             // will intervene the proccess, so to avoid multi access tries, lock the global resource (allChunks) until the task will finish
             lock (_lock)
             {
-                if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.FIRST)
+                if (image_chunk.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.SINGLE_DATA_PACKET)
+                {
+                    imageDataPackets.Add(image_chunk);
+                    ShowImage(Image, true);
+                    imageDataPackets.Clear();
+                }
+
+                else if (image_chunk.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.FIRST)
                 {
                     if (lastDataPosition == (ushort)Data.PositionFlags.MIDDLE)  // LAST lost, image received [FIRST MID MID MID ---- FIRST]
                     {
-                        ShowImage(false, imageBoxDisplayIn);
-                        dataPackets.Clear();
+                        ShowImage(Image, false);
+                        imageDataPackets.Clear();
                     }
-                    dataPackets.Add(data_request);
+                    imageDataPackets.Add(image_chunk);
                 }
 
-                else if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.LAST)  // full image received (but maybe middle packets get lost)
+                else if (image_chunk.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.LAST)  // full image received (but maybe middle packets get lost)
                 {
-                    dataPackets.Add(data_request);
-                    ShowImage(true, imageBoxDisplayIn);
-                    dataPackets.Clear();
+                    imageDataPackets.Add(image_chunk);
+                    ShowImage(Image, true);
+                    imageDataPackets.Clear();
                 }
+
                 else
                 {
-                    dataPackets.Add(data_request);
+                    imageDataPackets.Add(image_chunk);
                 }
 
-                lastDataPosition = data_request.PACKET_POSITION_FLAG;
+                lastDataPosition = image_chunk.PACKET_POSITION_FLAG;
             }
         }
 
-        
-
-        private static void ShowImage(bool lastChunkReceived, Cyotek.Windows.Forms.ImageBox imageBoxDisplayIn)
+        private static void ShowImage(byte[] image, bool lastChunkReceived)
         {
-#if DEBUG
+            if (MainView.RETRANSMISSION_MODE)  // check if retransmission mode enabled 
+                if (RetransmissionRequired(image))
+                    return;  // stop the showing, wait till good image would be received
+
+
+            if (MainView.AutoQualityControl)  // check if option enabled (not the const)
+                LowerQualityNecessity();
+
+
             if (!lastChunkReceived)
-                Debug.WriteLine("[IMAGE] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
-#endif
-            uint[] missedPackets = GetMissingPackets();
+                Debug.WriteLine("[IMAGE BUILDER] ERROR: LAST chunk missing (SHOWING IMAGE)\n");
 
-            Console.WriteLine("SHOULD BE: " + (Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0))));
-            Console.WriteLine("MISSED: " + (missedPackets.Length));
-
-            // if there are missing packets -> send a nak packet with missing packets
-            if(missedPackets.Length > 0)
-            {
-                SendMissingPackets(new uint[] { dataPackets[0].SEQUENCE_NUMBER });
-                return;
-            }
-
-            else // if all the packets of the current image were received -> send an ack packet with the image's sequence number
-                NotifyReceivedImage(dataPackets[0].SEQUENCE_NUMBER);
-
-
-            TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
-
-            // dataPackets.Last().MESSAGE_NUMBER - the last seq number which is the max
-            if ((Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0)) <= missedPackets.Length)  // check if necessary
-
-                && MainView.AutoQualityControl  // check if option enabled
-
-                && timeElapsed.TotalSeconds > minimum_SecondsElapsedToModify)  // check if min required time elapsed
-            {
-                if (CurrentVideoQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)
-                {
-                    CurrentVideoQuality -= MainView.DATA_DECREASE_QUALITY_BY;  // down quality and send quality update request 
-
-                    QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
-                    Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(MainView.server_sid, CurrentVideoQuality);
-                    PacketManager.SendPacket(qualityUpdate_packet);
-
-                    CConsole.WriteLine($"[Auto Quality Control] Quality updated: {CurrentVideoQuality}\n" , MessageType.txtWarning);
-
-                    ToolStripMenuItem qualityButton = MainView.QualityButtons[RoundToNearestTen(CurrentVideoQuality)];
-
-                    if (qualityButton.Checked)  // if already selected - do not do anything
-                        return;
-
-                    foreach (ToolStripMenuItem item in MainView.QualityButtons.Values)
-                    {
-                        item.Checked = false;
-                    }
-                    qualityButton.Checked = true;
-
-                    lastQualityModify = DateTime.Now;
-                }
-            }
-
-            using (MemoryStream ms = new MemoryStream(FullData))
+            using (MemoryStream ms = new MemoryStream(image))
             {
                 try
                 {
-                    imageBoxDisplayIn.Image = System.Drawing.Image.FromStream(ms);
+
+                    ImageBoxDisplayIn.Image = System.Drawing.Image.FromStream(ms);
                 }
                 catch
                 {
-                    Debug.WriteLine("[IMAGE] ERROR: Can't build image\n");
+                    Debug.WriteLine("[IMAGE BUILDER] ERROR: Can't build image at all\n");
                 }
             }
         }
-        private static byte RoundToNearestTen(byte num)
+
+        /// <summary>
+        /// Checks if retransmission needed due packet lost
+        /// </summary>
+        private static bool RetransmissionRequired(byte[] image)
         {
-            if (num % 10 >= 5)
+            // if there are missing chnuks -> send a NAK request in order to ask the server to retransmit the image
+            // (the whole message numbers of those sequence number)
+
+            if (!ChecksumMatches(image))  // retranmission required due checksum mismatch (comparing the checksums already after the decryption)
             {
-                return (byte)((num / 10 + 1) * 10);
+                RequestsHandler.RequestForRetransmit(imageDataPackets[0].SEQUENCE_NUMBER);
+
+                CConsole.WriteLine($"[Retransmission] Image [{imageDataPackets[0].SEQUENCE_NUMBER}] retransmission requested\n", MessageType.txtWarning);
+
+                imageDataPackets.Clear();  // bad data (corrupted) clean and get new one
+                return true;
             }
-            else
+
+            else  // if all the packets of the current image were received -> send an ack packet with the image's sequence number to clean servers saved images bufer
             {
-                return (byte)(num / 10 * 10);
+                RequestsHandler.SendImageConfirm(imageDataPackets[0].SEQUENCE_NUMBER);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Checks if the image checksum is the same which is our built image checksum
+        /// if not - it means the image isn't the same as he was splitted at the server, or one of the packets (or more) got lost, which means that he should be retransmitted
+        /// </summary>
+        /// <returns>true if the whole checksums matched, neither - false, which means that retransmission required</returns>
+        // {SERVER} IMAGE: [CHUNK 1][CHUNK 2][CHUNK 3][CHUNK 4] -> IMAGE CHECKSUM: 0x12
+        // {CLIENT} RECEIVED IMAGE: [CHUNK 1][CHUNK 3][CHNUK 4] -> IMAGE CHECKSUM: 0x17 (not the same)
+        private static bool ChecksumMatches(byte[] image)
+        {
+            return imageDataPackets[0].IMAGE_CHECKSUM == image.CalculateChecksum();  // compare between images' checksum and our checksum calculation
+        }
+
+        /// <summary>
+        /// Checks if auto quality control should lower the quality due high packet lost
+        /// </summary>
+        private static void LowerQualityNecessity()
+        {
+            // sort the data (inside the function) in order to get the max message number which is the total packets, and find the missing packets, and his percent
+            uint[] lostChunks = GetMissingPackets();
+
+            // dataPackets.Last().MESSAGE_NUMBER - the last message number which is the max
+            double minChunksToGetLost = Math.Ceiling(imageDataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0));
+            TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
+
+            if ((minChunksToGetLost <= lostChunks.Length)  // check if necessary
+                && timeElapsed.TotalSeconds > MINIMUM_SECONDS_ELPASED_TO_MODIFY)  // check if min required time elapsed
+            {
+                if (CurrentVideoQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)  // check if current quality isn't the lowest
+                {
+                    CurrentVideoQuality -= MainView.DATA_DECREASE_QUALITY_BY;  // down quality and send quality update request later (after button click)
+
+                    Debug.WriteLine($"[QUALITY-CONTROL] Quality reduced to {CurrentVideoQuality}\n" +
+                        $"[-] LOST: {lostChunks.Length}\n" +
+                        $"[-] MIN-TO-LOST: {minChunksToGetLost}");
+
+                    ToolStripMenuItem qualityButton = MainView.QualityButtons[CurrentVideoQuality.RoundToNearestTen()];
+
+                    CConsole.WriteLine("[Auto Quality Control] High packet loss - reducing quality", MessageType.txtInfo);
+                    if (qualityButton.Owner.InvokeRequired && qualityButton.Owner.IsHandleCreated)  // check if invoke required and if the handle built at all
+                    {
+                        qualityButton.Owner.Invoke((MethodInvoker)delegate
+                        {
+                            qualityButton.PerformClick();  // simulate click
+                        });
+                    }
+
+                    lastQualityModify = DateTime.Now;
+                }
             }
         }
 
         private static uint[] GetMissingPackets()
         {
-            dataPackets = dataPackets.OrderBy(dp => dp.MESSAGE_NUMBER).ToList();
+            imageDataPackets = imageDataPackets.OrderBy(dp => dp.MESSAGE_NUMBER).ToList();
 
             List<uint> missingList = new List<uint>();
-            for (int i = 0; i < dataPackets.Count - 1; i++)
+            for (int i = 0; i < imageDataPackets.Count - 1; i++)
             {
-                uint diff = dataPackets[i + 1].MESSAGE_NUMBER - dataPackets[i].MESSAGE_NUMBER;
+                uint diff = imageDataPackets[i + 1].MESSAGE_NUMBER - imageDataPackets[i].MESSAGE_NUMBER;
                 if (diff > 1)
                 {
                     for (uint j = 1; j < diff; j++)
                     {
-                        missingList.Add(dataPackets[i].MESSAGE_NUMBER + j);
+                        missingList.Add(imageDataPackets[i].MESSAGE_NUMBER + j);
                     }
                 }
             }
 
             return missingList.ToArray();
-        }
-
-        private static void SendMissingPackets(uint[] missedSequenceNumbers)
-        {
-            NakRequest nak_request = new NakRequest
-                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
-
-            Packet nak_packet = nak_request.SendMissingPackets(missedSequenceNumbers.ToList());
-            PacketManager.SendPacket(nak_packet);
-        }
-
-        private static void NotifyReceivedImage(uint ackSequenceNumber)
-        {
-            AckRequest ack_request = new AckRequest
-                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
-
-            Packet ack_packet = ack_request.NotifyReceived(ackSequenceNumber);
-            PacketManager.SendPacket(ack_packet);
         }
     }
 }

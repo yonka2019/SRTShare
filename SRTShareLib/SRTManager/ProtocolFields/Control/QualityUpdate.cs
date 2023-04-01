@@ -7,7 +7,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        public QualityUpdate(uint dest_socket_id, byte quality) : base(ControlType.QUALITY_UPDATE, dest_socket_id)
+        public QualityUpdate(uint dest_socket_id, uint source_socket_id, long quality) : base(ControlType.QUALITY_UPDATE, dest_socket_id, source_socket_id)
         {
             QUALITY = quality; byteFields.Add(BitConverter.GetBytes(QUALITY));
         }
@@ -17,7 +17,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// </summary>
         public QualityUpdate(byte[] data) : base(data)  // initialize SRT Control header fields
         {
-            QUALITY = data[13];  // [13]
+            QUALITY = data[11];  // [11]
         }
 
 
@@ -34,6 +34,6 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// <summary>
         /// 8 bits (1 byte). Set new quality to the data at the [server - client] conversation
         /// </summary>
-        public byte QUALITY { get; private set; }
+        public long QUALITY { get; private set; }
     }
 }

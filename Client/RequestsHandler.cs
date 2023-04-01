@@ -2,8 +2,11 @@
 using PcapDotNet.Packets.IpV4;
 using SRTShareLib;
 using SRTShareLib.PcapManager;
+using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;
@@ -20,26 +23,39 @@ namespace Client
         /// <param name="handshake_request">Handshake object</param>
         internal static void HandleInduction(Control.Handshake handshake_request)
         {
-            if (handshake_request.SYN_COOKIE == ProtocolManager.GenerateCookie(MainView.GetAdaptedIP()))
-            {
-                HandshakeRequest handshake_response = new HandshakeRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
+            HandshakeRequest handshake_response = new HandshakeRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MainView.MY_PORT, ConfigManager.PORT));
 
-                // client -> server (conclusion)
+            // client -> server (conclusion)
 
-                IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedIP());
-                Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.client_sid, handshake_request.SOCKET_ID, handshake_request.ENCRYPTION_FIELD, handshake_request.SYN_COOKIE);
-                PacketManager.SendPacket(handshake_packet);
+            IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedIP());
 
-            }
+            byte[] myPublicKey;
+            if (MainView.ENCRYPTION != EncryptionType.None)
+                myPublicKey = DiffieHellman.MyPublicKey;
             else
-            {
-                // Exit the prgram and send a shutdwon request
-                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
-                Packet shutdown_packet = shutdown_request.Shutdown(MainView.server_sid);
-                PacketManager.SendPacket(shutdown_packet);
+                myPublicKey = new byte[DiffieHellman.PUBLIC_KEY_SIZE];
 
-                MessageBox.Show("Bad cookie - Stopping", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.My_SID, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey, handshake_request.RETRANSMISSION_MODE);
+            PacketManager.SendPacket(handshake_packet);
+        }
+
+        internal static void HandleConclusion(MainView mainView, Control.Handshake handshake_request)
+        {
+            // ! To avoid issues here because client didn't have enough time to set all fields [server_encryptionControl, etc..],  the server waits X seconds before sending data packets !
+
+            // encryption data received - initialize him for future decrypt necessity
+            MainView.Server_EncryptionControl = EncryptionFactory.CreateEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY);
+
+            mainView.Invoke((MethodInvoker)delegate
+            {
+                mainView.VideoBox.Text = "";
+            });
+
+            CConsole.WriteLine("[Handshake completed] Starting video & audio transmission\n", MessageType.bgSuccess);
+            AudioPlay.PrepareAudio();  // init objects before receiving audio
+            
+
+            EnableQualityButtons(mainView);
         }
 
         /// <summary>
@@ -54,14 +70,48 @@ namespace Client
                     (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
 
             IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedIP());
-            Packet handshake_packet = handshake.Induction(cookie: ProtocolManager.GenerateCookie(MainView.GetAdaptedIP()), init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)MainView.ENCRYPTION);
+            Packet handshake_packet = handshake.Induction(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)MainView.ENCRYPTION, new byte[DiffieHellman.PUBLIC_KEY_SIZE], MainView.RETRANSMISSION_MODE);
 
             PacketManager.SendPacket(handshake_packet);
         }
 
-        internal static void HandleData(Data.SRTHeader data_request, Cyotek.Windows.Forms.ImageBox pictureBoxDisplayIn)
+        internal static void HandleKeepAlive()
         {
-            ImageDisplay.ProduceImage(data_request, pictureBoxDisplayIn);
+            Debug.WriteLine("[KEEP-ALIVE] Received request\n");
+
+            KeepAliveRequest keepAlive_response = new KeepAliveRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MainView.MY_PORT, ConfigManager.PORT));
+            Packet keepAlive_confirm = keepAlive_response.Alive(MainView.Server_SID, MainView.My_SID);
+            PacketManager.SendPacket(keepAlive_confirm);
+
+            Debug.WriteLine("[KEEP-ALIVE] Sending confirm\n");
+        }
+
+        internal static void HandleImageData(Data.ImageData data_request)
+        {
+            DataDebug.IncVideoReceived();
+
+            if (data_request.ENCRYPTION_FLAG)
+            {
+                if (!Enum.IsDefined(typeof(EncryptionType), MainView.ENCRYPTION))
+                    throw new Exception($"'{MainView.ENCRYPTION}' This encryption method isn't supported yet");
+
+                data_request.DATA = MainView.Server_EncryptionControl.TryDecrypt(data_request.DATA);
+            }
+            ImageDisplay.ProduceImage(data_request);
+        }
+
+        internal static void HandleAudioData(Data.AudioData data_request)
+        {
+            DataDebug.IncAudioReceived();
+
+            if (data_request.ENCRYPTION_FLAG)
+            {
+                if (!Enum.IsDefined(typeof(EncryptionType), MainView.ENCRYPTION))
+                    throw new Exception($"'{MainView.ENCRYPTION}' This encryption method isn't supported yet");
+
+                data_request.DATA = MainView.Server_EncryptionControl.TryDecrypt(data_request.DATA);
+            }
+            AudioPlay.ProduceAudio(data_request);
         }
 
         /// <summary>
@@ -72,8 +122,58 @@ namespace Client
             ServerAliveChecker.Disable();
 
             CConsole.WriteLine("[Shutdown] Server stopped", MessageType.txtError);
-            MessageBox.Show("Server have been stopped", "Server Stopped", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Server has been stopped", "Server Stopped", MessageBoxButtons.OK, MessageBoxIcon.Error);
             Environment.Exit(0);
+        }
+
+        /// <summary>
+        /// send request of transmit corrupted image
+        /// </summary>
+        /// <param name="corruptedImageSequenceNumber"></param>
+        internal static void RequestForRetransmit(uint corruptedImageSequenceNumber)
+        {
+            NAKRequest nak_request = new NAKRequest
+                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MainView.MY_PORT, ConfigManager.PORT));
+
+            Packet nak_packet = nak_request.RequestRetransmit(corruptedImageSequenceNumber, MainView.Server_SID, MainView.My_SID);
+            PacketManager.SendPacket(nak_packet);
+        }
+
+        /// <summary>
+        /// When image fully received send to server confirm (via ACK) that the whole image received correctly and can be cleaned from server buffer
+        /// </summary>
+        /// <param name="goodImageSequenceNumber"></param>
+        internal static void SendImageConfirm(uint goodImageSequenceNumber)
+        {
+            ACKRequest ack_request = new ACKRequest
+                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MainView.MY_PORT, ConfigManager.PORT));
+
+            Packet ack_packet = ack_request.ConfirmReceivedImage(goodImageSequenceNumber, MainView.Server_SID, MainView.My_SID);
+
+            // send triple ack confirm (if one of AKCs them lost or corruped) - server will get only the one he receive and ignore the others
+            PacketManager.SendPacket(ack_packet);
+            PacketManager.SendPacket(ack_packet);
+            PacketManager.SendPacket(ack_packet);
+        }
+
+        /// <summary>
+        /// When video staged achieved, the quality buttons should be enabled 
+        /// </summary>
+        private static void EnableQualityButtons(MainView mainView)
+        {
+            foreach (ToolStripMenuItem button in MainView.QualityButtons.Values)
+            {
+                if (mainView.QualitySetter.InvokeRequired && mainView.QualitySetter.IsHandleCreated)
+                {
+                    mainView.QualitySetter.Invoke((MethodInvoker)delegate
+                    {
+                        button.Enabled = true;
+                    });
+                }
+                else
+                    button.Enabled = true;
+
+            }
         }
     }
 }

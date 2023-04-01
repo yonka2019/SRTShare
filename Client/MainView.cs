@@ -7,9 +7,9 @@ using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
@@ -24,38 +24,42 @@ namespace Client
 
         private bool serverAlive = false;  // for icmp request - answer check
         private bool handledArp = false;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
+        private bool firstImage = true;
 
-        private bool videoStage = false;  // when the client reaches the video stage, he knows that each packet from the server will be encrypted,
-                                          // so he should be ready to decrypt each received packet
+        internal static uint Server_SID = 0;  // we getting know this value on the induction that the server returns to us (SID -> Socket ID)
+        internal static string Server_MAC = null;
 
-        internal static uint server_sid = 0;  // we getting know this value on the indoction that the server returns to us (SID -> Socket ID)
-        internal static ushort myPort;
-        internal static uint client_sid = 0;  // the server sends this value on the induction answer (SID -> Socket ID) (MY SID)
-        internal static string serverMac = null;
+        internal static ushort MY_PORT;
+        internal static uint My_SID = 0;  // the server sends this value on the induction answer (SID -> Socket ID) (MY SID)
+
         internal static bool externalConnection;
 
-        private static Dictionary<EncryptionType, Func<string, (byte[], byte[])>> EncCredFunc;  // Functions which is responsible for getting the key +/ iv 
-        private static Thread handlePackets, handleKeepAlive;
+        internal static bool AutoQualityControl;
+        internal static bool AudioTransmission;
 
-        internal static bool AutoQualityControl = false;
+        private static Thread handlePackets, handleKeepAlivePackets, handleVideoPackets, handleAudioPackets;
 
-        // 10% - q_10p
-        // 20% - q_10p
-        //   . . .
-        internal static Dictionary<byte, ToolStripMenuItem> QualityButtons;
-
+        // 10% - q_10p (button)
+        // 20% - q_10p (button)
+        //  .. .. ..
+        internal static Dictionary<long, ToolStripMenuItem> QualityButtons;
+        internal static BaseEncryption Server_EncryptionControl;
 
 #if DEBUG
-        private static ulong dataReceived = 0;  // count data packets received (included chunks)
+        internal static ulong dataReceived = 0;  // count data packets received (included chunks)
 #endif
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
         internal const EncryptionType ENCRYPTION = EncryptionType.XOR;  // The whole encryption of the conversation (from data stage)
-        internal const int INITIAL_PSN = 0;  // The first sequence number of the conversation
+        internal const int INITIAL_PSN = 1;  // The first sequence number of the conversation  ! [ MUST NOT BE 0 (because of retransmitRequestedToSeq var in Server\VideoManager.cs)] !
 
         internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
         internal const int DATA_DECREASE_QUALITY_BY = 10; // (0 - 100)
+        internal const bool AUTO_QUALITY_CONTROL = false;
+        internal const bool AUDIO_TRANSMISSION = false;
+        internal const bool RETRANSMISSION_MODE = true;
+        // DEFAULT QUALITY VALUE (to server and client) - ProtocolManager.cs : DEFAULT_QUALITY
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
@@ -63,18 +67,32 @@ namespace Client
         {
             InitializeComponent();
 
+            autoQualityControl.Checked = AUTO_QUALITY_CONTROL;
             AutoQualityControl = autoQualityControl.Checked;
-            QualityButtons = new Dictionary<byte, ToolStripMenuItem> { { 10, q_10p }, { 20, q_20p }, { 30, q_30p }, { 40, q_40p }, { 50, q_50p }, { 60, q_60p }, { 70, q_70p }, { 80, q_80p }, { 90, q_90p }, { 100, q_100p } };
 
-            myPort = (ushort)rnd.Next(1, 50000);  // randomize any port for the client
+            audioTrans.Checked = AUDIO_TRANSMISSION;
+            AudioTransmission = audioTrans.Checked;
+
+            QualityButtons = new Dictionary<long, ToolStripMenuItem> { { 10L, q_10p }, { 20L, q_20p }, { 30L, q_30p }, { 40L, q_40p }, { 50L, q_50p }, { 60L, q_60p }, { 70L, q_70p }, { 80L, q_80p }, { 90L, q_90p }, { 100L, q_100p } };
+            QualityButtons[ProtocolManager.DEFAULT_QUALITY.RoundToNearestTen()].Checked = true;
+
+            MY_PORT = (ushort)rnd.Next(1, 50000);  // randomize any port for the client
 
             // receive packets
             handlePackets = new Thread(() => { PacketManager.ReceivePackets(0, PacketHandler); });
             handlePackets.Start();
 
             // receive keep-alive packets
-            handleKeepAlive = new Thread(() => { PacketManager.ReceivePackets(0, KeepAliveHandler); });
-            handleKeepAlive.Start();
+            handleKeepAlivePackets = new Thread(() => { PacketManager.ReceivePackets(0, KeepAliveHandler); });
+            handleKeepAlivePackets.Start();
+
+            // receive video packets
+            handleVideoPackets = new Thread(() => { PacketManager.ReceivePackets(0, VideoHandler); });
+            handleVideoPackets.Start();
+
+            // receive audio packets
+            handleAudioPackets = new Thread(() => { PacketManager.ReceivePackets(0, AudioHandler); });
+            handleAudioPackets.Start();
 
             Packet arpRequest = ARPManager.Request(ConfigManager.IP, out bool sameSubnet);  // search for server's mac (when answer will be received -
                                                                                             // the client will automatically send SRT induction request
@@ -87,9 +105,8 @@ namespace Client
 
             InductionCheck();
 
+            ImageDisplay.ImageBoxDisplayIn = VideoBox;
             ServerAliveChecker.LostConnection += Server_LostConnection;  // subscribe the event to avoid unexpectable server shutdown
-
-            RegisterEncKeysFunctions();
         }
 
         /// <summary>
@@ -127,9 +144,10 @@ namespace Client
         /// <param name="packet">New given packet</param>
         private void PacketHandler(Packet packet)
         {
-            if (packet.IsValidUDP(myPort, ConfigManager.PORT))  // UDP Packet
+            if (packet.IsValidUDP(MY_PORT, ConfigManager.PORT))  // UDP Packet
             {
-                DecryptionNecessity(packet, out byte[] payload);
+                UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
+                byte[] payload = datagram.Payload.ToArray();
 
                 if (Control.SRTHeader.IsControl(payload))  // (SRT) Control
                 {
@@ -137,35 +155,23 @@ namespace Client
                     {
                         Control.Handshake handshake_request = new Control.Handshake(payload);
 
-                        server_sid = handshake_request.SOCKET_ID;  // as first packet, we are setting the socket id to know it for the future
+                        Server_SID = handshake_request.SOURCE_SOCKET_ID;  // as first packet, we are setting the socket id to know it for the future
 
                         if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.INDUCTION)  // (SRT) Induction
                         {
                             serverAlive = true;
+
+                            Console.WriteLine($"[Handshake] Got Induction: {handshake_request}\n");
                             RequestsHandler.HandleInduction(handshake_request);
                         }
-                        else if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.CONCLUSION)
+                        else if (handshake_request.TYPE == (uint)Control.Handshake.HandshakeType.CONCLUSION)  // (SRT) Conclusion 
                         {
-                            Invoke((MethodInvoker)delegate
-                            {
-                                VideoBox.Text = "";
-                            });
-                            CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
-                            videoStage = true;
+                            Console.WriteLine($"[Handshake] Got Conclusion: {handshake_request}\n");
+                            RequestsHandler.HandleConclusion(this, handshake_request);
                         }
                     }
-                    else if (Control.Shutdown.IsShutdown(payload))  // (SRT) Server Shutdown ! [HANDLES ONLY CTRL + C EVENT ON SERVER SIDE] !
+                    else if (Control.Shutdown.IsShutdown(payload))  // (SRT) Server Shutdown ! [HANDLES ONLY WITH CTRL + C EVENT ON SERVER SIDE] !
                         RequestsHandler.HandleShutDown();
-                }
-
-                else if (Data.SRTHeader.IsData(payload))  // (SRT) Data (chunk of image)
-                {
-                    ServerAliveChecker.Check();
-                    Data.SRTHeader data_request = new Data.SRTHeader(payload);
-#if DEBUG
-                    Console.Title = $"Data received {++dataReceived}";
-#endif
-                    RequestsHandler.HandleData(data_request, VideoBox);
                 }
             }
 
@@ -177,40 +183,15 @@ namespace Client
                 {
                     if ((arp.SenderProtocolIpV4Address.ToString() == ConfigManager.IP) || (arp.SenderProtocolIpV4Address.ToString() == NetworkManager.DefaultGateway)) // mac from server
                     {
-                        // After client got the server's mac, send the first induction message
-                        serverMac = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);
-                        CConsole.WriteLine($"[Client] Server/Gateway MAC Found: {serverMac}\n", MessageType.txtSuccess);
-                        client_sid = ProtocolManager.GenerateSocketId(GetAdaptedIP());
-
-                        RequestsHandler.HandleArp(serverMac, myPort, client_sid);
                         handledArp = true;
+                        My_SID = ProtocolManager.GenerateSocketId(GetAdaptedIP(), MY_PORT.ToString());
+                        Server_MAC = MethodExt.GetFormattedMac(arp.SenderHardwareAddress);  // After client got the server's mac, send the first induction message
+
+                        CConsole.WriteLine($"[Client] Server/Gateway MAC Found: {Server_MAC}\n", MessageType.txtSuccess);
+
+                        RequestsHandler.HandleArp(Server_MAC, MY_PORT, My_SID);
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// If the client is in the video stage, and he enabled encryption, he should to decrypt each packet which is received from the server
-        /// (according the after-video policy)
-        /// </summary>
-        /// <param name="packet">packet to check his state</param>
-        /// <param name="payload">payload which is returned after check (raw/decrypted)</param>
-        private void DecryptionNecessity(Packet packet, out byte[] payload)
-        {
-            UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
-            payload = datagram.Payload.ToArray();
-
-            if (videoStage && ENCRYPTION != EncryptionType.None)  // if video stage reached and the encryption enabled -
-                                                                  // the server will send each packet encrypted (data/shutdown/keepalive)
-            {
-                if (!EncCredFunc.ContainsKey(ENCRYPTION))
-                    throw new Exception($"'{ENCRYPTION}' This encryption method isn't supported yet");
-
-                string ip = GetAdaptedIP();
-
-                (byte[] key, byte[] IV) = EncCredFunc[ENCRYPTION](ip);
-
-                payload = EncryptionManager.TryDecrypt(ENCRYPTION, payload, key, IV);
             }
         }
 
@@ -220,7 +201,7 @@ namespace Client
         /// <param name="packet">New given keepalive packet</param>
         private void KeepAliveHandler(Packet packet)
         {
-            if (packet.IsValidUDP(myPort, ConfigManager.PORT))  // UDP Packet
+            if (packet.IsValidUDP(MY_PORT, ConfigManager.PORT))  // UDP Packet
             {
                 UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
                 byte[] payload = datagram.Payload.ToArray();
@@ -229,15 +210,66 @@ namespace Client
                 {
                     if (Control.KeepAlive.IsKeepAlive(payload))
                     {
-                        Debug.WriteLine("[KEEP-ALIVE] Received request\n");
+                        RequestsHandler.HandleKeepAlive();  // answer to the keep alive request 
 
-                        KeepAliveRequest keepAlive_response = new KeepAliveRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
-                        Packet keepAlive_confirm = keepAlive_response.Alive(server_sid);
-                        PacketManager.SendPacket(keepAlive_confirm);
+                        CConsole.WriteLine($"[{DateTime.Now:HH:mm:ss}] [Keep-Alive] Confirmed\n", MessageType.txtSuccess);
+                    }
+                }
+            }
+        }
 
-                        Debug.WriteLine("[KEEP-ALIVE] Sending confirm\n");
+        /// <summary>
+        /// Callback function invoked by Pcap.Net for every video packets
+        /// </summary>
+        /// <param name="packet">New given keepalive packet</param>
+        private void VideoHandler(Packet packet)
+        {
+            if (packet.IsValidUDP(MY_PORT, ConfigManager.PORT))  // UDP Packet
+            {
+                UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
+                byte[] payload = datagram.Payload.ToArray();
 
-                        CConsole.WriteLine($"[{DateTime.Now:HH:mm:ss}] [Keep-Alive] Confirmed\n", MessageType.txtInfo);
+                if (Data.SRTHeader.IsData(payload))  // (SRT) Data (chunk of image)
+                {
+                    if (Data.ImageData.IsImage(payload))
+                    {
+                        ServerAliveChecker.Check();
+
+                        Data.ImageData image_chunk = new Data.ImageData(payload);
+                        RequestsHandler.HandleImageData(image_chunk);
+
+                        if (firstImage)
+                        {
+                            MaximizeWindow(500);  // short delay of 500ms and maximize the window
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Callback function invoked by Pcap.Net for every audio packets
+        /// </summary>
+        /// <param name="packet">New given keepalive packet</param>
+        private void AudioHandler(Packet packet)
+        {
+            if (packet.IsValidUDP(MY_PORT, ConfigManager.PORT))  // UDP Packet
+            {
+                UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
+                byte[] payload = datagram.Payload.ToArray();
+
+                if (Data.SRTHeader.IsData(payload))  // (SRT) Data (chunk of audio)
+                {
+
+                    if (Data.AudioData.IsAudio(payload))
+                    {
+                        if (AudioTransmission)  // check if audio transmission enabled by the user
+                        {
+                            ServerAliveChecker.Check();
+
+                            Data.AudioData audio_chunk = new Data.AudioData(payload);
+                            RequestsHandler.HandleAudioData(audio_chunk);
+                        }
                     }
                 }
             }
@@ -255,8 +287,10 @@ namespace Client
         /// <summary>
         /// If the server dies, notify the client and stop the session
         /// </summary>
-        internal static void Server_LostConnection()
+        internal void Server_LostConnection()
         {
+            Finish();
+
             CConsole.WriteLine("[ERROR] Server isn't alive anymore", MessageType.bgError);
 
             MessageBox.Show("Lost connection with the server", "Connection Problem", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -271,20 +305,28 @@ namespace Client
             if (qualitySelected.Checked)  // if already selected - do not do anything
                 return;
 
-            foreach (ToolStripMenuItem item in QualityButtons.Values)
+            foreach (ToolStripMenuItem item in QualityButtons.Values)  // uncheck all quality buttons
             {
                 item.Checked = false;
             }
-            qualitySelected.Checked = true;
 
-            byte newQuality = QualityButtons.FirstOrDefault(quality => quality.Value == qualitySelected).Key;
+            qualitySelected.Checked = true;  // check the selected one 
 
-            QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.serverMac, NetworkManager.LocalIp, ConfigManager.IP, MainView.myPort, ConfigManager.PORT));
-            Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(server_sid, newQuality);
+            long newQuality = QualityButtons.FirstOrDefault(quality => quality.Value == qualitySelected).Key;
+
+            QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MainView.MY_PORT, ConfigManager.PORT));
+            Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(Server_SID, My_SID, newQuality);
             PacketManager.SendPacket(qualityUpdate_packet);
 
             CConsole.WriteLine($"[Quality Update] Quality updated to: {newQuality}%\n", MessageType.txtInfo);
             ImageDisplay.CurrentVideoQuality = newQuality;
+        }
+
+        private void AudioTransmission_Click(object sender, EventArgs e)
+        {
+            AudioTransmission = audioTrans.Checked;
+            string flag = AudioTransmission ? "enabled" : "disabled";
+            CConsole.WriteLine($"[Audio] Audio transmission {flag}\n", MessageType.txtInfo);
         }
 
         private void AutoQualityControl_Click(object sender, EventArgs e)
@@ -301,29 +343,69 @@ namespace Client
         /// <param name="e"></param>
         private void MainView_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (serverMac != null)
+            if (Server_MAC != null)
             {
                 // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
-                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, serverMac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
-                Packet shutdown_packet = shutdown_request.Shutdown(server_sid);
+                ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MY_PORT, ConfigManager.PORT));
+                Packet shutdown_packet = shutdown_request.Shutdown(Server_SID, My_SID);
                 PacketManager.SendPacket(shutdown_packet);
             }
+            Finish();
+        }
 
+        private void Finish()
+        {
             handlePackets.Abort();
-            handleKeepAlive.Abort();
+            handleKeepAlivePackets.Abort();
+            handleVideoPackets.Abort();
+            handleAudioPackets.Abort();
+
+            AudioPlay.DisposeAudio();
         }
 
         /// <summary>
-        /// Register encryption create keys functions individually for each encryption type
+        /// Maximize the window only when first image received, in order to prevent the bug when the image isn't full screened 
+        /// (this could be fixed if maximizing the window, so instead of do it manually, this code maximizes it after a short delay to give time to the client to build and show the image)
         /// </summary>
-        public static void RegisterEncKeysFunctions()
+        /// <param name="delay">short delay to give time to the client in order to finish the image building and showing</param>
+        private void MaximizeWindow(int delay = 0)
         {
-            EncCredFunc = new Dictionary<EncryptionType, Func<string, (byte[], byte[])>>
+            Task.Run(async () =>
             {
-                { EncryptionType.AES128, AES128.CreateKey_IV },
-                { EncryptionType.Substitution, Substitution.CreateKey },
-                { EncryptionType.XOR, XOR.CreateKey }
-            };
+                await Task.Delay(delay);
+
+                Invoke((MethodInvoker)delegate
+                {
+                    WindowState = FormWindowState.Maximized;
+                });
+
+                firstImage = false;
+            });
+        }
+    }
+
+    internal static class DataDebug
+    {
+        // NUMBER OF SENT PACKETS
+        private static ulong videoReceived = 0;
+        private static ulong audioReceived = 0;
+
+        public static void IncVideoReceived()
+        {
+#if DEBUG
+            videoReceived++;
+            Console.Title = $"V {videoReceived} | A {audioReceived}";
+#endif
+        }
+
+
+        public static void IncAudioReceived()
+        {
+#if DEBUG
+            audioReceived++;
+
+            Console.Title = $"V {videoReceived} | A {audioReceived}";
+#endif
         }
     }
 }

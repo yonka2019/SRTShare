@@ -67,6 +67,7 @@
     <Compile Include="PcapManager\OSIManager.cs" />
     <Compile Include="PcapManager\PacketManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+<<<<<<< HEAD
     <Compile Include="SRTManager\Encryption\AES128.cs" />
     <Compile Include="SRTManager\Encryption\EncryptionManager.cs" />
     <Compile Include="SRTManager\Encryption\EncryptionType.cs" />
@@ -75,13 +76,35 @@
     <Compile Include="SRTManager\ProtocolFields\Control\Ack.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\Keep-Alive.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\Nak.cs" />
+=======
+    <Compile Include="SRTManager\Encryption\EncryptionAlgorithms\AES256.cs" />
+    <Compile Include="SRTManager\Encryption\EncryptionAlgorithms\None.cs" />
+    <Compile Include="SRTManager\Encryption\EncryptionFactory.cs" />
+    <Compile Include="SRTManager\Encryption\BaseEncryption.cs" />
+    <Compile Include="SRTManager\Encryption\EncryptionAlgorithms\Substitution.cs" />
+    <Compile Include="SRTManager\Encryption\EncryptionAlgorithms\XOR.cs" />
+    <Compile Include="SRTManager\Encryption\DiffieHellman.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Control\ACK.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Control\Keep-Alive.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Control\NAK.cs" />
+>>>>>>> origin/dev
     <Compile Include="SRTManager\ProtocolFields\Control\QualityUpdate.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Data\AudioData.cs" />
     <Compile Include="SRTManager\ProtocolFields\Data\DataFlags.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Data\DataType.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Data\ImageData.cs" />
     <Compile Include="SRTManager\ProtocolFields\Data\SRTHeader.cs" />
     <Compile Include="SRTManager\ProtocolManager.cs" />
+<<<<<<< HEAD
     <Compile Include="SRTManager\RequestsFactory\AckRequest.cs" />
     <Compile Include="SRTManager\RequestsFactory\DataRequest.cs" />
     <Compile Include="SRTManager\RequestsFactory\NakRequest.cs" />
+=======
+    <Compile Include="SRTManager\RequestsFactory\ACKRequest.cs" />
+    <Compile Include="SRTManager\RequestsFactory\AudioDataRequest.cs" />
+    <Compile Include="SRTManager\RequestsFactory\ImageDataRequest.cs" />
+    <Compile Include="SRTManager\RequestsFactory\NAKRequest.cs" />
+>>>>>>> origin/dev
     <Compile Include="SRTManager\RequestsFactory\QualityUpdateRequest.cs" />
     <Compile Include="SRTManager\SClient.cs" />
     <Compile Include="SRTManager\ProtocolFields\Control\ControlType.cs" />
