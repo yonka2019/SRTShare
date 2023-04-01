@@ -6,9 +6,11 @@ using SRTShareLib.SRTManager.ProtocolFields.Control;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
@@ -25,6 +27,8 @@ namespace Server
 
         private static Thread pressedKeyListenerT;
         private static Thread handlePackets;
+
+        private const int DATA_DELAY_MS = 2000;
 
         private static void Main()
         {
@@ -112,9 +116,15 @@ namespace Server
                             RequestsHandler.HandleConclusion(packet, handshake_request);
 
                             // Handshake stage done. starting send keepAlive packets and starting to send data (video) packets
-                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].KeepAlive.Start();  // start keep-alive checking
-                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].Video.Start();  // start video transmit
-                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].Audio.Start();  // start audio transmit
+                            Task.Run(async () =>
+                            {
+                                CConsole.WriteLine($"[Server] [{SRTSockets[handshake_request.SOURCE_SOCKET_ID].SocketAddress.IPAddress}] Handshake finished. Waiting {DATA_DELAY_MS / 1000} seconds before sending data..\n", MessageType.txtWarning);
+
+                                await Task.Delay(DATA_DELAY_MS);
+                                SRTSockets[handshake_request.SOURCE_SOCKET_ID].KeepAlive.Start();  // start keep-alive checking
+                                SRTSockets[handshake_request.SOURCE_SOCKET_ID].Video.Start();  // start video transmit
+                                SRTSockets[handshake_request.SOURCE_SOCKET_ID].Audio.Start();  // start audio transmit
+                            });
                         }
                     }
 
