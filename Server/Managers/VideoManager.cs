@@ -108,7 +108,7 @@ namespace Server.Managers
             foreach (Packet packet in data_packets)
             {
                 PacketManager.SendPacket(packet);
-                DataDebug.VideoSent += 1;
+                DataDebug.IncVideoSent();
             }
         }
 

@@ -13,8 +13,8 @@ namespace Client
 
         private static readonly List<Data.AudioData> audioDataPackets = new List<Data.AudioData>();
 
-        private static WaveOutEvent waveOut;
-        private static BufferedWaveProvider waveProvider;
+        private static readonly WaveOutEvent waveOut;
+        private static readonly BufferedWaveProvider waveProvider;
 
         private const int SAMPLE_RATE = 44100;
         private const int CHANNELS = 2;

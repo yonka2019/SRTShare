@@ -347,28 +347,22 @@ namespace Client
         private static ulong videoReceived = 0;
         private static ulong audioReceived = 0;
 
-        public static ulong VideoReceived
+        public static void IncVideoReceived()
         {
-            get => videoReceived;
-            set
-            {
-                videoReceived += value;
 #if DEBUG
-                Console.Title = $"V {videoReceived} | A{audioReceived}";
+            videoReceived++;
+            Console.Title = $"V {videoReceived} | A {audioReceived}";
 #endif
-            }
         }
 
-        public static ulong AudioReceived
+
+        public static void IncAudioReceived()
         {
-            get => audioReceived;
-            set
-            {
-                audioReceived += value;
 #if DEBUG
-                Console.Title = $"V {videoReceived} | A{audioReceived}";
+            audioReceived++;
+
+            Console.Title = $"V {videoReceived} | A {audioReceived}";
 #endif
-            }
         }
     }
 }

@@ -79,7 +79,7 @@ namespace Server.Managers
             foreach (Packet packet in data_packets)
             {
                 PacketManager.SendPacket(packet);
-                DataDebug.AudioSent += 1;
+                DataDebug.IncAudioSent();
             }
         }
     }

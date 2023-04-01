@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
@@ -231,6 +230,8 @@ namespace Server
                     SRTSocket socket = SRTSockets[socketId];
 
                     ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
+
+                    // send shutdown
                     Packet shutdown_packet = shutdown_request.Shutdown(socketId, SERVER_SOCKET_ID);
                     PacketManager.SendPacket(shutdown_packet);
 
@@ -298,28 +299,21 @@ namespace Server
         private static ulong videoSent = 0;
         private static ulong audioSent = 0;
 
-        public static ulong VideoSent
+        public static void IncVideoSent()
         {
-            get => videoSent;
-            set
-            {
-                videoSent += value;
 #if DEBUG
-                Console.Title = $"V {videoSent} | A {audioSent}";
+            videoSent++;
+            Console.Title = $"V {videoSent} | A {audioSent}";
 #endif
-            }
         }
 
-        public static ulong AudioSent
+
+        public static void IncAudioSent()
         {
-            get => audioSent;
-            set
-            {
-                audioSent += value;
 #if DEBUG
-                Console.Title = $"V {videoSent} | A {audioSent}";
+            audioSent++;
+            Console.Title = $"V {videoSent} | A {audioSent}";
 #endif
-            }
         }
     }
 }
