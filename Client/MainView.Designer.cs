@@ -97,7 +97,7 @@
             this.QualitySetter.ShowCheckMargin = true;
             this.QualitySetter.ShowImageMargin = false;
             this.QualitySetter.ShowItemToolTips = false;
-            this.QualitySetter.Size = new System.Drawing.Size(185, 268);
+            this.QualitySetter.Size = new System.Drawing.Size(185, 290);
             this.QualitySetter.Text = "Set new quality";
             // 
             // autoQualityControl
@@ -202,6 +202,7 @@
             // audioTrans
             // 
             this.audioTrans.Checked = true;
+            this.audioTrans.CheckOnClick = true;
             this.audioTrans.CheckState = System.Windows.Forms.CheckState.Checked;
             this.audioTrans.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.audioTrans.Name = "audioTrans";
