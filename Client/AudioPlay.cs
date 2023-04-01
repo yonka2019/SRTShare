@@ -62,8 +62,6 @@ namespace Client
             {
                 if (audio_chunk.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.SINGLE_DATA_PACKET)
                 {
-                    Debug.WriteLine("[AUDIO DATA] Single packet");
-
                     audioDataPackets.Add(audio_chunk);
                     PlayAudio(Audio, true);
                     audioDataPackets.Clear();
