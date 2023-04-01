@@ -61,11 +61,18 @@ namespace Server
             #region New client information set
 
             SClient currentClient = new SClient(handshake_request.PEER_IP, datagram.SourcePort, packet.Ethernet.Source, handshake_request.SOURCE_SOCKET_ID, handshake_request.MTU);
-            KeepAliveManager kaManager = new KeepAliveManager(currentClient);
-            VideoManager videoManager = new VideoManager(currentClient, EncryptionFactory.CreateEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY), handshake_request.INTIAL_PSN, handshake_request.RETRANSMISSION_MODE);
+
+            Managers.KeepAliveManager kaManager = new Managers.KeepAliveManager(currentClient);
+
+            Managers.VideoManager videoManager = new Managers.VideoManager(currentClient, EncryptionFactory.CreateEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY), handshake_request.INTIAL_PSN, handshake_request.RETRANSMISSION_MODE);
+
+            Managers.AudioManager audioManager = new Managers.AudioManager(currentClient, EncryptionFactory.CreateEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY), handshake_request.INTIAL_PSN);
+
 
             SRTSocket newSRTSocket = new SRTSocket(currentClient,
-                kaManager, videoManager);
+                kaManager, videoManager, audioManager);
+
+
 
             // add client to sockets list
             Program.SRTSockets.Add(handshake_request.SOURCE_SOCKET_ID, newSRTSocket);
@@ -92,19 +99,19 @@ namespace Server
 
         internal static void HandleQualityUpdate(QualityUpdate qualityUpdate_request)
         {
-            Program.SRTSockets[qualityUpdate_request.SOURCE_SOCKET_ID].Data.CurrentQuality = qualityUpdate_request.QUALITY;
+            Program.SRTSockets[qualityUpdate_request.SOURCE_SOCKET_ID].Video.CurrentQuality = qualityUpdate_request.QUALITY;
         }
 
         internal static void HandleNAK(NAK NAK_request)
         {
             uint imageToTransmit = NAK_request.CORRUPTED_SEQUENCE_NUMBER;
-            Program.SRTSockets[NAK_request.SOURCE_SOCKET_ID].Data.ResendImage(imageToTransmit);  // resend all the packets for the missing sequence number (image)
+            Program.SRTSockets[NAK_request.SOURCE_SOCKET_ID].Video.ResendImage(imageToTransmit);  // resend all the packets for the missing sequence number (image)
         }
 
         internal static void HandleACK(ACK ACK_request)
         {
             uint imageToConfirm = ACK_request.ACK_SEQUENCE_NUMBER;
-            Program.SRTSockets[ACK_request.SOURCE_SOCKET_ID].Data.ConfirmImage(imageToConfirm);  // clear all the packets of teh received image sequence number
+            Program.SRTSockets[ACK_request.SOURCE_SOCKET_ID].Video.ConfirmImage(imageToConfirm);  // clear all the packets of teh received image sequence number
         }
 
         /// <summary>

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
@@ -112,8 +113,9 @@ namespace Server
                             RequestsHandler.HandleConclusion(packet, handshake_request);
 
                             // Handshake stage done. starting send keepAlive packets and starting to send data (video) packets
-                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].KeepAlive.StartCheck();  // start keep-alive checking
-                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].Data.StartVideo();  // start keep-alive checking
+                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].KeepAlive.Start();  // start keep-alive checking
+                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].Video.Start();  // start video transmit
+                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].Audio.Start();  // start audio transmit
                         }
                     }
 
@@ -197,8 +199,9 @@ namespace Server
             {
                 SClient clientSocket = SRTSockets[client_id].SocketAddress;
 
-                SRTSockets[client_id].Data.StopVideo();
-                SRTSockets[client_id].KeepAlive.Disable();
+                SRTSockets[client_id].Video.Stop();
+                SRTSockets[client_id].Audio.Stop();
+                SRTSockets[client_id].KeepAlive.Stop();
 
                 string removedClientIP = $"{clientSocket.IPAddress}";
 
@@ -231,8 +234,9 @@ namespace Server
                     Packet shutdown_packet = shutdown_request.Shutdown(socketId, SERVER_SOCKET_ID);
                     PacketManager.SendPacket(shutdown_packet);
 
-                    SRTSockets[socketId].Data.StopVideo();
-                    SRTSockets[socketId].KeepAlive.Disable();
+                    SRTSockets[socketId].Video.Stop();
+                    SRTSockets[socketId].Audio.Stop();
+                    SRTSockets[socketId].KeepAlive.Stop();
                 }
 
                 handlePackets.Abort();
@@ -285,6 +289,36 @@ namespace Server
                         CConsole.WriteLine($"[Server] You can only switch between ({1} - {screens.Length}) screens\n", MessageType.txtWarning);
                     }
                 }
+            }
+        }
+    }
+    internal static class DataDebug
+    {
+        // NUMBER OF SENT PACKETS
+        private static ulong videoSent = 0;
+        private static ulong audioSent = 0;
+
+        public static ulong VideoSent
+        {
+            get => videoSent;
+            set
+            {
+                videoSent += value;
+#if DEBUG
+                Console.Title = $"[Sent] Video {videoSent} | Audio {audioSent}";
+#endif
+            }
+        }
+
+        public static ulong AudioSent
+        {
+            get => audioSent;
+            set
+            {
+                audioSent += value;
+#if DEBUG
+                Console.Title = $"[Sent] Video {videoSent} | Audio {audioSent}";
+#endif
             }
         }
     }

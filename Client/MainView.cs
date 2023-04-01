@@ -33,7 +33,7 @@ namespace Client
         internal static bool externalConnection;
         internal static bool AutoQualityControl = false;
 
-        private static Thread handlePackets, handleKeepAlive;
+        private static Thread handlePackets, handleKeepAlivePackets, handleVideoPackets, handleAudioPackets;
 
         // 10% - q_10p (button)
         // 20% - q_10p (button)
@@ -76,8 +76,16 @@ namespace Client
             handlePackets.Start();
 
             // receive keep-alive packets
-            handleKeepAlive = new Thread(() => { PacketManager.ReceivePackets(0, KeepAliveHandler); });
-            handleKeepAlive.Start();
+            handleKeepAlivePackets = new Thread(() => { PacketManager.ReceivePackets(0, KeepAliveHandler); });
+            handleKeepAlivePackets.Start();
+
+            // receive video packets
+            handleVideoPackets = new Thread(() => { PacketManager.ReceivePackets(0, VideoHandler); });
+            handleVideoPackets.Start();
+
+            // receive audio packets
+            handleAudioPackets = new Thread(() => { PacketManager.ReceivePackets(0, AudioHandler); });
+            handleAudioPackets.Start();
 
             Packet arpRequest = ARPManager.Request(ConfigManager.IP, out bool sameSubnet);  // search for server's mac (when answer will be received -
                                                                                             // the client will automatically send SRT induction request
@@ -158,14 +166,6 @@ namespace Client
                     else if (Control.Shutdown.IsShutdown(payload))  // (SRT) Server Shutdown ! [HANDLES ONLY WITH CTRL + C EVENT ON SERVER SIDE] !
                         RequestsHandler.HandleShutDown();
                 }
-
-                else if (Data.SRTHeader.IsData(payload))  // (SRT) Data (chunk of image)
-                {
-                    ServerAliveChecker.Check();
-
-                    Data.ImageData data_request = new Data.ImageData(payload);
-                    RequestsHandler.HandleData(data_request);
-                }
             }
 
             else if (packet.IsValidARP())  // ARP Packet
@@ -212,6 +212,54 @@ namespace Client
         }
 
         /// <summary>
+        /// Callback function invoked by Pcap.Net for every video packets
+        /// </summary>
+        /// <param name="packet">New given keepalive packet</param>
+        private void VideoHandler(Packet packet)
+        {
+            if (packet.IsValidUDP(MY_PORT, ConfigManager.PORT))  // UDP Packet
+            {
+                UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
+                byte[] payload = datagram.Payload.ToArray();
+
+                if (Data.SRTHeader.IsData(payload))  // (SRT) Data (chunk of image)
+                {
+                    ServerAliveChecker.Check();
+
+                    if (Data.ImageData.IsImage(payload))
+                    {
+                        Data.ImageData image_chunk = new Data.ImageData(payload);
+                        RequestsHandler.HandleImageData(image_chunk);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Callback function invoked by Pcap.Net for every audio packets
+        /// </summary>
+        /// <param name="packet">New given keepalive packet</param>
+        private void AudioHandler(Packet packet)
+        {
+            if (packet.IsValidUDP(MY_PORT, ConfigManager.PORT))  // UDP Packet
+            {
+                UdpDatagram datagram = packet.Ethernet.IpV4.Udp;
+                byte[] payload = datagram.Payload.ToArray();
+
+                if (Data.SRTHeader.IsData(payload))  // (SRT) Data (chunk of audio)
+                {
+                    ServerAliveChecker.Check();
+
+                    if (Data.AudioData.IsAudio(payload))
+                    {
+                        Data.AudioData audio_chunk = new Data.AudioData(payload);
+                        RequestsHandler.HandleAudioData(audio_chunk);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// If the connection is external (the server outside client's subnet) so use the public ip as client ip peer ip (peer ip is the packet sender IP according SRT docs)
         /// </summary>
         /// <returns>Adapted ip according the connection type</returns>
@@ -223,10 +271,9 @@ namespace Client
         /// <summary>
         /// If the server dies, notify the client and stop the session
         /// </summary>
-        internal static void Server_LostConnection()
+        internal void Server_LostConnection()
         {
-            handlePackets.Abort();
-            handleKeepAlive.Abort();
+            Finish();
 
             CConsole.WriteLine("[ERROR] Server isn't alive anymore", MessageType.bgError);
 
@@ -280,9 +327,45 @@ namespace Client
                 Packet shutdown_packet = shutdown_request.Shutdown(Server_SID, My_SID);
                 PacketManager.SendPacket(shutdown_packet);
             }
+            Finish();
+        }
 
+        private void Finish()
+        {
             handlePackets.Abort();
-            handleKeepAlive.Abort();
+            handleKeepAlivePackets.Abort();
+            AudioPlay.DisposeAudio();
+        }
+    }
+
+    internal static class DataDebug
+    {
+        // NUMBER OF SENT PACKETS
+        private static ulong videoReceived = 0;
+        private static ulong audioReceived = 0;
+
+        public static ulong VideoReceived
+        {
+            get => videoReceived;
+            set
+            {
+                videoReceived += value;
+#if DEBUG
+                Console.Title = $"[Received] Video {videoReceived} | Audio {audioReceived}";
+#endif
+            }
+        }
+
+        public static ulong AudioReceived
+        {
+            get => audioReceived;
+            set
+            {
+                audioReceived += value;
+#if DEBUG
+                Console.Title = $"[Received] Video {videoReceived} | Audio {audioReceived}";
+#endif
+            }
         }
     }
 }

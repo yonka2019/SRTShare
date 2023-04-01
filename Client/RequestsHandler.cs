@@ -81,11 +81,9 @@ namespace Client
             Debug.WriteLine("[KEEP-ALIVE] Sending confirm\n");
         }
 
-        internal static void HandleData(Data.ImageData data_request)
+        internal static void HandleImageData(Data.ImageData data_request)
         {
-#if DEBUG
-            Console.Title = $"Data received {++MainView.dataReceived}";
-#endif
+            DataDebug.VideoReceived++;
 
             if (data_request.ENCRYPTION_FLAG)
             {
@@ -95,6 +93,20 @@ namespace Client
                 data_request.DATA = MainView.Server_EncryptionControl.TryDecrypt(data_request.DATA);
             }
             ImageDisplay.ProduceImage(data_request);
+        }
+
+        internal static void HandleAudioData(Data.AudioData data_request)
+        {
+            DataDebug.AudioReceived++;
+
+            if (data_request.ENCRYPTION_FLAG)
+            {
+                if (!Enum.IsDefined(typeof(EncryptionType), MainView.ENCRYPTION))
+                    throw new Exception($"'{MainView.ENCRYPTION}' This encryption method isn't supported yet");
+
+                data_request.DATA = MainView.Server_EncryptionControl.TryDecrypt(data_request.DATA);
+            }
+            AudioPlay.ProduceAudio(data_request);
         }
 
         /// <summary>
