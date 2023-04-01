@@ -100,6 +100,8 @@ namespace Client
                 {
                     ImageBoxDisplayIn.Image = System.Drawing.Image.FromStream(ms);
                     ImageBoxDisplayIn.Size = ImageBoxDisplayIn.Image.Size;
+                    ImageBoxDisplayIn.Update();
+                    ImageBoxDisplayIn.ZoomIn();
                 }
                 catch
                 {
