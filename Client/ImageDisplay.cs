@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -98,10 +99,8 @@ namespace Client
             {
                 try
                 {
+
                     ImageBoxDisplayIn.Image = System.Drawing.Image.FromStream(ms);
-                    ImageBoxDisplayIn.Size = ImageBoxDisplayIn.Image.Size;
-                    ImageBoxDisplayIn.Update();
-                    ImageBoxDisplayIn.ZoomIn();
                 }
                 catch
                 {

@@ -6,6 +6,7 @@ using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;
@@ -52,6 +53,7 @@ namespace Client
 
             CConsole.WriteLine("[Handshake completed] Starting video & audio transmission\n", MessageType.bgSuccess);
             AudioPlay.PrepareAudio();  // init objects before receiving audio
+            
 
             EnableQualityButtons(mainView);
         }

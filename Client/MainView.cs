@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
@@ -23,6 +24,7 @@ namespace Client
 
         private bool serverAlive = false;  // for icmp request - answer check
         private bool handledArp = false;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
+        private bool firstImage = true;
 
         internal static uint Server_SID = 0;  // we getting know this value on the induction that the server returns to us (SID -> Socket ID)
         internal static string Server_MAC = null;
@@ -235,6 +237,21 @@ namespace Client
 
                         Data.ImageData image_chunk = new Data.ImageData(payload);
                         RequestsHandler.HandleImageData(image_chunk);
+
+                        if (firstImage)
+                        {
+                            Task.Run(async () =>
+                            {
+                                await Task.Delay(500);
+                                Invoke(
+    (MethodInvoker)delegate
+    {
+        WindowState = FormWindowState.Maximized;
+
+    });
+                                firstImage = false;
+                            });
+                        }
                     }
                 }
             }
