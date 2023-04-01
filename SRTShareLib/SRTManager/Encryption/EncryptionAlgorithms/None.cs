@@ -6,12 +6,12 @@
 
         public override byte[] Encrypt(byte[] data)
         {
-            throw new System.NotImplementedException();
+            return data;
         }
 
         internal override byte[] Decrypt(byte[] data)
         {
-            throw new System.NotImplementedException();
+            return data;
         }
     }
 }

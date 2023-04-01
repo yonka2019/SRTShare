@@ -14,9 +14,9 @@ using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 
-namespace Server
+namespace Server.Managers
 {
-    internal class VideoManager
+    internal class VideoManager : IManager
     {
         private readonly SClient client;
         private bool connected;
@@ -24,12 +24,8 @@ namespace Server
         private readonly bool retransmission_mode;
 
         internal Dictionary<uint, byte[]> ImagesBuffer = new Dictionary<uint, byte[]>();
-        public readonly BaseEncryption ClientEncryption;
-        public bool VideoStage { get; private set; }
+        private readonly BaseEncryption clientEncryption;
 
-#if DEBUG
-        private static ulong dataSent = 0;  // count data sent packets (included chunks)
-#endif
 
         internal long CurrentQuality { private get; set; }
 
@@ -37,13 +33,13 @@ namespace Server
 
         internal VideoManager(SClient client, BaseEncryption baseEncryption, uint intial_sequence_number, bool retransmission_mode)
         {
-            current_sequence_number = intial_sequence_number;  // start from init seq number (MUST BE NOT 0 (because of retransmitRequestedToSeq var))
+            current_sequence_number = intial_sequence_number;  // start from init seq number (MUST BE NOT 0 (because of retransmitRequestedToSeq var), because when retransmitRequestedToSeq is 0 its mean there is no seq number of chunk which should be retransmitted)
             retransmitRequestedToSeq = 0;
 
             this.client = client;
             connected = true;
 
-            ClientEncryption = baseEncryption;
+            clientEncryption = baseEncryption;
             CurrentQuality = ProtocolManager.DEFAULT_QUALITY;  // default quality value
 
             this.retransmission_mode = retransmission_mode;
@@ -52,11 +48,10 @@ namespace Server
         /// <summary>
         /// The function starts the thread responsible for screenshare sending
         /// </summary>
-        internal void StartVideo()
+        public void Start()
         {
-            Thread videoStarter = new Thread(new ThreadStart(VideoInit));  // create thread of keep-alive checker
+            Thread videoStarter = new Thread(new ThreadStart(Run));  // create thread of keep-alive checker
             videoStarter.Start();
-            VideoStage = true;
 
             CConsole.WriteLine($"[Server] [{client.IPAddress}] Video is being shared\n", MessageType.txtInfo);
         }
@@ -64,36 +59,12 @@ namespace Server
         /// <summary>
         /// Stops the video via the condition variable
         /// </summary>
-        internal void StopVideo()
+        public void Stop()
         {
             connected = false;
-            VideoStage = false;
         }
 
-        /// <summary>
-        /// if NAK packet received which means that the server should retransmit the corrupted image
-        /// this function retransmittes the requested image by his sequence number
-        /// </summary>
-        /// <param name="sequenceNumberToRetransmit">image (sequence number) which should be retransmitted</param>
-        internal void ResendImage(uint sequenceNumberToRetransmit)
-        {
-            retransmitRequestedToSeq = sequenceNumberToRetransmit;
-        }
-
-        /// <summary>
-        /// function which is confirms that the client received the whole image successfully and he can be cleaned from server's buffer
-        /// </summary>
-        /// <param name="packetSequenceNumber">image (sequence number) which should be confirm</param>
-        internal void ConfirmImage(uint packetSequenceNumber)
-        {
-            if (ImagesBuffer.ContainsKey(packetSequenceNumber))  // maybe image already confirmed
-            {
-                Array.Clear(ImagesBuffer[packetSequenceNumber], 0, ImagesBuffer[packetSequenceNumber].Length);
-                ImagesBuffer.Remove(packetSequenceNumber);
-            }
-        }
-
-        private void VideoInit()
+        private void Run()
         {
             while (connected)
             {
@@ -125,21 +96,42 @@ namespace Server
 
         private void SplitAndSend(byte[] image, bool retransmitted, uint sequence_number)
         {
-            DataRequest dataRequest = new DataRequest(
+            ImageDataRequest dataRequest = new ImageDataRequest(
                                OSIManager.BuildBaseLayers(NetworkManager.MacAddress, client.MacAddress.ToString(), NetworkManager.LocalIp, client.IPAddress.ToString(), ConfigManager.PORT, client.Port));
 
             // (.MTU - 150; explanation) : To avoid errors with sending, because this field used to set fixed size of splitted data packet,
             // while the real mtu that the interface provides refers the whole size of the packet which get sent,
             // and with the whole srt packet and all layers in will much more.
             // In addition, the encryption will give EXTRA bytes (which is padding for example in AES), it's also one of the reasons why we take extra space
-            List<Packet> data_packets = dataRequest.SplitToPackets(image, sequence_number, client.SocketId, (int)client.MTU - 150, ClientEncryption, retransmitted);
+            List<Packet> data_packets = dataRequest.SplitToPackets(image, sequence_number, client.SocketId, (int)client.MTU - 150, clientEncryption, retransmitted);
 
             foreach (Packet packet in data_packets)
             {
                 PacketManager.SendPacket(packet);
-#if DEBUG
-                Console.Title = $"Data sent {++dataSent}";
-#endif
+                DataDebug.IncVideoSent();
+            }
+        }
+
+        /// <summary>
+        /// if NAK packet received which means that the server should retransmit the corrupted image
+        /// this function retransmittes the requested image by his sequence number
+        /// </summary>
+        /// <param name="sequenceNumberToRetransmit">image (sequence number) which should be retransmitted</param>
+        internal void ResendImage(uint sequenceNumberToRetransmit)
+        {
+            retransmitRequestedToSeq = sequenceNumberToRetransmit;
+        }
+
+        /// <summary>
+        /// function which is confirms that the client received the whole image successfully and he can be cleaned from server's buffer
+        /// </summary>
+        /// <param name="packetSequenceNumber">image (sequence number) which should be confirm</param>
+        internal void ConfirmImage(uint packetSequenceNumber)
+        {
+            if (ImagesBuffer.ContainsKey(packetSequenceNumber))  // maybe image already confirmed
+            {
+                Array.Clear(ImagesBuffer[packetSequenceNumber], 0, ImagesBuffer[packetSequenceNumber].Length);
+                ImagesBuffer.Remove(packetSequenceNumber);
             }
         }
 

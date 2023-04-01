@@ -165,7 +165,7 @@ namespace SRTShareLib
             // Sum all 16-bit words in the data
             while (i < data.Length - 1)
             {
-                sum += (uint)(data[i] << 8 | data[i + 1]);
+                sum += (uint)((data[i] << 8) | data[i + 1]);
                 i += 2;
             }
 
@@ -185,7 +185,6 @@ namespace SRTShareLib
             ushort checksum = (ushort)~sum;
 
             return checksum;
-
         }
     }
 }

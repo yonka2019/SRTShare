@@ -6,6 +6,7 @@ using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;
@@ -40,6 +41,8 @@ namespace Client
 
         internal static void HandleConclusion(MainView mainView, Control.Handshake handshake_request)
         {
+            // ! To avoid issues here because client didn't have enough time to set all fields [server_encryptionControl, etc..],  the server waits X seconds before sending data packets !
+
             // encryption data received - initialize him for future decrypt necessity
             MainView.Server_EncryptionControl = EncryptionFactory.CreateEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY);
 
@@ -48,7 +51,9 @@ namespace Client
                 mainView.VideoBox.Text = "";
             });
 
-            CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
+            CConsole.WriteLine("[Handshake completed] Starting video & audio transmission\n", MessageType.bgSuccess);
+            AudioPlay.PrepareAudio();  // init objects before receiving audio
+            
 
             EnableQualityButtons(mainView);
         }
@@ -81,11 +86,9 @@ namespace Client
             Debug.WriteLine("[KEEP-ALIVE] Sending confirm\n");
         }
 
-        internal static void HandleData(Data.SRTHeader data_request)
+        internal static void HandleImageData(Data.ImageData data_request)
         {
-#if DEBUG
-            Console.Title = $"Data received {++MainView.dataReceived}";
-#endif
+            DataDebug.IncVideoReceived();
 
             if (data_request.ENCRYPTION_FLAG)
             {
@@ -95,6 +98,20 @@ namespace Client
                 data_request.DATA = MainView.Server_EncryptionControl.TryDecrypt(data_request.DATA);
             }
             ImageDisplay.ProduceImage(data_request);
+        }
+
+        internal static void HandleAudioData(Data.AudioData data_request)
+        {
+            DataDebug.IncAudioReceived();
+
+            if (data_request.ENCRYPTION_FLAG)
+            {
+                if (!Enum.IsDefined(typeof(EncryptionType), MainView.ENCRYPTION))
+                    throw new Exception($"'{MainView.ENCRYPTION}' This encryption method isn't supported yet");
+
+                data_request.DATA = MainView.Server_EncryptionControl.TryDecrypt(data_request.DATA);
+            }
+            AudioPlay.ProduceAudio(data_request);
         }
 
         /// <summary>
@@ -123,7 +140,7 @@ namespace Client
         }
 
         /// <summary>
-        /// When image fully received send to server confirm that the whole image received correctly and can be cleaned from server buffer
+        /// When image fully received send to server confirm (via ACK) that the whole image received correctly and can be cleaned from server buffer
         /// </summary>
         /// <param name="goodImageSequenceNumber"></param>
         internal static void SendImageConfirm(uint goodImageSequenceNumber)

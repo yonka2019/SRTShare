@@ -44,6 +44,7 @@
             this.q_30p = new System.Windows.Forms.ToolStripMenuItem();
             this.q_20p = new System.Windows.Forms.ToolStripMenuItem();
             this.q_10p = new System.Windows.Forms.ToolStripMenuItem();
+            this.audioTrans = new System.Windows.Forms.ToolStripMenuItem();
             this.panel1.SuspendLayout();
             this.QualitySetter.SuspendLayout();
             this.SuspendLayout();
@@ -90,12 +91,13 @@
             this.q_40p,
             this.q_30p,
             this.q_20p,
-            this.q_10p});
+            this.q_10p,
+            this.audioTrans});
             this.QualitySetter.Name = "QualitySetter";
             this.QualitySetter.ShowCheckMargin = true;
             this.QualitySetter.ShowImageMargin = false;
             this.QualitySetter.ShowItemToolTips = false;
-            this.QualitySetter.Size = new System.Drawing.Size(185, 246);
+            this.QualitySetter.Size = new System.Drawing.Size(185, 290);
             this.QualitySetter.Text = "Set new quality";
             // 
             // autoQualityControl
@@ -197,6 +199,17 @@
             this.q_10p.Text = "Quality: 10%";
             this.q_10p.Click += new System.EventHandler(this.QualityChange_button_Click);
             // 
+            // audioTrans
+            // 
+            this.audioTrans.Checked = true;
+            this.audioTrans.CheckOnClick = true;
+            this.audioTrans.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.audioTrans.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.audioTrans.Name = "audioTrans";
+            this.audioTrans.Size = new System.Drawing.Size(184, 22);
+            this.audioTrans.Text = "Audio Transmission";
+            this.audioTrans.Click += new System.EventHandler(this.AudioTransmission_Click);
+            // 
             // MainView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -230,6 +243,7 @@
         private System.Windows.Forms.ToolStripMenuItem autoQualityControl;
         internal System.Windows.Forms.ContextMenuStrip QualitySetter;
         internal Cyotek.Windows.Forms.ImageBox VideoBox;
+        private System.Windows.Forms.ToolStripMenuItem audioTrans;
     }
 }
 

@@ -9,9 +9,9 @@ using SRTData = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace SRTShareLib.SRTManager.RequestsFactory
 {
-    public class DataRequest : UdpPacket
+    public class ImageDataRequest : UdpPacket
     {
-        public DataRequest(params ILayer[] layers) : base(layers) { }
+        public ImageDataRequest(params ILayer[] layers) : base(layers) { }
 
         public List<Packet> SplitToPackets(byte[] image, uint sequence_number, uint dest_socket_id, int MTU, BaseEncryption clientEncryption, bool retransmitted)
         {
@@ -45,10 +45,10 @@ namespace SRTShareLib.SRTManager.RequestsFactory
                     packetPositionFlag = SRTData.PositionFlags.MIDDLE;
 
                 // Create the SRT packet header and payload
-                srt_packet_data = new SRTData.SRTHeader(sequence_number: sequence_number, packetPositionFlag,
+                srt_packet_data = new SRTData.ImageData(sequence_number: sequence_number, packetPositionFlag,
                     clientEncryption.Type == EncryptionType.None ? SRTData.EncryptionFlags.NOT_ENCRYPTED : SRTData.EncryptionFlags.ENCRYPTED,
                     is_retransmitted: retransmitted, message_number: messageNumber, dest_socket_id, imageChecksum, packet_data);
-
+                    
                 GetPayloadLayer() = OSIManager.BuildPLayer(srt_packet_data.GetByted());
 
                 packets.Add(BuildPacket());  // Add the packet to the list of packets

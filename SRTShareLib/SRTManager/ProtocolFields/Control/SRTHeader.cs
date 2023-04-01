@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SRTShareLib.SRTManager.ProtocolFields.Control
 {
-    public class SRTHeader
+    public abstract class SRTHeader
     {
         protected readonly List<byte[]> byteFields = new List<byte[]>();
         public List<byte[]> GetByted() { return byteFields; }

@@ -16,7 +16,7 @@ namespace SRTShareLib
     /// </summary>
     public static class ConfigManager
     {
-        private const bool ALWAYS_CREATE_NEW = false;  // even if the config exist - create a new one and overwrite the old one
+        private const bool ALWAYS_CREATE_NEW = false;  // even if the config exist - create a new one and overwrite the old one, if it's false, it will take the last created config (if exists)
 
         internal const string CONFIG_NAME = "settings.json";
         public static string IP { get; private set; }
@@ -96,7 +96,7 @@ namespace SRTShareLib
 
                 else if (calledFrom == App.Client)
                     Console.WriteLine("* If your server in the same subnet with the client\n" +
-                    "put here the local ip of the server (LAN), either, put the public one (WAN).\n" +
+                    "put here the local ip of the server (LAN), otherwise, put the public one (WAN).\n" +
                     "In addition, you can also put here a hostname (DNS Supported).");
 
                 Console.Write(">> Server IP: ");

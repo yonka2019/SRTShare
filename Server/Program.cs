@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
@@ -25,6 +26,8 @@ namespace Server
 
         private static Thread pressedKeyListenerT;
         private static Thread handlePackets;
+
+        private const int DATA_DELAY_MS = 2000;
 
         private static void Main()
         {
@@ -111,9 +114,23 @@ namespace Server
                             Console.WriteLine($"[Handshake] Conclusion: {handshake_request}\n");
                             RequestsHandler.HandleConclusion(packet, handshake_request);
 
-                            // Handshake stage done. starting send keepAlive packets and starting to send data (video) packets
-                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].KeepAlive.StartCheck();  // start keep-alive checking
-                            SRTSockets[handshake_request.SOURCE_SOCKET_ID].Data.StartVideo();  // start keep-alive checking
+                            // Handshake stage done. waiting X seconds before starting send keepAlive packets and starting to send data (video & audio) packets
+                            Task.Run(async () =>
+                            {
+                                CConsole.WriteLine($"[Server] [{SRTSockets[handshake_request.SOURCE_SOCKET_ID].SocketAddress.IPAddress}] Handshake finished. Waiting {DATA_DELAY_MS / 1000} seconds before sending data..\n", MessageType.txtWarning);
+
+                                /*
+                                 * Because the client reeceives the packets in four differents threads (to avoid thread-blocking)
+                                 * the video packets receives before the client set server encryption tokens, which leads to exception because 
+                                 * data can't be decrypted.
+                                 * To avoid that, we are waiting 2 seconds before sending data, to give time to the client to get prepared (set encryption data, prepare audio, etc..)
+                                 */
+                                await Task.Delay(DATA_DELAY_MS);
+
+                                SRTSockets[handshake_request.SOURCE_SOCKET_ID].KeepAlive.Start();  // start keep-alive checking
+                                SRTSockets[handshake_request.SOURCE_SOCKET_ID].Video.Start();  // start video transmit
+                                SRTSockets[handshake_request.SOURCE_SOCKET_ID].Audio.Start();  // start audio transmit
+                            });
                         }
                     }
 
@@ -197,8 +214,9 @@ namespace Server
             {
                 SClient clientSocket = SRTSockets[client_id].SocketAddress;
 
-                SRTSockets[client_id].Data.StopVideo();
-                SRTSockets[client_id].KeepAlive.Disable();
+                SRTSockets[client_id].Video.Stop();
+                SRTSockets[client_id].Audio.Stop();
+                SRTSockets[client_id].KeepAlive.Stop();
 
                 string removedClientIP = $"{clientSocket.IPAddress}";
 
@@ -228,11 +246,14 @@ namespace Server
                     SRTSocket socket = SRTSockets[socketId];
 
                     ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, socket.SocketAddress.MacAddress.ToString(), NetworkManager.LocalIp, socket.SocketAddress.IPAddress.ToString(), ConfigManager.PORT, socket.SocketAddress.Port));
+
+                    // send shutdown
                     Packet shutdown_packet = shutdown_request.Shutdown(socketId, SERVER_SOCKET_ID);
                     PacketManager.SendPacket(shutdown_packet);
 
-                    SRTSockets[socketId].Data.StopVideo();
-                    SRTSockets[socketId].KeepAlive.Disable();
+                    SRTSockets[socketId].Video.Stop();
+                    SRTSockets[socketId].Audio.Stop();
+                    SRTSockets[socketId].KeepAlive.Stop();
                 }
 
                 handlePackets.Abort();
@@ -286,6 +307,29 @@ namespace Server
                     }
                 }
             }
+        }
+    }
+    internal static class DataDebug
+    {
+        // NUMBER OF SENT PACKETS
+        private static ulong videoSent = 0;
+        private static ulong audioSent = 0;
+
+        public static void IncVideoSent()
+        {
+#if DEBUG
+            videoSent++;
+            Console.Title = $"V {videoSent} | A {audioSent}";
+#endif
+        }
+
+
+        public static void IncAudioSent()
+        {
+#if DEBUG
+            audioSent++;
+            Console.Title = $"V {videoSent} | A {audioSent}";
+#endif
         }
     }
 }

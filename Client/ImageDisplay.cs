@@ -5,20 +5,21 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 
 namespace Client
 {
-    internal class ImageDisplay
+    internal static class ImageDisplay
     {
         internal static Cyotek.Windows.Forms.ImageBox ImageBoxDisplayIn { private get; set; }
 
         private static ushort lastDataPosition;
         private static readonly object _lock = new object();
 
-        private static List<Data.SRTHeader> dataPackets = new List<Data.SRTHeader>();
+        private static List<Data.ImageData> imageDataPackets = new List<Data.ImageData>();
         internal static long CurrentVideoQuality = ProtocolManager.DEFAULT_QUALITY;
 
         private static DateTime lastQualityModify;
@@ -31,7 +32,7 @@ namespace Client
             {
                 List<byte> fullData = new List<byte>();
 
-                foreach (Data.SRTHeader srtHeader in dataPackets)  // add each data into [List<byte> fullData]
+                foreach (Data.ImageData srtHeader in imageDataPackets)  // add each data into [List<byte> fullData]
                 {
                     fullData.AddRange(srtHeader.DATA);
                 }
@@ -40,33 +41,42 @@ namespace Client
             }
         }
 
-        internal static void ProduceImage(Data.SRTHeader data_request)
+        internal static void ProduceImage(Data.ImageData image_chunk)
         {
             // in case if chunk had received while other chunk is building (in this method), the new chunk will create new task and
             // will intervene the proccess, so to avoid multi access tries, lock the global resource (allChunks) until the task will finish
             lock (_lock)
             {
-                if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.FIRST)
+                if (image_chunk.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.SINGLE_DATA_PACKET)
+                {
+                    imageDataPackets.Add(image_chunk);
+                    ShowImage(Image, true);
+                    imageDataPackets.Clear();
+                }
+
+                else if (image_chunk.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.FIRST)
                 {
                     if (lastDataPosition == (ushort)Data.PositionFlags.MIDDLE)  // LAST lost, image received [FIRST MID MID MID ---- FIRST]
                     {
                         ShowImage(Image, false);
-                        dataPackets.Clear();
+                        imageDataPackets.Clear();
                     }
-                    dataPackets.Add(data_request);
-                }
-                else if (data_request.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.LAST)  // full image received (but maybe middle packets get lost)
-                {
-                    dataPackets.Add(data_request);
-                    ShowImage(Image, true);
-                    dataPackets.Clear();
-                }
-                else
-                {
-                    dataPackets.Add(data_request);
+                    imageDataPackets.Add(image_chunk);
                 }
 
-                lastDataPosition = data_request.PACKET_POSITION_FLAG;
+                else if (image_chunk.PACKET_POSITION_FLAG == (ushort)Data.PositionFlags.LAST)  // full image received (but maybe middle packets get lost)
+                {
+                    imageDataPackets.Add(image_chunk);
+                    ShowImage(Image, true);
+                    imageDataPackets.Clear();
+                }
+
+                else
+                {
+                    imageDataPackets.Add(image_chunk);
+                }
+
+                lastDataPosition = image_chunk.PACKET_POSITION_FLAG;
             }
         }
 
@@ -88,6 +98,7 @@ namespace Client
             {
                 try
                 {
+
                     ImageBoxDisplayIn.Image = System.Drawing.Image.FromStream(ms);
                 }
                 catch
@@ -107,17 +118,17 @@ namespace Client
 
             if (!ChecksumMatches(image))  // retranmission required due checksum mismatch (comparing the checksums already after the decryption)
             {
-                RequestsHandler.RequestForRetransmit(dataPackets[0].SEQUENCE_NUMBER);
+                RequestsHandler.RequestForRetransmit(imageDataPackets[0].SEQUENCE_NUMBER);
 
-                CConsole.WriteLine($"[Retransmission] Image [{dataPackets[0].SEQUENCE_NUMBER}] retransmission requested\n", MessageType.txtInfo);
+                CConsole.WriteLine($"[Retransmission] Image [{imageDataPackets[0].SEQUENCE_NUMBER}] retransmission requested\n", MessageType.txtWarning);
 
-                dataPackets.Clear();
+                imageDataPackets.Clear();  // bad data (corrupted) clean and get new one
                 return true;
             }
 
             else  // if all the packets of the current image were received -> send an ack packet with the image's sequence number to clean servers saved images bufer
             {
-                RequestsHandler.SendImageConfirm(dataPackets[0].SEQUENCE_NUMBER);
+                RequestsHandler.SendImageConfirm(imageDataPackets[0].SEQUENCE_NUMBER);
                 return false;
             }
         }
@@ -131,7 +142,7 @@ namespace Client
         // {CLIENT} RECEIVED IMAGE: [CHUNK 1][CHUNK 3][CHNUK 4] -> IMAGE CHECKSUM: 0x17 (not the same)
         private static bool ChecksumMatches(byte[] image)
         {
-            return dataPackets[0].IMAGE_CHECKSUM == image.CalculateChecksum();  // compare between images' checksum and our checksum calculation
+            return imageDataPackets[0].IMAGE_CHECKSUM == image.CalculateChecksum();  // compare between images' checksum and our checksum calculation
         }
 
         /// <summary>
@@ -143,7 +154,7 @@ namespace Client
             uint[] lostChunks = GetMissingPackets();
 
             // dataPackets.Last().MESSAGE_NUMBER - the last message number which is the max
-            double minChunksToGetLost = Math.Ceiling(dataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0));
+            double minChunksToGetLost = Math.Ceiling(imageDataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0));
             TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
 
             if ((minChunksToGetLost <= lostChunks.Length)  // check if necessary
@@ -175,17 +186,17 @@ namespace Client
 
         private static uint[] GetMissingPackets()
         {
-            dataPackets = dataPackets.OrderBy(dp => dp.MESSAGE_NUMBER).ToList();
+            imageDataPackets = imageDataPackets.OrderBy(dp => dp.MESSAGE_NUMBER).ToList();
 
             List<uint> missingList = new List<uint>();
-            for (int i = 0; i < dataPackets.Count - 1; i++)
+            for (int i = 0; i < imageDataPackets.Count - 1; i++)
             {
-                uint diff = dataPackets[i + 1].MESSAGE_NUMBER - dataPackets[i].MESSAGE_NUMBER;
+                uint diff = imageDataPackets[i + 1].MESSAGE_NUMBER - imageDataPackets[i].MESSAGE_NUMBER;
                 if (diff > 1)
                 {
                     for (uint j = 1; j < diff; j++)
                     {
-                        missingList.Add(dataPackets[i].MESSAGE_NUMBER + j);
+                        missingList.Add(imageDataPackets[i].MESSAGE_NUMBER + j);
                     }
                 }
             }

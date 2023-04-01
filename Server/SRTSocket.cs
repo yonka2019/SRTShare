@@ -4,15 +4,17 @@ namespace Server
 {
     internal class SRTSocket
     {
-        internal SClient SocketAddress { get; private set; } // address & port
-        internal KeepAliveManager KeepAlive { get; private set; }
-        internal VideoManager Data { get; private set; }
+        internal SClient SocketAddress { get; private set; }  // address & port
+        internal Managers.KeepAliveManager KeepAlive { get; private set; }
+        internal Managers.VideoManager Video { get; private set; }
+        internal Managers.AudioManager Audio { get; private set; }
 
-        internal SRTSocket(SClient socketAddress, KeepAliveManager kaManager, VideoManager dataManager)
+        internal SRTSocket(SClient socketAddress, Managers.KeepAliveManager kaManager, Managers.VideoManager dataManager, Managers.AudioManager audio)
         {
             SocketAddress = socketAddress;
             KeepAlive = kaManager;
-            Data = dataManager;
+            Video = dataManager;
+            Audio = audio;
         }
     }
 }
