@@ -1,5 +1,4 @@
-﻿using SRTShareLib.SRTManager.ProtocolFields.Control;
-using System;
+﻿using System;
 
 namespace SRTShareLib.SRTManager.ProtocolFields.Data
 {
