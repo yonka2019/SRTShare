@@ -210,7 +210,7 @@ namespace Client
                     {
                         RequestsHandler.HandleKeepAlive();  // answer to the keep alive request 
 
-                        CConsole.WriteLine($"[{DateTime.Now:HH:mm:ss}] [Keep-Alive] Confirmed\n", MessageType.txtInfo);
+                        CConsole.WriteLine($"[{DateTime.Now:HH:mm:ss}] [Keep-Alive] Confirmed\n", MessageType.txtSuccess);
                     }
                 }
             }

@@ -119,7 +119,7 @@ namespace Client
             {
                 RequestsHandler.RequestForRetransmit(imageDataPackets[0].SEQUENCE_NUMBER);
 
-                CConsole.WriteLine($"[Retransmission] Image [{imageDataPackets[0].SEQUENCE_NUMBER}] retransmission requested\n", MessageType.txtInfo);
+                CConsole.WriteLine($"[Retransmission] Image [{imageDataPackets[0].SEQUENCE_NUMBER}] retransmission requested\n", MessageType.txtWarning);
 
                 imageDataPackets.Clear();  // bad data (corrupted) clean and get new one
                 return true;

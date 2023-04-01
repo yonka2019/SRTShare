@@ -203,6 +203,7 @@
             // 
             this.audioTrans.Checked = true;
             this.audioTrans.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.audioTrans.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.audioTrans.Name = "audioTrans";
             this.audioTrans.Size = new System.Drawing.Size(184, 22);
             this.audioTrans.Text = "Audio Transmission";
