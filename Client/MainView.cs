@@ -334,6 +334,9 @@ namespace Client
         {
             handlePackets.Abort();
             handleKeepAlivePackets.Abort();
+            handleVideoPackets.Abort();
+            handleAudioPackets.Abort();
+
             AudioPlay.DisposeAudio();
         }
     }

@@ -48,7 +48,7 @@ namespace Client
                 mainView.VideoBox.Text = "";
             });
 
-            CConsole.WriteLine("[Handshake completed] Starting video display\n", MessageType.bgSuccess);
+            CConsole.WriteLine("[Handshake completed] Starting video & audio transmission\n", MessageType.bgSuccess);
 
             EnableQualityButtons(mainView);
         }
