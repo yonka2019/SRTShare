@@ -49,7 +49,7 @@ namespace Client
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.None;  // The whole encryption of the conversation (from data stage)
+        internal const EncryptionType ENCRYPTION = EncryptionType.XOR;  // The whole encryption of the conversation (from data stage)
         internal const int INITIAL_PSN = 1;  // The first sequence number of the conversation  ! [ MUST NOT BE 0 (because of retransmitRequestedToSeq var in Server\VideoManager.cs)] !
 
         internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
