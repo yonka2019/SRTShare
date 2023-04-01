@@ -49,7 +49,6 @@ namespace Client
             });
 
             CConsole.WriteLine("[Handshake completed] Starting video & audio transmission\n", MessageType.bgSuccess);
-            AudioPlay.PrepareAudio();
 
             EnableQualityButtons(mainView);
         }

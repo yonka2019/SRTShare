@@ -1,11 +1,12 @@
 ﻿using NAudio.Wave;
 using System.Collections.Generic;
 using System.Diagnostics;
+
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace Client
 {
-    internal class AudioPlay
+    internal static class AudioPlay
     {
         private static ushort lastDataPosition;
         private static readonly object _lock = new object();
@@ -17,6 +18,15 @@ namespace Client
 
         private const int SAMPLE_RATE = 44100;
         private const int CHANNELS = 2;
+
+        static AudioPlay()
+        {
+            waveOut = new WaveOutEvent();
+            waveProvider = new BufferedWaveProvider(new WaveFormat(SAMPLE_RATE, CHANNELS));
+
+            waveOut.Init(waveProvider);
+            waveOut.Play();
+        }
 
         private static byte[] Audio  // if full image already built, return it. otherwise, build the full image from the all chunks 
         {
@@ -31,15 +41,6 @@ namespace Client
                 // convert to byte array and return
                 return fullData.ToArray();
             }
-        }
-
-        internal static void PrepareAudio()
-        {
-            waveOut = new WaveOutEvent();
-            waveProvider = new BufferedWaveProvider(new WaveFormat(SAMPLE_RATE, CHANNELS));
-
-            waveOut.Init(waveProvider);
-            waveOut.Play();
         }
 
         internal static void DisposeAudio()

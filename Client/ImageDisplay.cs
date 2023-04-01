@@ -5,13 +5,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 
 namespace Client
 {
-    internal class ImageDisplay
+    internal static class ImageDisplay
     {
         internal static Cyotek.Windows.Forms.ImageBox ImageBoxDisplayIn { private get; set; }
 
