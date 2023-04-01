@@ -13,20 +13,12 @@ namespace Client
 
         private static readonly List<Data.AudioData> audioDataPackets = new List<Data.AudioData>();
 
-        private static readonly WaveOutEvent waveOut;
-        private static readonly BufferedWaveProvider waveProvider;
+        private static WaveOutEvent waveOut;
+        private static BufferedWaveProvider waveProvider;
 
         private const int SAMPLE_RATE = 44100;
         private const int CHANNELS = 2;
 
-        static AudioPlay()
-        {
-            waveOut = new WaveOutEvent();
-            waveProvider = new BufferedWaveProvider(new WaveFormat(SAMPLE_RATE, CHANNELS));
-
-            waveOut.Init(waveProvider);
-            waveOut.Play();
-        }
 
         private static byte[] Audio  // if full image already built, return it. otherwise, build the full image from the all chunks 
         {
@@ -43,10 +35,23 @@ namespace Client
             }
         }
 
+        internal static void PrepareAudio()
+        {
+            waveOut = new WaveOutEvent();
+            waveProvider = new BufferedWaveProvider(new WaveFormat(SAMPLE_RATE, CHANNELS));
+
+            waveOut.Init(waveProvider);
+            waveOut.Play();
+        }
+
+
         internal static void DisposeAudio()
         {
-            waveOut.Stop();
-            waveOut.Dispose();
+            if (waveOut != null)
+            {
+                waveOut.Stop();
+                waveOut.Dispose();
+            }
         }
 
         internal static void ProduceAudio(Data.AudioData audio_chunk)

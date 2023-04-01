@@ -40,6 +40,8 @@ namespace Client
 
         internal static void HandleConclusion(MainView mainView, Control.Handshake handshake_request)
         {
+            // ! To avoid issues here because client didn't have enough time to set all fields [server_encryptionControl, etc..],  the server waits X seconds before sending data packets !
+
             // encryption data received - initialize him for future decrypt necessity
             MainView.Server_EncryptionControl = EncryptionFactory.CreateEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY);
 
@@ -49,6 +51,7 @@ namespace Client
             });
 
             CConsole.WriteLine("[Handshake completed] Starting video & audio transmission\n", MessageType.bgSuccess);
+            AudioPlay.PrepareAudio();  // init objects before receiving audio
 
             EnableQualityButtons(mainView);
         }

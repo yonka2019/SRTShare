@@ -115,12 +115,19 @@ namespace Server
                             Console.WriteLine($"[Handshake] Conclusion: {handshake_request}\n");
                             RequestsHandler.HandleConclusion(packet, handshake_request);
 
-                            // Handshake stage done. starting send keepAlive packets and starting to send data (video) packets
+                            // Handshake stage done. waiting X seconds before starting send keepAlive packets and starting to send data (video & audio) packets
                             Task.Run(async () =>
                             {
                                 CConsole.WriteLine($"[Server] [{SRTSockets[handshake_request.SOURCE_SOCKET_ID].SocketAddress.IPAddress}] Handshake finished. Waiting {DATA_DELAY_MS / 1000} seconds before sending data..\n", MessageType.txtWarning);
 
+                                /*
+                                 * Because the client reeceives the packets in four differents threads (to avoid thread-blocking)
+                                 * the video packets receives before the client set server encryption tokens, which leads to exception because 
+                                 * data can't be decrypted.
+                                 * To avoid that, we are waiting 2 seconds before sending data, to give time to the client to get prepared (set encryption data, prepare audio, etc..)
+                                 */
                                 await Task.Delay(DATA_DELAY_MS);
+
                                 SRTSockets[handshake_request.SOURCE_SOCKET_ID].KeepAlive.Start();  // start keep-alive checking
                                 SRTSockets[handshake_request.SOURCE_SOCKET_ID].Video.Start();  // start video transmit
                                 SRTSockets[handshake_request.SOURCE_SOCKET_ID].Audio.Start();  // start audio transmit

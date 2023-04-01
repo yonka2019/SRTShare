@@ -31,7 +31,9 @@ namespace Client
         internal static uint My_SID = 0;  // the server sends this value on the induction answer (SID -> Socket ID) (MY SID)
 
         internal static bool externalConnection;
-        internal static bool AutoQualityControl = false;
+
+        internal static bool AutoQualityControl;
+        internal static bool AudioTransmission;
 
         private static Thread handlePackets, handleKeepAlivePackets, handleVideoPackets, handleAudioPackets;
 
@@ -40,7 +42,6 @@ namespace Client
         //  .. .. ..
         internal static Dictionary<long, ToolStripMenuItem> QualityButtons;
         internal static BaseEncryption Server_EncryptionControl;
-
 
 #if DEBUG
         internal static ulong dataReceived = 0;  // count data packets received (included chunks)
@@ -54,6 +55,7 @@ namespace Client
         internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
         internal const int DATA_DECREASE_QUALITY_BY = 10; // (0 - 100)
         internal const bool AUTO_QUALITY_CONTROL = false;
+        internal const bool AUDIO_TRANSMISSION = false;
         internal const bool RETRANSMISSION_MODE = true;
         // DEFAULT QUALITY VALUE (to server and client) - ProtocolManager.cs : DEFAULT_QUALITY
 
@@ -65,6 +67,9 @@ namespace Client
 
             autoQualityControl.Checked = AUTO_QUALITY_CONTROL;
             AutoQualityControl = autoQualityControl.Checked;
+
+            audioTrans.Checked = AUDIO_TRANSMISSION;
+            AudioTransmission = audioTrans.Checked;
 
             QualityButtons = new Dictionary<long, ToolStripMenuItem> { { 10L, q_10p }, { 20L, q_20p }, { 30L, q_30p }, { 40L, q_40p }, { 50L, q_50p }, { 60L, q_60p }, { 70L, q_70p }, { 80L, q_80p }, { 90L, q_90p }, { 100L, q_100p } };
             QualityButtons[ProtocolManager.DEFAULT_QUALITY.RoundToNearestTen()].Checked = true;
@@ -224,10 +229,10 @@ namespace Client
 
                 if (Data.SRTHeader.IsData(payload))  // (SRT) Data (chunk of image)
                 {
-                    ServerAliveChecker.Check();
-
                     if (Data.ImageData.IsImage(payload))
                     {
+                        ServerAliveChecker.Check();
+
                         Data.ImageData image_chunk = new Data.ImageData(payload);
                         RequestsHandler.HandleImageData(image_chunk);
                     }
@@ -248,12 +253,16 @@ namespace Client
 
                 if (Data.SRTHeader.IsData(payload))  // (SRT) Data (chunk of audio)
                 {
-                    ServerAliveChecker.Check();
 
                     if (Data.AudioData.IsAudio(payload))
                     {
-                        Data.AudioData audio_chunk = new Data.AudioData(payload);
-                        RequestsHandler.HandleAudioData(audio_chunk);
+                        if (AudioTransmission)  // check if audio transmission enabled by the user
+                        {
+                            ServerAliveChecker.Check();
+
+                            Data.AudioData audio_chunk = new Data.AudioData(payload);
+                            RequestsHandler.HandleAudioData(audio_chunk);
+                        }
                     }
                 }
             }
@@ -304,6 +313,13 @@ namespace Client
 
             CConsole.WriteLine($"[Quality Update] Quality updated to: {newQuality}%\n", MessageType.txtInfo);
             ImageDisplay.CurrentVideoQuality = newQuality;
+        }
+
+        private void AudioTransmission_Click(object sender, EventArgs e)
+        {
+            AudioTransmission = audioTrans.Checked;
+            string flag = AudioTransmission ? "enabled" : "disabled";
+            CConsole.WriteLine($"[Audio] Audio transmission {flag}\n", MessageType.txtInfo);
         }
 
         private void AutoQualityControl_Click(object sender, EventArgs e)
