@@ -305,7 +305,7 @@ namespace Server
             {
                 videoSent += value;
 #if DEBUG
-                Console.Title = $"[Sent] Video {videoSent} | Audio {audioSent}";
+                Console.Title = $"V {videoSent} | A {audioSent}";
 #endif
             }
         }
@@ -317,7 +317,7 @@ namespace Server
             {
                 audioSent += value;
 #if DEBUG
-                Console.Title = $"[Sent] Video {videoSent} | Audio {audioSent}";
+                Console.Title = $"V {videoSent} | A {audioSent}";
 #endif
             }
         }

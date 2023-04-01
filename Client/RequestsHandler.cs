@@ -84,7 +84,7 @@ namespace Client
 
         internal static void HandleImageData(Data.ImageData data_request)
         {
-            DataDebug.VideoReceived++;
+            DataDebug.VideoReceived += 1;
 
             if (data_request.ENCRYPTION_FLAG)
             {
@@ -98,7 +98,7 @@ namespace Client
 
         internal static void HandleAudioData(Data.AudioData data_request)
         {
-            DataDebug.AudioReceived++;
+            DataDebug.AudioReceived += 1;
 
             if (data_request.ENCRYPTION_FLAG)
             {

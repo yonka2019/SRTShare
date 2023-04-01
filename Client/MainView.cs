@@ -354,7 +354,7 @@ namespace Client
             {
                 videoReceived += value;
 #if DEBUG
-                Console.Title = $"[Received] Video {videoReceived} | Audio {audioReceived}";
+                Console.Title = $"V {videoReceived} | A{audioReceived}";
 #endif
             }
         }
@@ -366,7 +366,7 @@ namespace Client
             {
                 audioReceived += value;
 #if DEBUG
-                Console.Title = $"[Received] Video {videoReceived} | Audio {audioReceived}";
+                Console.Title = $"V {videoReceived} | A{audioReceived}";
 #endif
             }
         }

@@ -22,10 +22,11 @@ namespace Server.Managers
 
         private const int SAMPLE_RATE = 44100;
         private const int CHANNELS = 2;
+        private const int AUDIO_SEQNUM_OFFSET = 50000000; 
 
         internal AudioManager(SClient client, BaseEncryption baseEncryption, uint intial_sequence_number)
         {
-            current_sequence_number = intial_sequence_number;  // start from init seq number (MUST BE NOT 0 (because of retransmitRequestedToSeq var))
+            current_sequence_number = intial_sequence_number + AUDIO_SEQNUM_OFFSET; // the image seq numbers and audio seq numbers will be the same, to prevent that, we are ading offset to audio sequence numbers
 
             this.client = client;
 
@@ -78,7 +79,7 @@ namespace Server.Managers
             foreach (Packet packet in data_packets)
             {
                 PacketManager.SendPacket(packet);
-                DataDebug.AudioSent++;
+                DataDebug.AudioSent += 1;
             }
         }
     }
