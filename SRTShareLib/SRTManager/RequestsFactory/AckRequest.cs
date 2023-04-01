@@ -1,24 +1,21 @@
 ﻿using PcapDotNet.Packets;
-using PcapDotNet.Packets.IpV4;
 using SRTShareLib.PcapManager;
-using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.ProtocolFields.Control;
-using System.Collections.Generic;
 
 namespace SRTShareLib.SRTManager.RequestsFactory
 {
-    public class AckRequest : UdpPacket
+    public class ACKRequest : UdpPacket
     {
-        public AckRequest(params ILayer[] layers) : base(layers) { }
+        public ACKRequest(params ILayer[] layers) : base(layers) { }
 
         /// <summary>
         /// The function creates a ack packet
         /// </summary>
         /// <param name="dest_socket_id">Destination socket id</param>
         /// <returns>An ack packet</returns>
-        public Packet NotifyReceived(uint ack_sequence_number, uint dest_socket_id = 0, bool videoStage = false, EncryptionType encryptionType = EncryptionType.None)
+        public Packet ConfirmReceivedImage(uint confirmed_sequence_number, uint dest_socket_id, uint source_socket_id)
         {
-            GetPayloadLayer() = OSIManager.BuildPLayer(new Ack(dest_socket_id, ack_sequence_number).GetByted(), videoStage, encryptionType, GetLayers());
+            GetPayloadLayer() = OSIManager.BuildPLayer(new ACK(dest_socket_id, source_socket_id, confirmed_sequence_number).GetByted());
             return BuildPacket();
         }
     }

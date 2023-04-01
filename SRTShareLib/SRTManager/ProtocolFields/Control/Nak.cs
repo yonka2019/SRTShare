@@ -6,33 +6,23 @@ using System.Threading.Tasks;
 
 namespace SRTShareLib.SRTManager.ProtocolFields.Control
 {
-    public class Nak : SRTHeader
+    public class NAK : SRTHeader
     {
         /// <summary>
         /// Fields -> List<Byte[]> (To send)
         /// </summary>
-        public Nak(uint dest_socket_id, List<uint> lost_packets) : base(ControlType.NAK, dest_socket_id)
+        public NAK(uint dest_socket_id, uint source_socket_id, uint corrupted_sequence_number) : base(ControlType.NAK, dest_socket_id, source_socket_id)
         {
-            LOST_PACKETS = lost_packets; 
-            foreach(uint value in LOST_PACKETS)
-            {
-                byteFields.Add(BitConverter.GetBytes(value));
-            }
+            CORRUPTED_SEQUENCE_NUMBER = corrupted_sequence_number; byteFields.Add(BitConverter.GetBytes(CORRUPTED_SEQUENCE_NUMBER));
         }
 
 
         /// <summary>
         /// Byte[] -> Fields (To extract)
         /// </summary>
-        public Nak(byte[] data) : base(data)  // initialize SRT Control header fields
+        public NAK(byte[] data) : base(data)  // initialize SRT Control header fields
         {
-            LOST_PACKETS = new List<uint>();
-
-            for (int i = 13; i < data.Length; i += 4) // [13 -> end]
-            {
-                uint value = BitConverter.ToUInt32(data.ToArray(), i);
-                LOST_PACKETS.Add(value);
-            }
+            CORRUPTED_SEQUENCE_NUMBER = BitConverter.ToUInt32(data, 11);  // [11 12 13 14]
         }
 
 
@@ -41,14 +31,14 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// </summary>
         /// <param name="data">Byte array to check</param>
         /// <returns>True if nak, false if not</returns>
-        public static bool isNak(byte[] data)
+        public static bool IsNAK(byte[] data)
         {
             return BitConverter.ToUInt16(data, 1) == (ushort)ControlType.NAK;
         }
 
         /// <summary>
-        /// list of 32 bits (2 bytes). All the lost packets' sequence numbers
+        /// 32 bits (4 bytes). number of the corrupted sequence number where the chunks got lost
         /// </summary>
-        public List<uint> LOST_PACKETS { get; private set; }
+        public uint CORRUPTED_SEQUENCE_NUMBER { get; private set; }
     }
 }
