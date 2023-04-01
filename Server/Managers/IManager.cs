@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Server.Managers
+﻿namespace Server.Managers
 {
     internal interface IManager
     {
