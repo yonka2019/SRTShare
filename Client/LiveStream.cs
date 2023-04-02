@@ -18,7 +18,7 @@ using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace Client
 {
-    public partial class MainView : Form
+    public partial class LiveStream : Form
     {
         private readonly Random rnd = new Random();
 
@@ -63,7 +63,7 @@ namespace Client
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        public MainView()
+        public LiveStream()
         {
             InitializeComponent();
 
@@ -314,7 +314,7 @@ namespace Client
 
             long newQuality = QualityButtons.FirstOrDefault(quality => quality.Value == qualitySelected).Key;
 
-            QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MainView.MY_PORT, ConfigManager.PORT));
+            QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, LiveStream.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, LiveStream.MY_PORT, ConfigManager.PORT));
             Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(Server_SID, My_SID, newQuality);
             PacketManager.SendPacket(qualityUpdate_packet);
 

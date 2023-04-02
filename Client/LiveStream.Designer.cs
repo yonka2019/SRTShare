@@ -1,6 +1,6 @@
 ﻿namespace Client
 {
-    partial class MainView
+    partial class LiveStream
     {
         /// <summary>
         /// Required designer variable.
@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainView));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LiveStream));
             this.panel1 = new System.Windows.Forms.Panel();
             this.VideoBox = new Cyotek.Windows.Forms.ImageBox();
             this.QualitySetter = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -97,7 +97,7 @@
             this.QualitySetter.ShowCheckMargin = true;
             this.QualitySetter.ShowImageMargin = false;
             this.QualitySetter.ShowItemToolTips = false;
-            this.QualitySetter.Size = new System.Drawing.Size(185, 290);
+            this.QualitySetter.Size = new System.Drawing.Size(185, 268);
             this.QualitySetter.Text = "Set new quality";
             // 
             // autoQualityControl
@@ -210,14 +210,14 @@
             this.audioTrans.Text = "Audio Transmission";
             this.audioTrans.Click += new System.EventHandler(this.AudioTransmission_Click);
             // 
-            // MainView
+            // LiveStream
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(927, 445);
             this.Controls.Add(this.panel1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "MainView";
+            this.Name = "LiveStream";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "MainView";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainView_FormClosing);
