@@ -54,8 +54,9 @@
             this.panel1.Controls.Add(this.VideoBox);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Margin = new System.Windows.Forms.Padding(0, 0, 0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(927, 445);
+            this.panel1.Size = new System.Drawing.Size(924, 442);
             this.panel1.TabIndex = 0;
             // 
             // VideoBox
@@ -72,9 +73,10 @@
             this.VideoBox.ImageBorderColor = System.Drawing.SystemColors.ControlLight;
             this.VideoBox.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.High;
             this.VideoBox.Location = new System.Drawing.Point(0, 0);
+            this.VideoBox.Margin = new System.Windows.Forms.Padding(0, 0, 0, 0);
             this.VideoBox.Name = "VideoBox";
             this.VideoBox.ShortcutsEnabled = false;
-            this.VideoBox.Size = new System.Drawing.Size(927, 445);
+            this.VideoBox.Size = new System.Drawing.Size(924, 442);
             this.VideoBox.TabIndex = 1;
             this.VideoBox.Text = "Waiting for connection..";
             // 
@@ -214,12 +216,13 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(927, 445);
+            this.ClientSize = new System.Drawing.Size(924, 442);
             this.Controls.Add(this.panel1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(0, 0, 0, 0);
             this.Name = "LiveStream";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "MainView";
+            this.Text = "Live Stream";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainView_FormClosing);
             this.panel1.ResumeLayout(false);
             this.QualitySetter.ResumeLayout(false);
