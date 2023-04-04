@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainMenu));
             this.MainLabel = new System.Windows.Forms.Label();
             this.startButton = new System.Windows.Forms.Button();
@@ -36,6 +37,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.mainTP = new System.Windows.Forms.ToolTip(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -53,7 +55,7 @@
             // startButton
             // 
             this.startButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.startButton.Location = new System.Drawing.Point(33, 95);
+            this.startButton.Location = new System.Drawing.Point(33, 94);
             this.startButton.Name = "startButton";
             this.startButton.Size = new System.Drawing.Size(223, 49);
             this.startButton.TabIndex = 1;
@@ -63,10 +65,12 @@
             // settingsButton
             // 
             this.settingsButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.settingsButton.Location = new System.Drawing.Point(69, 150);
+            this.settingsButton.Image = global::Client.Properties.Resources.database_administrator_40px;
+            this.settingsButton.Location = new System.Drawing.Point(89, 151);
             this.settingsButton.Name = "settingsButton";
             this.settingsButton.Size = new System.Drawing.Size(42, 42);
             this.settingsButton.TabIndex = 2;
+            this.mainTP.SetToolTip(this.settingsButton, "Server settings");
             this.settingsButton.UseVisualStyleBackColor = true;
             this.settingsButton.Click += new System.EventHandler(this.settingsButton_Click);
             // 
@@ -87,6 +91,7 @@
             this.label2.Size = new System.Drawing.Size(133, 25);
             this.label2.TabIndex = 5;
             this.label2.Text = "Yonka && Eyal";
+            this.mainTP.SetToolTip(this.label2, "Creators");
             // 
             // pictureBox1
             // 
@@ -98,14 +103,17 @@
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.pictureBox1.TabIndex = 6;
             this.pictureBox1.TabStop = false;
+            this.mainTP.SetToolTip(this.pictureBox1, "SRTShare Logo");
             // 
             // button1
             // 
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.button1.Location = new System.Drawing.Point(117, 150);
+            this.button1.Image = global::Client.Properties.Resources.chat_settings_40px;
+            this.button1.Location = new System.Drawing.Point(157, 151);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(42, 42);
             this.button1.TabIndex = 7;
+            this.mainTP.SetToolTip(this.button1, "Conversation settings");
             this.button1.UseVisualStyleBackColor = true;
             // 
             // MainMenu
@@ -141,5 +149,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.ToolTip mainTP;
     }
 }

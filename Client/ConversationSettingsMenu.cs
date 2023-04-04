@@ -10,21 +10,11 @@ using System.Windows.Forms;
 
 namespace Client
 {
-    public partial class MainMenu : Form
+    public partial class ConversationSettingsMenu : Form
     {
-        public MainMenu()
+        public ConversationSettingsMenu()
         {
             InitializeComponent();
-        }
-
-        private void MainMenu_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void settingsButton_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }
