@@ -29,187 +29,321 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Settings));
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.serverIP = new MaterialSkin.Controls.MaterialTextBox();
-            this.serverIpLabel = new System.Windows.Forms.Label();
-            this.serverPortLabel = new System.Windows.Forms.Label();
-            this.serverPort = new MaterialSkin.Controls.MaterialTextBox();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.materialTextBox21 = new MaterialSkin.Controls.MaterialTextBox2();
+            this.settingsGP = new System.Windows.Forms.GroupBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.materialTextBox1 = new MaterialSkin.Controls.MaterialTextBox();
+            this.separateLabel = new System.Windows.Forms.Label();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.materialTextBox2 = new MaterialSkin.Controls.MaterialTextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.checkBox2 = new System.Windows.Forms.CheckBox();
+            this.checkBox3 = new System.Windows.Forms.CheckBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.numericUpDown3 = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
+            this.label5 = new System.Windows.Forms.Label();
+            this.button1 = new System.Windows.Forms.Button();
+            this.settingsGP.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.groupBox1.SuspendLayout();
-            this.groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             this.SuspendLayout();
             // 
-            // groupBox1
+            // materialTextBox21
             // 
-            this.groupBox1.Controls.Add(this.serverPortLabel);
-            this.groupBox1.Controls.Add(this.serverPort);
-            this.groupBox1.Controls.Add(this.serverIpLabel);
-            this.groupBox1.Controls.Add(this.serverIP);
-            this.groupBox1.Location = new System.Drawing.Point(37, 12);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(347, 133);
-            this.groupBox1.TabIndex = 0;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Server Settings";
+            this.materialTextBox21.AnimateReadOnly = false;
+            this.materialTextBox21.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.materialTextBox21.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
+            this.materialTextBox21.Depth = 0;
+            this.materialTextBox21.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialTextBox21.HideSelection = true;
+            this.materialTextBox21.LeadingIcon = null;
+            this.materialTextBox21.Location = new System.Drawing.Point(174, 25);
+            this.materialTextBox21.MaxLength = 32767;
+            this.materialTextBox21.MouseState = MaterialSkin.MouseState.OUT;
+            this.materialTextBox21.Name = "materialTextBox21";
+            this.materialTextBox21.PasswordChar = '\0';
+            this.materialTextBox21.PrefixSuffixText = null;
+            this.materialTextBox21.ReadOnly = false;
+            this.materialTextBox21.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.materialTextBox21.SelectedText = "";
+            this.materialTextBox21.SelectionLength = 0;
+            this.materialTextBox21.SelectionStart = 0;
+            this.materialTextBox21.ShortcutsEnabled = true;
+            this.materialTextBox21.Size = new System.Drawing.Size(250, 36);
+            this.materialTextBox21.TabIndex = 0;
+            this.materialTextBox21.TabStop = false;
+            this.materialTextBox21.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.materialTextBox21.TrailingIcon = null;
+            this.materialTextBox21.UseSystemPasswordChar = false;
+            this.materialTextBox21.UseTallSize = false;
             // 
-            // serverIP
+            // settingsGP
             // 
-            this.serverIP.AnimateReadOnly = false;
-            this.serverIP.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.serverIP.Depth = 0;
-            this.serverIP.Font = new System.Drawing.Font("Roboto", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.serverIP.LeadingIcon = null;
-            this.serverIP.Location = new System.Drawing.Point(81, 23);
-            this.serverIP.MaxLength = 50;
-            this.serverIP.MouseState = MaterialSkin.MouseState.OUT;
-            this.serverIP.Multiline = false;
-            this.serverIP.Name = "serverIP";
-            this.serverIP.Size = new System.Drawing.Size(137, 36);
-            this.serverIP.TabIndex = 1;
-            this.serverIP.Text = "";
-            this.serverIP.TrailingIcon = null;
-            this.serverIP.UseTallSize = false;
-            // 
-            // serverIpLabel
-            // 
-            this.serverIpLabel.AutoSize = true;
-            this.serverIpLabel.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.serverIpLabel.Location = new System.Drawing.Point(6, 32);
-            this.serverIpLabel.Name = "serverIpLabel";
-            this.serverIpLabel.Size = new System.Drawing.Size(69, 19);
-            this.serverIpLabel.TabIndex = 2;
-            this.serverIpLabel.Text = "Server IP:";
-            // 
-            // serverPortLabel
-            // 
-            this.serverPortLabel.AutoSize = true;
-            this.serverPortLabel.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.serverPortLabel.Location = new System.Drawing.Point(6, 85);
-            this.serverPortLabel.Name = "serverPortLabel";
-            this.serverPortLabel.Size = new System.Drawing.Size(83, 19);
-            this.serverPortLabel.TabIndex = 4;
-            this.serverPortLabel.Text = "Server Port:";
-            // 
-            // serverPort
-            // 
-            this.serverPort.AnimateReadOnly = false;
-            this.serverPort.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.serverPort.Depth = 0;
-            this.serverPort.Font = new System.Drawing.Font("Roboto", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.serverPort.LeadingIcon = null;
-            this.serverPort.Location = new System.Drawing.Point(95, 76);
-            this.serverPort.MaxLength = 50;
-            this.serverPort.MouseState = MaterialSkin.MouseState.OUT;
-            this.serverPort.Multiline = false;
-            this.serverPort.Name = "serverPort";
-            this.serverPort.Size = new System.Drawing.Size(137, 36);
-            this.serverPort.TabIndex = 3;
-            this.serverPort.Text = "";
-            this.serverPort.TrailingIcon = null;
-            this.serverPort.UseTallSize = false;
-            // 
-            // groupBox2
-            // 
-            this.groupBox2.Controls.Add(this.label1);
-            this.groupBox2.Controls.Add(this.materialTextBox1);
-            this.groupBox2.Controls.Add(this.label2);
-            this.groupBox2.Controls.Add(this.materialTextBox2);
-            this.groupBox2.Location = new System.Drawing.Point(37, 151);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(347, 207);
-            this.groupBox2.TabIndex = 5;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Conversation Settings";
+            this.settingsGP.Controls.Add(this.button1);
+            this.settingsGP.Controls.Add(this.checkBox3);
+            this.settingsGP.Controls.Add(this.checkBox2);
+            this.settingsGP.Controls.Add(this.checkBox1);
+            this.settingsGP.Controls.Add(this.groupBox1);
+            this.settingsGP.Controls.Add(this.numericUpDown1);
+            this.settingsGP.Controls.Add(this.label3);
+            this.settingsGP.Controls.Add(this.label2);
+            this.settingsGP.Controls.Add(this.comboBox1);
+            this.settingsGP.Controls.Add(this.separateLabel);
+            this.settingsGP.Controls.Add(this.label1);
+            this.settingsGP.Controls.Add(this.materialTextBox21);
+            this.settingsGP.Location = new System.Drawing.Point(12, 12);
+            this.settingsGP.Name = "settingsGP";
+            this.settingsGP.Size = new System.Drawing.Size(599, 334);
+            this.settingsGP.TabIndex = 1;
+            this.settingsGP.TabStop = false;
+            this.settingsGP.Text = "Conversation Settings";
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label1.Location = new System.Drawing.Point(6, 85);
+            this.label1.Font = new System.Drawing.Font("Calibri", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label1.Location = new System.Drawing.Point(234, 64);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(75, 19);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "Intial PSN:";
+            this.label1.Size = new System.Drawing.Size(131, 24);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "Server IP:PORT";
             // 
-            // materialTextBox1
+            // separateLabel
             // 
-            this.materialTextBox1.AnimateReadOnly = false;
-            this.materialTextBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.materialTextBox1.Depth = 0;
-            this.materialTextBox1.Font = new System.Drawing.Font("Roboto", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialTextBox1.LeadingIcon = null;
-            this.materialTextBox1.Location = new System.Drawing.Point(95, 76);
-            this.materialTextBox1.MaxLength = 50;
-            this.materialTextBox1.MouseState = MaterialSkin.MouseState.OUT;
-            this.materialTextBox1.Multiline = false;
-            this.materialTextBox1.Name = "materialTextBox1";
-            this.materialTextBox1.Size = new System.Drawing.Size(137, 36);
-            this.materialTextBox1.TabIndex = 3;
-            this.materialTextBox1.Text = "";
-            this.materialTextBox1.TrailingIcon = null;
-            this.materialTextBox1.UseTallSize = false;
+            this.separateLabel.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.separateLabel.Location = new System.Drawing.Point(0, 96);
+            this.separateLabel.Name = "separateLabel";
+            this.separateLabel.Size = new System.Drawing.Size(599, 2);
+            this.separateLabel.TabIndex = 5;
+            // 
+            // comboBox1
+            // 
+            this.comboBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Items.AddRange(new object[] {
+            "AES256",
+            "XOR",
+            "SUBSTITUTION"});
+            this.comboBox1.Location = new System.Drawing.Point(117, 127);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(112, 24);
+            this.comboBox1.TabIndex = 6;
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label2.Location = new System.Drawing.Point(6, 32);
+            this.label2.Font = new System.Drawing.Font("Microsoft JhengHei UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label2.Location = new System.Drawing.Point(6, 129);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(81, 19);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Encryption:";
+            this.label2.Size = new System.Drawing.Size(105, 20);
+            this.label2.TabIndex = 7;
+            this.label2.Text = "• Encryption:";
             // 
-            // materialTextBox2
+            // label3
             // 
-            this.materialTextBox2.AnimateReadOnly = false;
-            this.materialTextBox2.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.materialTextBox2.Depth = 0;
-            this.materialTextBox2.Font = new System.Drawing.Font("Roboto", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialTextBox2.LeadingIcon = null;
-            this.materialTextBox2.Location = new System.Drawing.Point(81, 23);
-            this.materialTextBox2.MaxLength = 50;
-            this.materialTextBox2.MouseState = MaterialSkin.MouseState.OUT;
-            this.materialTextBox2.Multiline = false;
-            this.materialTextBox2.Name = "materialTextBox2";
-            this.materialTextBox2.Size = new System.Drawing.Size(137, 36);
-            this.materialTextBox2.TabIndex = 1;
-            this.materialTextBox2.Text = "";
-            this.materialTextBox2.TrailingIcon = null;
-            this.materialTextBox2.UseTallSize = false;
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft JhengHei UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label3.Location = new System.Drawing.Point(6, 171);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(262, 20);
+            this.label3.TabIndex = 8;
+            this.label3.Text = "• Intial Packet Sequence Number:";
+            // 
+            // numericUpDown1
+            // 
+            this.numericUpDown1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.numericUpDown1.Location = new System.Drawing.Point(274, 170);
+            this.numericUpDown1.Maximum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
+            this.numericUpDown1.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numericUpDown1.Name = "numericUpDown1";
+            this.numericUpDown1.Size = new System.Drawing.Size(77, 23);
+            this.numericUpDown1.TabIndex = 9;
+            this.numericUpDown1.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.numericUpDown1.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.groupBox1.Controls.Add(this.numericUpDown2);
+            this.groupBox1.Controls.Add(this.label5);
+            this.groupBox1.Controls.Add(this.numericUpDown3);
+            this.groupBox1.Controls.Add(this.label4);
+            this.groupBox1.Location = new System.Drawing.Point(374, 127);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(225, 124);
+            this.groupBox1.TabIndex = 10;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Auto Quality Control";
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.checkBox1.Font = new System.Drawing.Font("Microsoft JhengHei UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.checkBox1.Location = new System.Drawing.Point(10, 212);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(195, 24);
+            this.checkBox1.TabIndex = 12;
+            this.checkBox1.Text = "• Auto Quality Control";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            // 
+            // checkBox2
+            // 
+            this.checkBox2.AutoSize = true;
+            this.checkBox2.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.checkBox2.Font = new System.Drawing.Font("Microsoft JhengHei UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.checkBox2.Location = new System.Drawing.Point(10, 296);
+            this.checkBox2.Name = "checkBox2";
+            this.checkBox2.Size = new System.Drawing.Size(201, 24);
+            this.checkBox2.TabIndex = 13;
+            this.checkBox2.Text = "• Retransmission Mode";
+            this.checkBox2.UseVisualStyleBackColor = true;
+            // 
+            // checkBox3
+            // 
+            this.checkBox3.AutoSize = true;
+            this.checkBox3.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.checkBox3.Font = new System.Drawing.Font("Microsoft JhengHei UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.checkBox3.Location = new System.Drawing.Point(10, 254);
+            this.checkBox3.Name = "checkBox3";
+            this.checkBox3.Size = new System.Drawing.Size(186, 24);
+            this.checkBox3.TabIndex = 14;
+            this.checkBox3.Text = "• Audio Transmission";
+            this.checkBox3.UseVisualStyleBackColor = true;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Microsoft JhengHei UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label4.Location = new System.Drawing.Point(6, 40);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(149, 18);
+            this.label4.TabIndex = 10;
+            this.label4.Text = "Data % loss required:";
+            // 
+            // numericUpDown3
+            // 
+            this.numericUpDown3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.numericUpDown3.Location = new System.Drawing.Point(161, 39);
+            this.numericUpDown3.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numericUpDown3.Name = "numericUpDown3";
+            this.numericUpDown3.Size = new System.Drawing.Size(52, 21);
+            this.numericUpDown3.TabIndex = 15;
+            this.numericUpDown3.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.numericUpDown3.Value = new decimal(new int[] {
+            55,
+            0,
+            0,
+            0});
+            // 
+            // numericUpDown2
+            // 
+            this.numericUpDown2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.numericUpDown2.Increment = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.numericUpDown2.Location = new System.Drawing.Point(154, 80);
+            this.numericUpDown2.Maximum = new decimal(new int[] {
+            90,
+            0,
+            0,
+            0});
+            this.numericUpDown2.Minimum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.numericUpDown2.Name = "numericUpDown2";
+            this.numericUpDown2.Size = new System.Drawing.Size(52, 21);
+            this.numericUpDown2.TabIndex = 17;
+            this.numericUpDown2.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.numericUpDown2.Value = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Font = new System.Drawing.Font("Microsoft JhengHei UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label5.Location = new System.Drawing.Point(6, 81);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(142, 18);
+            this.label5.TabIndex = 16;
+            this.label5.Text = "Decrease quality by:";
+            // 
+            // button1
+            // 
+            this.button1.Font = new System.Drawing.Font("Microsoft JhengHei UI", 12F);
+            this.button1.Location = new System.Drawing.Point(408, 272);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(151, 48);
+            this.button1.TabIndex = 15;
+            this.button1.Text = "Save and Exit";
+            this.button1.UseVisualStyleBackColor = true;
             // 
             // Settings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(421, 370);
-            this.Controls.Add(this.groupBox2);
-            this.Controls.Add(this.groupBox1);
+            this.ClientSize = new System.Drawing.Size(623, 358);
+            this.Controls.Add(this.settingsGP);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Settings";
             this.Text = "Settings";
+            this.settingsGP.ResumeLayout(false);
+            this.settingsGP.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.GroupBox groupBox1;
-        private MaterialSkin.Controls.MaterialTextBox serverIP;
-        private System.Windows.Forms.Label serverIpLabel;
-        private System.Windows.Forms.Label serverPortLabel;
-        private MaterialSkin.Controls.MaterialTextBox serverPort;
-        private System.Windows.Forms.GroupBox groupBox2;
+        private MaterialSkin.Controls.MaterialTextBox2 materialTextBox21;
+        private System.Windows.Forms.GroupBox settingsGP;
         private System.Windows.Forms.Label label1;
-        private MaterialSkin.Controls.MaterialTextBox materialTextBox1;
+        private System.Windows.Forms.Label separateLabel;
+        private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Label label2;
-        private MaterialSkin.Controls.MaterialTextBox materialTextBox2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.NumericUpDown numericUpDown1;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.CheckBox checkBox3;
+        private System.Windows.Forms.CheckBox checkBox2;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.NumericUpDown numericUpDown3;
+        private System.Windows.Forms.NumericUpDown numericUpDown2;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Button button1;
     }
 }

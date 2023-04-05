@@ -35,7 +35,6 @@
             this.separateLabel = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -63,10 +62,11 @@
             // settingsButton
             // 
             this.settingsButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.settingsButton.Location = new System.Drawing.Point(69, 150);
+            this.settingsButton.Location = new System.Drawing.Point(86, 150);
             this.settingsButton.Name = "settingsButton";
-            this.settingsButton.Size = new System.Drawing.Size(42, 42);
+            this.settingsButton.Size = new System.Drawing.Size(125, 30);
             this.settingsButton.TabIndex = 2;
+            this.settingsButton.Text = "Settings";
             this.settingsButton.UseVisualStyleBackColor = true;
             this.settingsButton.Click += new System.EventHandler(this.settingsButton_Click);
             // 
@@ -85,7 +85,7 @@
             this.label2.Location = new System.Drawing.Point(78, 234);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(133, 25);
-            this.label2.TabIndex = 5;
+            this.label2.TabIndex = 3;
             this.label2.Text = "Yonka && Eyal";
             // 
             // pictureBox1
@@ -99,21 +99,11 @@
             this.pictureBox1.TabIndex = 6;
             this.pictureBox1.TabStop = false;
             // 
-            // button1
-            // 
-            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.button1.Location = new System.Drawing.Point(117, 150);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(42, 42);
-            this.button1.TabIndex = 7;
-            this.button1.UseVisualStyleBackColor = true;
-            // 
             // MainMenu
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(289, 276);
-            this.Controls.Add(this.button1);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.separateLabel);
@@ -140,6 +130,5 @@
         private System.Windows.Forms.Label separateLabel;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.PictureBox pictureBox1;
-        private System.Windows.Forms.Button button1;
     }
 }
