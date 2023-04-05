@@ -41,7 +41,7 @@
             this.groupBox1.Controls.Add(this.serverIP);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(413, 180);
+            this.groupBox1.Size = new System.Drawing.Size(659, 367);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Server Settings";
@@ -50,7 +50,7 @@
             // 
             this.serverIpLabel.AutoSize = true;
             this.serverIpLabel.Font = new System.Drawing.Font("Calibri", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.serverIpLabel.Location = new System.Drawing.Point(157, 81);
+            this.serverIpLabel.Location = new System.Drawing.Point(266, 58);
             this.serverIpLabel.Name = "serverIpLabel";
             this.serverIpLabel.Size = new System.Drawing.Size(127, 23);
             this.serverIpLabel.TabIndex = 2;
@@ -63,12 +63,12 @@
             this.serverIP.Depth = 0;
             this.serverIP.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.serverIP.LeadingIcon = null;
-            this.serverIP.Location = new System.Drawing.Point(161, 42);
+            this.serverIP.Location = new System.Drawing.Point(236, 19);
             this.serverIP.MaxLength = 50;
             this.serverIP.MouseState = MaterialSkin.MouseState.OUT;
             this.serverIP.Multiline = false;
             this.serverIP.Name = "serverIP";
-            this.serverIP.Size = new System.Drawing.Size(123, 36);
+            this.serverIP.Size = new System.Drawing.Size(187, 36);
             this.serverIP.TabIndex = 1;
             this.serverIP.Text = "";
             this.serverIP.TrailingIcon = null;
@@ -78,7 +78,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(546, 294);
+            this.ClientSize = new System.Drawing.Size(683, 391);
             this.Controls.Add(this.groupBox1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "ServerSettingsMenu";
