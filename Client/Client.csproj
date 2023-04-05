@@ -141,13 +141,11 @@
     <Compile Include="LiveStream.Designer.cs">
       <DependentUpon>LiveStream.cs</DependentUpon>
     </Compile>
-    <Compile Include="MainMenu.Designer.cs" />
     <Compile Include="MainView.Designer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestsHandler.cs" />
     <Compile Include="ServerAliveChecker.cs" />
-    <Compile Include="Settings.Designer.cs" />
     <Compile Include="SettingsMenu.cs">
       <SubType>Form</SubType>
     </Compile>
