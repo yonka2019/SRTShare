@@ -1,6 +1,6 @@
 ﻿namespace Client
 {
-    partial class LiveStream
+    partial class MainView
     {
         /// <summary>
         /// Required designer variable.
@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LiveStream));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainView));
             this.panel1 = new System.Windows.Forms.Panel();
             this.VideoBox = new Cyotek.Windows.Forms.ImageBox();
             this.QualitySetter = new System.Windows.Forms.ContextMenuStrip(this.components);

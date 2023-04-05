@@ -63,39 +63,9 @@ namespace Client.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static System.Drawing.Icon imac {
+        internal static System.Drawing.Icon icons8_tv {
             get {
-                object obj = ResourceManager.GetObject("imac", resourceCulture);
-                return ((System.Drawing.Icon)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
-        /// </summary>
-        internal static System.Drawing.Icon settings {
-            get {
-                object obj = ResourceManager.GetObject("settings", resourceCulture);
-                return ((System.Drawing.Icon)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap SRTShare_logo {
-            get {
-                object obj = ResourceManager.GetObject("SRTShare_logo", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
-        /// </summary>
-        internal static System.Drawing.Icon tv {
-            get {
-                object obj = ResourceManager.GetObject("tv", resourceCulture);
+                object obj = ResourceManager.GetObject("icons8_tv", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
             }
         }
