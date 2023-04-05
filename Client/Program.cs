@@ -26,7 +26,7 @@ namespace Client
             NetworkManager.PrintInterfaceData();
             NetworkManager.PrintServerData();
 
-            Application.Run(new LiveStream());
+            Application.Run(new MainMenu());
         }
 
         private static void UnhandledException(object sender, UnhandledExceptionEventArgs e)

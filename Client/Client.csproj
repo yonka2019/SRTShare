@@ -68,7 +68,8 @@
     <SignManifests>false</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Resources\icons8_tv.ico</ApplicationIcon>
+    <ApplicationIcon>
+    </ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Cyotek.Windows.Forms.ImageBox, Version=1.2.0.0, Culture=neutral, PublicKeyToken=58daa28b0b2de221, processorArchitecture=MSIL">
@@ -147,7 +148,6 @@
     <Compile Include="LiveStream.Designer.cs">
       <DependentUpon>LiveStream.cs</DependentUpon>
     </Compile>
-    <Compile Include="MainView.Designer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestsHandler.cs" />
@@ -155,8 +155,8 @@
     <Compile Include="Settings.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SettingsMenu.Designer.cs">
-      <DependentUpon>SettingsMenu.cs</DependentUpon>
+    <Compile Include="Settings.Designer.cs">
+      <DependentUpon>Settings.cs</DependentUpon>
     </Compile>
     <EmbeddedResource Include="MainMenu.resx">
       <DependentUpon>MainMenu.cs</DependentUpon>
@@ -211,7 +211,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\icons8_tv.ico" />
+    <Content Include="Resources\imac.ico" />
+    <Content Include="Resources\settings.ico" />
+    <Content Include="Resources\SRTShare_logo.png" />
+    <Content Include="Resources\tv.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
