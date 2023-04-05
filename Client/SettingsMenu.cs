@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace Client
 {
-    public partial class ServerSettingsMenu : Form
+    public partial class SettingsMenu : Form
     {
-        public ServerSettingsMenu()
+        public SettingsMenu()
         {
             InitializeComponent();
         }

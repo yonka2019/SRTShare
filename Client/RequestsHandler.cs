@@ -23,28 +23,28 @@ namespace Client
         /// <param name="handshake_request">Handshake object</param>
         internal static void HandleInduction(Control.Handshake handshake_request)
         {
-            HandshakeRequest handshake_response = new HandshakeRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MainView.MY_PORT, ConfigManager.PORT));
+            HandshakeRequest handshake_response = new HandshakeRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, LiveStream.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, LiveStream.MY_PORT, ConfigManager.PORT));
 
             // client -> server (conclusion)
 
-            IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedIP());
+            IpV4Address peer_ip = new IpV4Address(LiveStream.GetAdaptedIP());
 
             byte[] myPublicKey;
-            if (MainView.ENCRYPTION != EncryptionType.None)
+            if (LiveStream.ENCRYPTION != EncryptionType.None)
                 myPublicKey = DiffieHellman.MyPublicKey;
             else
                 myPublicKey = new byte[DiffieHellman.PUBLIC_KEY_SIZE];
 
-            Packet handshake_packet = handshake_response.Conclusion(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, MainView.My_SID, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey, handshake_request.RETRANSMISSION_MODE);
+            Packet handshake_packet = handshake_response.Conclusion(init_psn: LiveStream.INITIAL_PSN, p_ip: peer_ip, clientSide: true, LiveStream.My_SID, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey, handshake_request.RETRANSMISSION_MODE);
             PacketManager.SendPacket(handshake_packet);
         }
 
-        internal static void HandleConclusion(MainView mainView, Control.Handshake handshake_request)
+        internal static void HandleConclusion(LiveStream mainView, Control.Handshake handshake_request)
         {
             // ! To avoid issues here because client didn't have enough time to set all fields [server_encryptionControl, etc..],  the server waits X seconds before sending data packets !
 
             // encryption data received - initialize him for future decrypt necessity
-            MainView.Server_EncryptionControl = EncryptionFactory.CreateEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY);
+            LiveStream.Server_EncryptionControl = EncryptionFactory.CreateEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY);
 
             mainView.Invoke((MethodInvoker)delegate
             {
@@ -69,8 +69,8 @@ namespace Client
             HandshakeRequest handshake = new HandshakeRequest
                     (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
 
-            IpV4Address peer_ip = new IpV4Address(MainView.GetAdaptedIP());
-            Packet handshake_packet = handshake.Induction(init_psn: MainView.INITIAL_PSN, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)MainView.ENCRYPTION, new byte[DiffieHellman.PUBLIC_KEY_SIZE], MainView.RETRANSMISSION_MODE);
+            IpV4Address peer_ip = new IpV4Address(LiveStream.GetAdaptedIP());
+            Packet handshake_packet = handshake.Induction(init_psn: LiveStream.INITIAL_PSN, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)LiveStream.ENCRYPTION, new byte[DiffieHellman.PUBLIC_KEY_SIZE], LiveStream.RETRANSMISSION_MODE);
 
             PacketManager.SendPacket(handshake_packet);
         }
@@ -79,8 +79,8 @@ namespace Client
         {
             Debug.WriteLine("[KEEP-ALIVE] Received request\n");
 
-            KeepAliveRequest keepAlive_response = new KeepAliveRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MainView.MY_PORT, ConfigManager.PORT));
-            Packet keepAlive_confirm = keepAlive_response.Alive(MainView.Server_SID, MainView.My_SID);
+            KeepAliveRequest keepAlive_response = new KeepAliveRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, LiveStream.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, LiveStream.MY_PORT, ConfigManager.PORT));
+            Packet keepAlive_confirm = keepAlive_response.Alive(LiveStream.Server_SID, LiveStream.My_SID);
             PacketManager.SendPacket(keepAlive_confirm);
 
             Debug.WriteLine("[KEEP-ALIVE] Sending confirm\n");
@@ -92,10 +92,10 @@ namespace Client
 
             if (data_request.ENCRYPTION_FLAG)
             {
-                if (!Enum.IsDefined(typeof(EncryptionType), MainView.ENCRYPTION))
-                    throw new Exception($"'{MainView.ENCRYPTION}' This encryption method isn't supported yet");
+                if (!Enum.IsDefined(typeof(EncryptionType), LiveStream.ENCRYPTION))
+                    throw new Exception($"'{LiveStream.ENCRYPTION}' This encryption method isn't supported yet");
 
-                data_request.DATA = MainView.Server_EncryptionControl.TryDecrypt(data_request.DATA);
+                data_request.DATA = LiveStream.Server_EncryptionControl.TryDecrypt(data_request.DATA);
             }
             ImageDisplay.ProduceImage(data_request);
         }
@@ -106,10 +106,10 @@ namespace Client
 
             if (data_request.ENCRYPTION_FLAG)
             {
-                if (!Enum.IsDefined(typeof(EncryptionType), MainView.ENCRYPTION))
-                    throw new Exception($"'{MainView.ENCRYPTION}' This encryption method isn't supported yet");
+                if (!Enum.IsDefined(typeof(EncryptionType), LiveStream.ENCRYPTION))
+                    throw new Exception($"'{LiveStream.ENCRYPTION}' This encryption method isn't supported yet");
 
-                data_request.DATA = MainView.Server_EncryptionControl.TryDecrypt(data_request.DATA);
+                data_request.DATA = LiveStream.Server_EncryptionControl.TryDecrypt(data_request.DATA);
             }
             AudioPlay.ProduceAudio(data_request);
         }
@@ -133,9 +133,9 @@ namespace Client
         internal static void RequestForRetransmit(uint corruptedImageSequenceNumber)
         {
             NAKRequest nak_request = new NAKRequest
-                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MainView.MY_PORT, ConfigManager.PORT));
+                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, LiveStream.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, LiveStream.MY_PORT, ConfigManager.PORT));
 
-            Packet nak_packet = nak_request.RequestRetransmit(corruptedImageSequenceNumber, MainView.Server_SID, MainView.My_SID);
+            Packet nak_packet = nak_request.RequestRetransmit(corruptedImageSequenceNumber, LiveStream.Server_SID, LiveStream.My_SID);
             PacketManager.SendPacket(nak_packet);
         }
 
@@ -146,9 +146,9 @@ namespace Client
         internal static void SendImageConfirm(uint goodImageSequenceNumber)
         {
             ACKRequest ack_request = new ACKRequest
-                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MainView.MY_PORT, ConfigManager.PORT));
+                                (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, LiveStream.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, LiveStream.MY_PORT, ConfigManager.PORT));
 
-            Packet ack_packet = ack_request.ConfirmReceivedImage(goodImageSequenceNumber, MainView.Server_SID, MainView.My_SID);
+            Packet ack_packet = ack_request.ConfirmReceivedImage(goodImageSequenceNumber, LiveStream.Server_SID, LiveStream.My_SID);
 
             // send triple ack confirm (if one of AKCs them lost or corruped) - server will get only the one he receive and ignore the others
             PacketManager.SendPacket(ack_packet);
@@ -159,9 +159,9 @@ namespace Client
         /// <summary>
         /// When video staged achieved, the quality buttons should be enabled 
         /// </summary>
-        private static void EnableQualityButtons(MainView mainView)
+        private static void EnableQualityButtons(LiveStream mainView)
         {
-            foreach (ToolStripMenuItem button in MainView.QualityButtons.Values)
+            foreach (ToolStripMenuItem button in LiveStream.QualityButtons.Values)
             {
                 if (mainView.QualitySetter.InvokeRequired && mainView.QualitySetter.IsHandleCreated)
                 {

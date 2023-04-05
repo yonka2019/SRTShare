@@ -1,6 +1,6 @@
 ﻿namespace Client
 {
-    partial class ServerSettingsMenu
+    partial class SettingsMenu
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ServerSettingsMenu));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SettingsMenu));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.serverIpLabel = new System.Windows.Forms.Label();
             this.serverIP = new MaterialSkin.Controls.MaterialTextBox();
