@@ -27,7 +27,7 @@ namespace Client
 
             EncryptionCBox.Items.AddRange(Enum.GetValues(typeof(EncryptionType)).Cast<object>().ToArray());  // load encryption options
 
-            IP_Port_Regex = new Regex(@"^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})$");
+            X_Port_Regex = new Regex(@"^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})$");
         }
 
         private void Settings_Load(object sender, EventArgs e)
