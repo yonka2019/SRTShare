@@ -27,5 +27,10 @@ namespace Client
             Settings settings = new Settings();
             settings.ShowDialog();
         }
+
+        private void StartButton_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

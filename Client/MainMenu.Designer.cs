@@ -61,6 +61,7 @@
             this.StartButton.TabIndex = 1;
             this.StartButton.Text = "Start Conversation";
             this.StartButton.UseVisualStyleBackColor = true;
+            this.StartButton.Click += new System.EventHandler(this.StartButton_Click);
             // 
             // SettingsButton
             // 

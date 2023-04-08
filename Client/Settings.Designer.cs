@@ -77,6 +77,7 @@
             this.ServerIpPortTB.ShowAssistiveText = true;
             this.ServerIpPortTB.Size = new System.Drawing.Size(250, 52);
             this.ServerIpPortTB.TabIndex = 2;
+            this.ServerIpPortTB.TabStop = false;
             this.ServerIpPortTB.Text = "192.168.1.29:1397";
             this.ServerIpPortTB.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.ServerIpPortTB.TrailingIcon = null;
@@ -302,11 +303,11 @@
             // 
             this.ServerIpPortLabel.AutoSize = true;
             this.ServerIpPortLabel.Font = new System.Drawing.Font("Calibri", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.ServerIpPortLabel.Location = new System.Drawing.Point(236, 73);
+            this.ServerIpPortLabel.Location = new System.Drawing.Point(165, 71);
             this.ServerIpPortLabel.Name = "ServerIpPortLabel";
-            this.ServerIpPortLabel.Size = new System.Drawing.Size(127, 23);
+            this.ServerIpPortLabel.Size = new System.Drawing.Size(268, 23);
             this.ServerIpPortLabel.TabIndex = 1;
-            this.ServerIpPortLabel.Text = "Server IP:PORT";
+            this.ServerIpPortLabel.Text = "Server IP:PORT / Hostname:PORT";
             // 
             // Settings
             // 

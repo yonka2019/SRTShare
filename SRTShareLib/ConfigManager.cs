@@ -29,37 +29,45 @@ namespace SRTShareLib
         {
             calledFrom = CalledFrom();
 
-            while (configDirectory == null)
+            if (calledFrom == App.Server)
             {
-                // Read the JSON file into a string
-                configDirectory = UpDirTo(Directory.GetCurrentDirectory(), CONFIG_NAME);
-                if (configDirectory == null || ALWAYS_CREATE_NEW)
+                while (configDirectory == null)
                 {
-                    CConsole.WriteLine("[ERROR] Can't find config file (or maybe he is duplicated at the same directory?)\n" +
-                        "You can create your own config file, press [C] key to create it, or any another key to exit", MessageType.txtWarning);
-
-                    if (Console.ReadKey().Key == ConsoleKey.C)
+                    // Read the JSON file into a string
+                    configDirectory = UpDirTo(Directory.GetCurrentDirectory(), CONFIG_NAME);
+                    if (configDirectory == null || ALWAYS_CREATE_NEW)
                     {
-                        GetConfigData(out string ip, out string port);
-                        CreateConfig(ip, port);
+                        CConsole.WriteLine("[ERROR] Can't find config file (or maybe he is duplicated at the same directory?)\n" +
+                            "You can create your own config file, press [C] key to create it, or any another key to exit", MessageType.txtWarning);
 
-                        Console.WriteLine("Config file successfully created!\n" +
-                            "Press any key to restart the application...");
-                        Console.ReadKey();
+                        if (Console.ReadKey().Key == ConsoleKey.C)
+                        {
+                            GetConfigData(out string ip, out string port);
+                            CreateConfig(ip, port);
 
-                        Console.Clear();
+                            Console.WriteLine("Config file successfully created!\n" +
+                                "Press any key to restart the application...");
+                            Console.ReadKey();
+
+                            Console.Clear();
+                        }
+                        else
+                            Environment.Exit(-1);
                     }
-                    else
-                        Environment.Exit(-1);
                 }
+                string json = File.ReadAllText($"{configDirectory}\\{CONFIG_NAME}");
+
+                // Deserialize the JSON string into a Person object
+                dynamic server = JsonConvert.DeserializeObject(json);
+
+                SetData(server.IP, server.PORT);
             }
-            string json = File.ReadAllText($"{configDirectory}\\{CONFIG_NAME}");
+        }
 
-            // Deserialize the JSON string into a Person object
-            dynamic server = JsonConvert.DeserializeObject(json);
-
-            IP = server.IP;
-            PORT = server.PORT;
+        private static void SetData(string ip, ushort port)
+        {
+            IP = ip;
+            PORT = port;
         }
 
         private static void CreateConfig(string ip, string port)
@@ -93,11 +101,6 @@ namespace SRTShareLib
             {
                 if (calledFrom == App.Server)
                     Console.WriteLine("* Put here your own LOCAL IP (LAN). Even if you are using external connection.\n[OR] you can input \"my\" to auto-set your local ip.\n");
-
-                else if (calledFrom == App.Client)
-                    Console.WriteLine("* If your server in the same subnet with the client\n" +
-                    "put here the local ip of the server (LAN), otherwise, put the public one (WAN).\n" +
-                    "In addition, you can also put here a hostname (DNS Supported).");
 
                 Console.Write(">> Server IP: ");
                 IP = Console.ReadLine();

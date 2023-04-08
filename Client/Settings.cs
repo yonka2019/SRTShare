@@ -15,7 +15,8 @@ namespace Client
     {
         // 8 Settings
         private static readonly AppSettings s = AppSettings.Default;
-        private readonly Regex IP_Port_Regex;
+        private readonly Regex X_Port_Regex;
+        private readonly Regex IP_Regex;
 
         public Settings()
         {
@@ -67,11 +68,8 @@ namespace Client
         private async void SaveExitButton_Click(object sender, EventArgs e)
         {
             (string ip, ushort port) = ExtractServerIP_Port(ServerIpPortTB.Text);
-            if (ip == null)
+            if (ip == null)  // can't extract server ip -> maybe it's a hostname?
             {
-                ServerIpPortTB.Focus();
-                ServerIpPortTB.SetErrorState(true);
-                ServerIpPortTB.ErrorMessage = "Bad ip:port";
                 return;
             }
 
