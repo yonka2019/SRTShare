@@ -38,7 +38,7 @@
             this.AutoQualityControlGP = new System.Windows.Forms.GroupBox();
             this.DecreaseQualityNum = new System.Windows.Forms.NumericUpDown();
             this.DecreaseQualityLabel = new System.Windows.Forms.Label();
-            this.DataLossNum = new System.Windows.Forms.NumericUpDown();
+            this.DataLossRequiredNum = new System.Windows.Forms.NumericUpDown();
             this.DataLossRequiredLabel = new System.Windows.Forms.Label();
             this.IntialPSNNum = new System.Windows.Forms.NumericUpDown();
             this.InitPSNLabel = new System.Windows.Forms.Label();
@@ -49,7 +49,7 @@
             this.SettingsGP.SuspendLayout();
             this.AutoQualityControlGP.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DecreaseQualityNum)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.DataLossNum)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.DataLossRequiredNum)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.IntialPSNNum)).BeginInit();
             this.SuspendLayout();
             // 
@@ -62,7 +62,7 @@
             this.ServerIpPortTB.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.ServerIpPortTB.HideSelection = true;
             this.ServerIpPortTB.LeadingIcon = null;
-            this.ServerIpPortTB.Location = new System.Drawing.Point(174, 25);
+            this.ServerIpPortTB.Location = new System.Drawing.Point(174, 19);
             this.ServerIpPortTB.MaxLength = 32767;
             this.ServerIpPortTB.MouseState = MaterialSkin.MouseState.OUT;
             this.ServerIpPortTB.Name = "ServerIpPortTB";
@@ -73,14 +73,16 @@
             this.ServerIpPortTB.SelectedText = "";
             this.ServerIpPortTB.SelectionLength = 0;
             this.ServerIpPortTB.SelectionStart = 0;
-            this.ServerIpPortTB.ShortcutsEnabled = true;
-            this.ServerIpPortTB.Size = new System.Drawing.Size(250, 36);
-            this.ServerIpPortTB.TabIndex = 0;
-            this.ServerIpPortTB.TabStop = false;
+            this.ServerIpPortTB.ShortcutsEnabled = false;
+            this.ServerIpPortTB.ShowAssistiveText = true;
+            this.ServerIpPortTB.Size = new System.Drawing.Size(250, 52);
+            this.ServerIpPortTB.TabIndex = 2;
+            this.ServerIpPortTB.Text = "192.168.1.29:1397";
             this.ServerIpPortTB.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.ServerIpPortTB.TrailingIcon = null;
             this.ServerIpPortTB.UseSystemPasswordChar = false;
             this.ServerIpPortTB.UseTallSize = false;
+            this.ServerIpPortTB.TextChanged += new System.EventHandler(this.ServerIpPortTB_TextChanged);
             // 
             // SettingsGP
             // 
@@ -109,19 +111,22 @@
             this.SaveExitButton.Location = new System.Drawing.Point(408, 272);
             this.SaveExitButton.Name = "SaveExitButton";
             this.SaveExitButton.Size = new System.Drawing.Size(151, 48);
-            this.SaveExitButton.TabIndex = 15;
+            this.SaveExitButton.TabIndex = 1;
             this.SaveExitButton.Text = "Save and Exit";
             this.SaveExitButton.UseVisualStyleBackColor = true;
+            this.SaveExitButton.Click += new System.EventHandler(this.SaveExitButton_Click);
             // 
             // audioTransCB
             // 
             this.audioTransCB.AutoSize = true;
             this.audioTransCB.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.audioTransCB.Checked = true;
+            this.audioTransCB.CheckState = System.Windows.Forms.CheckState.Checked;
             this.audioTransCB.Font = new System.Drawing.Font("Microsoft JhengHei UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.audioTransCB.Location = new System.Drawing.Point(10, 254);
             this.audioTransCB.Name = "audioTransCB";
             this.audioTransCB.Size = new System.Drawing.Size(186, 24);
-            this.audioTransCB.TabIndex = 14;
+            this.audioTransCB.TabIndex = 6;
             this.audioTransCB.Text = "• Audio Transmission";
             this.audioTransCB.UseVisualStyleBackColor = true;
             // 
@@ -133,7 +138,7 @@
             this.retrModeCB.Location = new System.Drawing.Point(10, 296);
             this.retrModeCB.Name = "retrModeCB";
             this.retrModeCB.Size = new System.Drawing.Size(201, 24);
-            this.retrModeCB.TabIndex = 13;
+            this.retrModeCB.TabIndex = 7;
             this.retrModeCB.Text = "• Retransmission Mode";
             this.retrModeCB.UseVisualStyleBackColor = true;
             // 
@@ -145,7 +150,7 @@
             this.autoQualityControlCB.Location = new System.Drawing.Point(10, 212);
             this.autoQualityControlCB.Name = "autoQualityControlCB";
             this.autoQualityControlCB.Size = new System.Drawing.Size(195, 24);
-            this.autoQualityControlCB.TabIndex = 12;
+            this.autoQualityControlCB.TabIndex = 5;
             this.autoQualityControlCB.Text = "• Auto Quality Control";
             this.autoQualityControlCB.UseVisualStyleBackColor = true;
             // 
@@ -154,7 +159,7 @@
             this.AutoQualityControlGP.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.AutoQualityControlGP.Controls.Add(this.DecreaseQualityNum);
             this.AutoQualityControlGP.Controls.Add(this.DecreaseQualityLabel);
-            this.AutoQualityControlGP.Controls.Add(this.DataLossNum);
+            this.AutoQualityControlGP.Controls.Add(this.DataLossRequiredNum);
             this.AutoQualityControlGP.Controls.Add(this.DataLossRequiredLabel);
             this.AutoQualityControlGP.Location = new System.Drawing.Point(374, 127);
             this.AutoQualityControlGP.Name = "AutoQualityControlGP";
@@ -184,7 +189,7 @@
             0});
             this.DecreaseQualityNum.Name = "DecreaseQualityNum";
             this.DecreaseQualityNum.Size = new System.Drawing.Size(52, 21);
-            this.DecreaseQualityNum.TabIndex = 17;
+            this.DecreaseQualityNum.TabIndex = 9;
             this.DecreaseQualityNum.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.DecreaseQualityNum.Value = new decimal(new int[] {
             10,
@@ -202,20 +207,20 @@
             this.DecreaseQualityLabel.TabIndex = 16;
             this.DecreaseQualityLabel.Text = "Decrease quality by:";
             // 
-            // DataLossNum
+            // DataLossRequiredNum
             // 
-            this.DataLossNum.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.DataLossNum.Location = new System.Drawing.Point(161, 39);
-            this.DataLossNum.Minimum = new decimal(new int[] {
+            this.DataLossRequiredNum.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.DataLossRequiredNum.Location = new System.Drawing.Point(161, 39);
+            this.DataLossRequiredNum.Minimum = new decimal(new int[] {
             1,
             0,
             0,
             0});
-            this.DataLossNum.Name = "DataLossNum";
-            this.DataLossNum.Size = new System.Drawing.Size(52, 21);
-            this.DataLossNum.TabIndex = 15;
-            this.DataLossNum.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.DataLossNum.Value = new decimal(new int[] {
+            this.DataLossRequiredNum.Name = "DataLossRequiredNum";
+            this.DataLossRequiredNum.Size = new System.Drawing.Size(52, 21);
+            this.DataLossRequiredNum.TabIndex = 8;
+            this.DataLossRequiredNum.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.DataLossRequiredNum.Value = new decimal(new int[] {
             55,
             0,
             0,
@@ -247,7 +252,7 @@
             0});
             this.IntialPSNNum.Name = "IntialPSNNum";
             this.IntialPSNNum.Size = new System.Drawing.Size(77, 23);
-            this.IntialPSNNum.TabIndex = 9;
+            this.IntialPSNNum.TabIndex = 4;
             this.IntialPSNNum.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.IntialPSNNum.Value = new decimal(new int[] {
             1,
@@ -277,16 +282,13 @@
             // 
             // EncryptionCBox
             // 
+            this.EncryptionCBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.EncryptionCBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.EncryptionCBox.FormattingEnabled = true;
-            this.EncryptionCBox.Items.AddRange(new object[] {
-            "AES256",
-            "XOR",
-            "SUBSTITUTION"});
             this.EncryptionCBox.Location = new System.Drawing.Point(117, 127);
             this.EncryptionCBox.Name = "EncryptionCBox";
             this.EncryptionCBox.Size = new System.Drawing.Size(112, 24);
-            this.EncryptionCBox.TabIndex = 6;
+            this.EncryptionCBox.TabIndex = 3;
             // 
             // separateLabel
             // 
@@ -299,10 +301,10 @@
             // ServerIpPortLabel
             // 
             this.ServerIpPortLabel.AutoSize = true;
-            this.ServerIpPortLabel.Font = new System.Drawing.Font("Calibri", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.ServerIpPortLabel.Location = new System.Drawing.Point(234, 64);
+            this.ServerIpPortLabel.Font = new System.Drawing.Font("Calibri", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.ServerIpPortLabel.Location = new System.Drawing.Point(236, 73);
             this.ServerIpPortLabel.Name = "ServerIpPortLabel";
-            this.ServerIpPortLabel.Size = new System.Drawing.Size(131, 24);
+            this.ServerIpPortLabel.Size = new System.Drawing.Size(127, 23);
             this.ServerIpPortLabel.TabIndex = 1;
             this.ServerIpPortLabel.Text = "Server IP:PORT";
             // 
@@ -315,12 +317,13 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Settings";
             this.Text = "Settings";
+            this.Load += new System.EventHandler(this.Settings_Load);
             this.SettingsGP.ResumeLayout(false);
             this.SettingsGP.PerformLayout();
             this.AutoQualityControlGP.ResumeLayout(false);
             this.AutoQualityControlGP.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DecreaseQualityNum)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.DataLossNum)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.DataLossRequiredNum)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.IntialPSNNum)).EndInit();
             this.ResumeLayout(false);
 
@@ -341,7 +344,7 @@
         private System.Windows.Forms.CheckBox audioTransCB;
         private System.Windows.Forms.CheckBox retrModeCB;
         private System.Windows.Forms.Label DataLossRequiredLabel;
-        private System.Windows.Forms.NumericUpDown DataLossNum;
+        private System.Windows.Forms.NumericUpDown DataLossRequiredNum;
         private System.Windows.Forms.NumericUpDown DecreaseQualityNum;
         private System.Windows.Forms.Label DecreaseQualityLabel;
         private System.Windows.Forms.Button SaveExitButton;
