@@ -40,9 +40,9 @@ namespace SRTShareLib.PcapManager
                             $"####################\n\n");
         }
 
-        public static void PrintServerData()
+        public static void PrintServerData(string settingsFrom)  // (was) from ConfigManager.CONFIG_NAME
         {
-            Console.WriteLine($"####################\n[!] SERVER SETTINGS (from {ConfigManager.CONFIG_NAME})\n" +
+            Console.WriteLine($"####################\n[!] SERVER SETTINGS (from {settingsFrom})\n" +
                             $"* IP: {ConfigManager.IP}\n" +
                             $"* PORT: {ConfigManager.PORT}\n" +
                             $"####################\n\n");
@@ -163,7 +163,7 @@ namespace SRTShareLib.PcapManager
             // Take the selected adapter
             return allDevices[selectDeviceIndex - 1];
         }
-        
+
         /// <summary>
         /// Send DNS request to a hostname in order to found his IP address
         /// </summary>
@@ -174,8 +174,15 @@ namespace SRTShareLib.PcapManager
             try
             {
                 IPHostEntry hostInfo = Dns.GetHostEntry(hostName);
-                IPAddress[] address = hostInfo.AddressList;
-                return address[0].ToString();
+                IPAddress[] addresses = hostInfo.AddressList;
+                foreach (IPAddress address in addresses)
+                {
+                    if (address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        return address.ToString();
+                    }
+                }
+                return null;
             }
             catch (SocketException)
             {

@@ -61,6 +61,7 @@
             this.ServerIpPortTB.Depth = 0;
             this.ServerIpPortTB.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.ServerIpPortTB.HideSelection = true;
+            this.ServerIpPortTB.Hint = "IP/hostname:Port";
             this.ServerIpPortTB.LeadingIcon = null;
             this.ServerIpPortTB.Location = new System.Drawing.Point(174, 19);
             this.ServerIpPortTB.MaxLength = 32767;
@@ -73,7 +74,7 @@
             this.ServerIpPortTB.SelectedText = "";
             this.ServerIpPortTB.SelectionLength = 0;
             this.ServerIpPortTB.SelectionStart = 0;
-            this.ServerIpPortTB.ShortcutsEnabled = false;
+            this.ServerIpPortTB.ShortcutsEnabled = true;
             this.ServerIpPortTB.ShowAssistiveText = true;
             this.ServerIpPortTB.Size = new System.Drawing.Size(250, 52);
             this.ServerIpPortTB.TabIndex = 2;
@@ -303,19 +304,22 @@
             // 
             this.ServerIpPortLabel.AutoSize = true;
             this.ServerIpPortLabel.Font = new System.Drawing.Font("Calibri", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.ServerIpPortLabel.Location = new System.Drawing.Point(165, 71);
+            this.ServerIpPortLabel.Location = new System.Drawing.Point(194, 71);
             this.ServerIpPortLabel.Name = "ServerIpPortLabel";
-            this.ServerIpPortLabel.Size = new System.Drawing.Size(268, 23);
+            this.ServerIpPortLabel.Size = new System.Drawing.Size(210, 23);
             this.ServerIpPortLabel.TabIndex = 1;
-            this.ServerIpPortLabel.Text = "Server IP:PORT / Hostname:PORT";
+            this.ServerIpPortLabel.Text = "Server IP/hostname:PORT";
             // 
             // Settings
             // 
+            this.AcceptButton = this.SaveExitButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(623, 358);
             this.Controls.Add(this.SettingsGP);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximizeBox = false;
             this.Name = "Settings";
             this.Text = "Settings";
             this.Load += new System.EventHandler(this.Settings_Load);

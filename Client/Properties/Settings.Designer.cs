@@ -25,25 +25,25 @@ namespace Client.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("192.168.1.29:1397")]
-        public string ServerIP_PORT {
+        [global::System.Configuration.DefaultSettingValueAttribute("192.168.1.29")]
+        public string ServerIP {
             get {
-                return ((string)(this["ServerIP_PORT"]));
+                return ((string)(this["ServerIP"]));
             }
             set {
-                this["ServerIP_PORT"] = value;
+                this["ServerIP"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("1")]
-        public int IntialPSN {
+        public int InitialPSN {
             get {
-                return ((int)(this["IntialPSN"]));
+                return ((int)(this["InitialPSN"]));
             }
             set {
-                this["IntialPSN"] = value;
+                this["InitialPSN"] = value;
             }
         }
         
@@ -116,6 +116,18 @@ namespace Client.Properties {
             }
             set {
                 this["Encryption"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1397")]
+        public ushort ServerPORT {
+            get {
+                return ((ushort)(this["ServerPORT"]));
+            }
+            set {
+                this["ServerPORT"] = value;
             }
         }
     }

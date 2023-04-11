@@ -72,7 +72,7 @@
             this.SettingsButton.TabIndex = 2;
             this.SettingsButton.Text = "Settings";
             this.SettingsButton.UseVisualStyleBackColor = true;
-            this.SettingsButton.Click += new System.EventHandler(this.settingsButton_Click);
+            this.SettingsButton.Click += new System.EventHandler(this.SettingsButton_Click);
             // 
             // separateLabel
             // 
@@ -116,12 +116,12 @@
             this.Controls.Add(this.SettingsButton);
             this.Controls.Add(this.StartButton);
             this.Controls.Add(this.MainLabel);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "MainMenu";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Welcome";
-            this.Load += new System.EventHandler(this.MainMenu_Load);
             ((System.ComponentModel.ISupportInitialize)(this.ProjectLogo)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

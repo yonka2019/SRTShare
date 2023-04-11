@@ -24,7 +24,6 @@ namespace Client
             _ = ConfigManager.IP;
 
             NetworkManager.PrintInterfaceData();
-            NetworkManager.PrintServerData();
 
             Application.Run(new MainMenu());
         }

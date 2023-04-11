@@ -51,20 +51,22 @@ namespace Client
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.XOR;  // The whole encryption of the conversation (from data stage)
-        internal const int INITIAL_PSN = 1;  // The first sequence number of the conversation  ! [ MUST NOT BE 0 (because of retransmitRequestedToSeq var in Server\VideoManager.cs)] !
+        internal static EncryptionType ENCRYPTION;  // The whole encryption of the conversation (from data stage)
+        internal static int INITIAL_PSN;  // The first sequence number of the conversation  ! [ MUST NOT BE 0 (because of retransmitRequestedToSeq var in Server\VideoManager.cs)] !
 
-        internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
-        internal const int DATA_DECREASE_QUALITY_BY = 10; // (0 - 100)
-        internal const bool AUTO_QUALITY_CONTROL = false;
-        internal const bool AUDIO_TRANSMISSION = false;
-        internal const bool RETRANSMISSION_MODE = true;
+        internal static int DATA_LOSS_PERCENT_REQUIRED;  // loss percent which is required in order to send decrease quality update request to the server
+        internal static int DATA_DECREASE_QUALITY_BY;  // (0 - 100)
+        internal static bool AUTO_QUALITY_CONTROL;
+        internal static bool AUDIO_TRANSMISSION;
+        internal static bool RETRANSMISSION_MODE;
         // DEFAULT QUALITY VALUE (to server and client) - ProtocolManager.cs : DEFAULT_QUALITY
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        public LiveStream()
+        public LiveStream(string serverIP, ushort serverPORT, EncryptionType encryption, int initial_psn, int data_loss_percent_required, int data_decrease_quality_by, bool auto_quality_control, bool audio_transmission, bool retransmission_mode)
         {
+            SetSettings(serverIP, serverPORT, encryption, initial_psn, data_loss_percent_required, data_decrease_quality_by, auto_quality_control, audio_transmission, retransmission_mode);
+
             InitializeComponent();
 
             autoQualityControl.Checked = AUTO_QUALITY_CONTROL;
@@ -107,6 +109,20 @@ namespace Client
 
             ImageDisplay.ImageBoxDisplayIn = VideoBox;
             ServerAliveChecker.LostConnection += Server_LostConnection;  // subscribe the event to avoid unexpectable server shutdown
+        }
+
+        private void SetSettings(string serverIP, ushort serverPORT, EncryptionType encryption, int initial_psn, int data_loss_percent_required, int data_decrease_quality_by, bool auto_quality_control, bool audio_transmission, bool retransmission_mode)
+        {
+            ConfigManager.SetData(serverIP, serverPORT);
+            NetworkManager.PrintServerData("User Settings");
+
+            ENCRYPTION = encryption;
+            INITIAL_PSN = initial_psn;
+            DATA_LOSS_PERCENT_REQUIRED = data_loss_percent_required;
+            DATA_DECREASE_QUALITY_BY = data_decrease_quality_by;
+            AUTO_QUALITY_CONTROL = auto_quality_control;
+            AUDIO_TRANSMISSION = audio_transmission;
+            RETRANSMISSION_MODE = retransmission_mode;
         }
 
         /// <summary>
@@ -350,7 +366,13 @@ namespace Client
                 Packet shutdown_packet = shutdown_request.Shutdown(Server_SID, My_SID);
                 PacketManager.SendPacket(shutdown_packet);
             }
+
             Finish();
+
+            MainMenu mainMenu = new MainMenu();
+            Hide();
+            mainMenu.ShowDialog();
+            Dispose();
         }
 
         private void Finish()

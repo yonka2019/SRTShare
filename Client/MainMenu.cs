@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SRTShareLib.PcapManager;
+using System;
 using System.Windows.Forms;
 
 namespace Client
@@ -17,12 +11,7 @@ namespace Client
             InitializeComponent();
         }
 
-        private void MainMenu_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void settingsButton_Click(object sender, EventArgs e)
+        private void SettingsButton_Click(object sender, EventArgs e)
         {
             Settings settings = new Settings();
             settings.ShowDialog();
@@ -31,6 +20,19 @@ namespace Client
         private void StartButton_Click(object sender, EventArgs e)
         {
 
+            LiveStream liveStream = new LiveStream(Properties.Settings.Default.ServerIP, 
+                Properties.Settings.Default.ServerPORT,
+                (SRTShareLib.SRTManager.Encryption.EncryptionType)Enum.Parse(typeof(SRTShareLib.SRTManager.Encryption.EncryptionType), Properties.Settings.Default.Encryption),
+                Properties.Settings.Default.InitialPSN,
+                Properties.Settings.Default.DataPercentLossRequired,
+                Properties.Settings.Default.DecreaseQualityBy,
+                Properties.Settings.Default.AutoQualityControl,
+                Properties.Settings.Default.AudioTransmission,
+                Properties.Settings.Default.RetransmissionMode);
+
+            Hide();
+            liveStream.ShowDialog();
+            Close();
         }
     }
 }

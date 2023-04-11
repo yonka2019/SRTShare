@@ -64,10 +64,11 @@ namespace SRTShareLib
             }
         }
 
-        private static void SetData(string ip, ushort port)
+        public static void SetData(string ip, ushort port)
         {
             IP = ip;
             PORT = port;
+
         }
 
         private static void CreateConfig(string ip, string port)
@@ -87,7 +88,7 @@ namespace SRTShareLib
             bool ipAddress = false;
 
             port = "";
-            Regex portRegex = new Regex(@"^\d{1,6}$");
+            Regex portRegex = new Regex(@"^\d{1,5}$");
             bool portGood = false;
 
             Console.Clear();
@@ -143,8 +144,13 @@ namespace SRTShareLib
                         Console.WriteLine($"Hostname: {hostName}\n" +
                                           $"IP Address: {IP}");
 
-                        // If the given server ip is the client external ip, it means that the server is in the same subnet within the clients' subnet. And he should input the local one to avoid
-                        // loop in the server
+                        // If the given server ip is the client external ip, it means that the server is in the same subnet within the clients' subnet. And he should input the local one to avoid loop in the server
+                        
+                        /* -- Full explanation --
+                         * The loop can occur if the server tries to respond to the client by sending the response back to the client's external IP address, which is the same as the server IP address received in the request.
+
+                            In this scenario, the response from the server will be sent to the default gateway (router) instead of being sent directly to the client. The router will then forward the response back to the client, but since the response has the same IP address as the original request, the server will again receive the response and send it back to the router. This process will repeat indefinitely, creating a loop.
+                         */
                         if (IP == NetworkManager.PublicIp)
                         {
                             Console.WriteLine();
