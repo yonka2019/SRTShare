@@ -69,11 +69,11 @@ namespace Client
 
             InitializeComponent();
 
-            autoQualityControl.Checked = AUTO_QUALITY_CONTROL;
-            AutoQualityControl = autoQualityControl.Checked;
+            AQCItem.Checked = AUTO_QUALITY_CONTROL;
+            AutoQualityControl = AQCItem.Checked;
 
-            audioTrans.Checked = AUDIO_TRANSMISSION;
-            AudioTransmission = audioTrans.Checked;
+            ATItem.Checked = AUDIO_TRANSMISSION;
+            AudioTransmission = ATItem.Checked;
 
             QualityButtons = new Dictionary<long, ToolStripMenuItem> { { 10L, q_10p }, { 20L, q_20p }, { 30L, q_30p }, { 40L, q_40p }, { 50L, q_50p }, { 60L, q_60p }, { 70L, q_70p }, { 80L, q_80p }, { 90L, q_90p }, { 100L, q_100p } };
             QualityButtons[ProtocolManager.DEFAULT_QUALITY.RoundToNearestTen()].Checked = true;
@@ -139,6 +139,11 @@ namespace Client
                 // Decrement the countdown duration
                 duration--;
 
+                Invoke((MethodInvoker)delegate
+                {
+                    VideoBox.Text += '.';
+                });
+
                 // If the countdown has reached zero, stop the timer and print a message
                 if (duration <= 0)
                 {
@@ -146,7 +151,7 @@ namespace Client
                     if (!serverAlive)  // still null after 5 seconds
                     {
                         CConsole.WriteLine("[Client] Server isn't responding to INDUCTION request", MessageType.txtError);
-                        MessageBox.Show("Server isn't responding to [SRT: Induction] request..", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Server isn't responding to [SRT: Induction] request..", "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Environment.Exit(-1);
                     }
                 }
@@ -338,18 +343,18 @@ namespace Client
             ImageDisplay.CurrentVideoQuality = newQuality;
         }
 
-        private void AudioTransmission_Click(object sender, EventArgs e)
+        private void AQCItem_Click(object sender, EventArgs e)
         {
-            AudioTransmission = audioTrans.Checked;
-            string flag = AudioTransmission ? "enabled" : "disabled";
-            CConsole.WriteLine($"[Audio] Audio transmission {flag}\n", MessageType.txtInfo);
-        }
-
-        private void AutoQualityControl_Click(object sender, EventArgs e)
-        {
-            AutoQualityControl = autoQualityControl.Checked;
+            AutoQualityControl = AQCItem.Checked;
             string flag = AutoQualityControl ? "enabled" : "disabled";
             CConsole.WriteLine($"[Quality Update] Auto quality control {flag}\n", MessageType.txtInfo);
+        }
+
+        private void ATItem_Click(object sender, EventArgs e)
+        {
+            AudioTransmission = ATItem.Checked;
+            string flag = AudioTransmission ? "enabled" : "disabled";
+            CConsole.WriteLine($"[Audio] Audio transmission {flag}\n", MessageType.txtInfo);
         }
 
         /// <summary>
