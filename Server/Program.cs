@@ -121,7 +121,7 @@ namespace Server
                                 CConsole.WriteLine($"[Server] [{SRTSockets[handshake_request.SOURCE_SOCKET_ID].SocketAddress.IPAddress}] Handshake finished. Waiting {DATA_DELAY_MS / 1000} seconds before sending data..\n", MessageType.txtWarning);
 
                                 /*
-                                 * Because the client reeceives the packets in four differents threads (to avoid thread-blocking)
+                                 * Because the client receives the packets in four differents threads (to avoid thread-blocking)
                                  * the video packets receives before the client set server encryption tokens, which leads to exception because 
                                  * data can't be decrypted.
                                  * To avoid that, we are waiting 2 seconds before sending data, to give time to the client to get prepared (set encryption data, prepare audio, etc..)

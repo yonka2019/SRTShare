@@ -139,6 +139,12 @@ namespace Client
                 // Decrement the countdown duration
                 duration--;
 
+                if (serverAlive)  // if server alive - stop
+                {
+                    timer.Stop();
+                    return;
+                }
+
                 Invoke((MethodInvoker)delegate
                 {
                     VideoBox.Text += '.';
