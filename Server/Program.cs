@@ -32,6 +32,7 @@ namespace Server
         private static void Main()
         {
             CConsole.WriteLine("\t-- SRT Server  --\n", MessageType.txtWarning);
+            Console.Title = "SRT Client";
 
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;  // to handle libraries missing
 

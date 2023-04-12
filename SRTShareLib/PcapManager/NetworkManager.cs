@@ -40,8 +40,11 @@ namespace SRTShareLib.PcapManager
                             $"####################\n\n");
         }
 
-        public static void PrintServerData(string settingsFrom)  // (was) from ConfigManager.CONFIG_NAME
+        public static void PrintServerData(string settingsFrom = "")  // (was) from ConfigManager.CONFIG_NAME
         {
+            if (settingsFrom == null)
+                settingsFrom = ConfigManager.CONFIG_NAME;
+
             Console.WriteLine($"####################\n[!] SERVER SETTINGS (from {settingsFrom})\n" +
                             $"* IP: {ConfigManager.IP}\n" +
                             $"* PORT: {ConfigManager.PORT}\n" +

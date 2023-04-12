@@ -16,6 +16,7 @@ namespace Client
         private static void Main()
         {
             CColorManager.WriteLine("\t-- SRT Client  --\n", MessageType.txtWarning);
+            Console.Title = "SRT Client";
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
