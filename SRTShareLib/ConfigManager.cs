@@ -60,7 +60,7 @@ namespace SRTShareLib
                 // Deserialize the JSON string into a Person object
                 dynamic server = JsonConvert.DeserializeObject(json);
 
-                SetData(server.IP, server.PORT);
+                SetData(Convert.ToString(server.IP), Convert.ToUInt16(server.PORT));
             }
         }
 
