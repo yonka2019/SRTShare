@@ -114,7 +114,7 @@ namespace Client
         private void SetSettings(string serverIP, ushort serverPORT, EncryptionType encryption, int initial_psn, int data_loss_percent_required, int data_decrease_quality_by, bool auto_quality_control, bool audio_transmission, bool retransmission_mode)
         {
             ConfigManager.SetData(serverIP, serverPORT);
-            NetworkManager.PrintServerData("User Settings");
+            NetworkManager.PrintServerData(settingsFrom: "User Settings");
 
             ENCRYPTION = encryption;
             INITIAL_PSN = initial_psn;
@@ -310,7 +310,7 @@ namespace Client
         /// </summary>
         internal void Server_LostConnection()
         {
-            Finish();
+            DisposeLiveStream();
 
             CConsole.WriteLine("[ERROR] Server isn't alive anymore", MessageType.bgError);
 
@@ -372,7 +372,7 @@ namespace Client
                 PacketManager.SendPacket(shutdown_packet);
             }
 
-            Finish();
+            DisposeLiveStream();
 
             MainMenu mainMenu = new MainMenu();
             Hide();
@@ -380,8 +380,10 @@ namespace Client
             Dispose();
         }
 
-        private void Finish()
+        private void DisposeLiveStream()
         {
+            ServerAliveChecker.Disable();
+
             handlePackets.Abort();
             handleKeepAlivePackets.Abort();
             handleVideoPackets.Abort();
