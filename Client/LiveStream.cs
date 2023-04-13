@@ -26,6 +26,8 @@ namespace Client
         private bool handledArp = false;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
         private bool firstImage = true;
 
+        private bool handshakeDone = false;
+
         internal static uint Server_SID = 0;  // we getting know this value on the induction that the server returns to us (SID -> Socket ID)
         internal static string Server_MAC = null;
 
@@ -49,7 +51,7 @@ namespace Client
         internal static ulong dataReceived = 0;  // count data packets received (included chunks)
 #endif
 
-        //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
+        //  - CONVERSATION SETTINGS (set on settings menu) - + - + - + - + - + - + - + - +
 
         internal static EncryptionType ENCRYPTION;  // The whole encryption of the conversation (from data stage)
         internal static int INITIAL_PSN;  // The first sequence number of the conversation  ! [ MUST NOT BE 0 (because of retransmitRequestedToSeq var in Server\VideoManager.cs)] !
@@ -195,6 +197,7 @@ namespace Client
                         {
                             Console.WriteLine($"[Handshake] Got Conclusion: {handshake_request}\n");
                             RequestsHandler.HandleConclusion(this, handshake_request);
+                            handshakeDone = true;
                         }
                     }
                     else if (Control.Shutdown.IsShutdown(payload))  // (SRT) Server Shutdown ! [HANDLES ONLY WITH CTRL + C EVENT ON SERVER SIDE] !
@@ -258,7 +261,14 @@ namespace Client
 
                 if (Data.SRTHeader.IsData(payload))  // (SRT) Data (chunk of image)
                 {
-                    if (Data.ImageData.IsImage(payload))
+                    if (!handshakeDone)
+                    {
+                        CConsole.Write("[Handshake issue] Recevied data packet without handshake.", MessageType.bgError);
+                        CConsole.WriteLine(" Closing connection..", MessageType.txtError);
+                        Close();  // will call MainView_FormClosing which is simulating 'shutdown' in order to dispose data on 
+                    }
+
+                    else if (Data.ImageData.IsImage(payload))
                     {
                         ServerAliveChecker.Check();
 
@@ -287,8 +297,14 @@ namespace Client
 
                 if (Data.SRTHeader.IsData(payload))  // (SRT) Data (chunk of audio)
                 {
+                    if (!handshakeDone)
+                    {
+                        CConsole.Write("[Handshake issue] Recevied data packet without handshake.", MessageType.bgError);
+                        CConsole.WriteLine(" Closing connection..", MessageType.txtError);
+                        Close();  // will call MainView_FormClosing which is simulating 'shutdown' in order to dispose data on 
+                    }
 
-                    if (Data.AudioData.IsAudio(payload))
+                    else if (Data.AudioData.IsAudio(payload))
                     {
                         if (AudioTransmission)  // check if audio transmission enabled by the user
                         {
