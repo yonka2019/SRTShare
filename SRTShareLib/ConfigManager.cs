@@ -68,7 +68,6 @@ namespace SRTShareLib
         {
             IP = ip;
             PORT = port;
-
         }
 
         private static void CreateConfig(string ip, string port)

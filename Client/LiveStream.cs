@@ -160,7 +160,7 @@ namespace Client
                     {
                         CConsole.WriteLine("[Client] Server isn't responding to INDUCTION request", MessageType.txtError);
                         MessageBox.Show("Server isn't responding to [SRT: Induction] request..", "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Environment.Exit(-1);
+                        Close();
                     }
                 }
             };

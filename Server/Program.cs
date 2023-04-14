@@ -31,12 +31,13 @@ namespace Server
 
         private static void Main()
         {
-            CConsole.WriteLine("\t-- SRT Server  --\n", MessageType.txtWarning);
-            Console.Title = "SRT Client";
+            Console.Title = "SRT Server";
 
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;  // to handle libraries missing
 
             _ = ConfigManager.IP;
+
+            CConsole.WriteLine("\t-- SRT Server  --\n", MessageType.txtWarning);  // after creating config (if needed) to prevent screen removing (after creating config messages)
 
             Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CtrlCKeyPressed);  // to handle server shutdown (ONLY CTRL + C)
 
