@@ -160,7 +160,7 @@ namespace Client
                     {
                         CConsole.WriteLine("[Client] Server isn't responding to INDUCTION request", MessageType.txtError);
                         MessageBox.Show("Server isn't responding to [SRT: Induction] request..", "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Close();
+                        BackToMenu();
                     }
                 }
             };
@@ -265,7 +265,8 @@ namespace Client
                     {
                         CConsole.Write("[Handshake issue] Recevied data packet without handshake.", MessageType.bgError);
                         CConsole.WriteLine(" Closing connection..", MessageType.txtError);
-                        Close();  // will call MainView_FormClosing which is simulating 'shutdown' in order to dispose data on 
+
+                        BackToMenu();
                     }
 
                     else if (Data.ImageData.IsImage(payload))
@@ -301,7 +302,7 @@ namespace Client
                     {
                         CConsole.Write("[Handshake issue] Recevied data packet without handshake.", MessageType.bgError);
                         CConsole.WriteLine(" Closing connection..", MessageType.txtError);
-                        Close();  // will call MainView_FormClosing which is simulating 'shutdown' in order to dispose data on 
+                        BackToMenu();
                     }
 
                     else if (Data.AudioData.IsAudio(payload))
@@ -386,7 +387,7 @@ namespace Client
         /// <param name="e"></param>
         private void MainView_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (Server_MAC != null)
+            if (Server_MAC != null && serverAlive)  // check if we have the mac and the server is alive (maybe form closing even before connection)
             {
                 // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
                 ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MY_PORT, ConfigManager.PORT));
@@ -432,6 +433,18 @@ namespace Client
 
                 firstImage = false;
             });
+        }
+
+        /// <summary>
+        /// Closes current form (which is trigger FormClosing event which send [SRT Shutdown] (if needed) and opens main menu)
+        /// </summary>
+        private void BackToMenu()
+        {
+            BeginInvoke(new MethodInvoker(delegate
+            {
+                Close();
+            }));  // will call MainView_FormClosing which is simulating 'shutdown' in order to dispose data on server side
+            Console.WriteLine("\n\n");
         }
     }
 

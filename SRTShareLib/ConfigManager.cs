@@ -13,10 +13,12 @@ namespace SRTShareLib
     /// <summary>
     /// This class manage the server IP/PORT according the information which stored in the settings.json 
     /// file which is can be in the one of directories (or parent-directories) of the runnning .exe (even in the root dir)
+    /// [ATTENTION]  This config file refers only to SERVER SIDE (client side uses Settings.settings configuration after GUI update)
+    /// Client side uses this class (ConfigManager) only for getting the IP & PORT properties.
     /// </summary>
     public static class ConfigManager
     {
-        private const bool ALWAYS_CREATE_NEW = false;  // even if the config exist - create a new one and overwrite the old one, if it's false, it will take the last created config (if exists)
+        private const bool ALWAYS_CREATE_NEW = true;  // even if the config exist - create a new one and overwrite the old one, if it's false, it will take the last created config (if exists)
 
         internal const string CONFIG_NAME = "settings.json";
         public static string IP { get; private set; }
@@ -144,7 +146,7 @@ namespace SRTShareLib
                                           $"IP Address: {IP}");
 
                         // If the given server ip is the client external ip, it means that the server is in the same subnet within the clients' subnet. And he should input the local one to avoid loop in the server
-                        
+
                         /* -- Full explanation --
                          * The loop can occur if the server tries to respond to the client by sending the response back to the client's external IP address, which is the same as the server IP address received in the request.
 

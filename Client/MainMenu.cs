@@ -1,5 +1,4 @@
-﻿using SRTShareLib.PcapManager;
-using System;
+﻿using System;
 using System.Windows.Forms;
 
 namespace Client
@@ -20,7 +19,7 @@ namespace Client
         private void StartButton_Click(object sender, EventArgs e)
         {
 
-            LiveStream liveStream = new LiveStream(Properties.Settings.Default.ServerIP, 
+            LiveStream liveStream = new LiveStream(Properties.Settings.Default.ServerIP,
                 Properties.Settings.Default.ServerPORT,
                 (SRTShareLib.SRTManager.Encryption.EncryptionType)Enum.Parse(typeof(SRTShareLib.SRTManager.Encryption.EncryptionType), Properties.Settings.Default.Encryption),
                 Properties.Settings.Default.InitialPSN,
