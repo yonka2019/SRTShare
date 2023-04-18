@@ -32,14 +32,14 @@ namespace SRTShareLib.SRTManager.RequestsFactory
             else
             {
                 // LISTENER -> CALLER (first message RESPONSE) [SERVER -> CLIENT]
-                F_Handshake = new Handshake(version: 5, encryption_type, encryption_public_key, retransmission_mode,init_psn, type: (uint)Handshake.HandshakeType.INDUCTION, source_socket_id, dest_socket_id, p_ip);
+                F_Handshake = new Handshake(version: 5, encryption_type, encryption_public_key, retransmission_mode, init_psn, type: (uint)Handshake.HandshakeType.INDUCTION, source_socket_id, dest_socket_id, p_ip);
             }
 
             GetPayloadLayer() = OSIManager.BuildPLayer(F_Handshake.GetByted());  // set last payload layer as our srt packet
 
             return BuildPacket();
         }
-            
+
         /// <summary>
         /// The function creates a conclusion packet (Handshake)
         /// </summary>
