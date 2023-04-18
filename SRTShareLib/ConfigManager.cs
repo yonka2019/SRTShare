@@ -13,10 +13,12 @@ namespace SRTShareLib
     /// <summary>
     /// This class manage the server IP/PORT according the information which stored in the settings.json 
     /// file which is can be in the one of directories (or parent-directories) of the runnning .exe (even in the root dir)
+    /// [ATTENTION]  This config file refers only to SERVER SIDE (client side uses Settings.settings configuration after GUI update)
+    /// Client side uses this class (ConfigManager) only for getting the IP & PORT properties.
     /// </summary>
     public static class ConfigManager
     {
-        private const bool ALWAYS_CREATE_NEW = false;  // even if the config exist - create a new one and overwrite the old one, if it's false, it will take the last created config (if exists)
+        private const bool ALWAYS_CREATE_NEW = true;  // even if the config exist - create a new one and overwrite the old one, if it's false, it will take the last created config (if exists)
 
         internal const string CONFIG_NAME = "settings.json";
         public static string IP { get; private set; }
@@ -29,14 +31,18 @@ namespace SRTShareLib
         {
             calledFrom = CalledFrom();
 
-            while (configDirectory == null)
+            if (calledFrom == App.Server)
             {
-                // Read the JSON file into a string
-                configDirectory = UpDirTo(Directory.GetCurrentDirectory(), CONFIG_NAME);
+                configDirectory = FindDirectoryWithFile(Directory.GetCurrentDirectory(), CONFIG_NAME);
+
                 if (configDirectory == null || ALWAYS_CREATE_NEW)
                 {
-                    CConsole.WriteLine("[ERROR] Can't find config file (or maybe he is duplicated at the same directory?)\n" +
-                        "You can create your own config file, press [C] key to create it, or any another key to exit", MessageType.txtWarning);
+                    if (ALWAYS_CREATE_NEW)
+                        CConsole.WriteLine("[ERROR] Always create new configuration file flag enabled\n" +
+                                            "To create your own config file, press [C] key to create it, or any another key to exit", MessageType.txtWarning);
+                    else
+                        CConsole.WriteLine("[ERROR] Can't find config file\n" +
+                                            "To create your own config file, press [C] key to create it, or any another key to exit", MessageType.txtWarning);
 
                     if (Console.ReadKey().Key == ConsoleKey.C)
                     {
@@ -52,14 +58,19 @@ namespace SRTShareLib
                     else
                         Environment.Exit(-1);
                 }
+                string json = File.ReadAllText($"{configDirectory}\\{CONFIG_NAME}");
+
+                // Deserialize the JSON string into a Person object
+                dynamic server = JsonConvert.DeserializeObject(json);
+
+                SetData(Convert.ToString(server.IP), Convert.ToUInt16(server.PORT));
             }
-            string json = File.ReadAllText($"{configDirectory}\\{CONFIG_NAME}");
+        }
 
-            // Deserialize the JSON string into a Person object
-            dynamic server = JsonConvert.DeserializeObject(json);
-
-            IP = server.IP;
-            PORT = server.PORT;
+        public static void SetData(string ip, ushort port)
+        {
+            IP = ip;
+            PORT = port;
         }
 
         private static void CreateConfig(string ip, string port)
@@ -69,18 +80,13 @@ namespace SRTShareLib
                 $"\"PORT\": {port}\n" +
                 "}\n";
 
-            File.WriteAllText(Directory.GetCurrentDirectory() + "\\" + CONFIG_NAME, json);
+            File.WriteAllText(Directory.GetCurrentDirectory() + "\\" + CONFIG_NAME, json);  // writes json data to file (if file already exists (to handle with ALWAYS_CREATE_NEW flag), file will be overwritten)
         }
 
         private static void GetConfigData(out string IP, out string port)
         {
-            IP = "";
-            Regex ipRegex = new Regex(@"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$");
-            bool ipAddress = false;
-
-            port = "";
-            Regex portRegex = new Regex(@"^\d{1,6}$");
-            bool portGood = false;
+            Regex IPRegex = new Regex(@"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$");
+            Regex portRegex = new Regex(@"^\d{1,5}$");
 
             Console.Clear();
 
@@ -88,16 +94,29 @@ namespace SRTShareLib
 
             Console.WriteLine($"# --- Creating config ({CONFIG_NAME}) --- #\n");
 
-            // get IP
-            while (!ipAddress)
+            IP = GetIP(IPRegex);
+
+            Console.WriteLine();
+
+            port = GetPort(portRegex);
+
+            Console.WriteLine("# --- ---- ---- ----- ---- ---- --- #\n");
+        }
+
+        /// <summary>
+        /// Gets the IP from the user according the IP regex pattern
+        /// </summary>
+        /// <param name="IPRegex">IP regex pattern</param>
+        /// <returns>IP which meets all pattern requirements</returns>
+        private static string GetIP(Regex IPRegex)
+        {
+            bool IPGood = false;
+            string IP = null;
+
+            while (!IPGood)
             {
                 if (calledFrom == App.Server)
                     Console.WriteLine("* Put here your own LOCAL IP (LAN). Even if you are using external connection.\n[OR] you can input \"my\" to auto-set your local ip.\n");
-
-                else if (calledFrom == App.Client)
-                    Console.WriteLine("* If your server in the same subnet with the client\n" +
-                    "put here the local ip of the server (LAN), otherwise, put the public one (WAN).\n" +
-                    "In addition, you can also put here a hostname (DNS Supported).");
 
                 Console.Write(">> Server IP: ");
                 IP = Console.ReadLine();
@@ -107,22 +126,23 @@ namespace SRTShareLib
                     IP = NetworkManager.LocalIp;  // auto set local ip
                 }
 
-                Match ipMatch = ipRegex.Match(IP);  // 1st check [num.num.num.num]
-                ipAddress = ipMatch.Success;
+                Match ipMatch = IPRegex.Match(IP);  // 1st check [num.num.num.num]
+                IPGood = ipMatch.Success;
 
-                if (ipAddress)
+                if (IPGood)
                 {  // 2nd check [0-255.0-255.0-255.0-255]
                     for (int i = 1; i <= 4; i++)
                     {
                         if (int.Parse(ipMatch.Groups[i].Value) < 0 || int.Parse(ipMatch.Groups[i].Value) > 255)  // check if each block is between 0-255
                         {
-                            ipAddress = false;
+                            IPGood = false;
                             break;
                         }
                     }
                 }
 
-                if (!ipAddress)  // maybe it's hostname, trying to send DNS request to get the IP
+                // ## NOT IP -> MAYBE HOSTNAME ##
+                if (!IPGood)  // trying to send DNS request to get the IP
                 {
                     CConsole.Write("[DNS Request] ", MessageType.txtWarning);
                     CConsole.WriteLine("Please wait..\n", MessageType.txtMuted);
@@ -140,8 +160,13 @@ namespace SRTShareLib
                         Console.WriteLine($"Hostname: {hostName}\n" +
                                           $"IP Address: {IP}");
 
-                        // If the given server ip is the client external ip, it means that the server is in the same subnet within the clients' subnet. And he should input the local one to avoid
-                        // loop in the server
+                        // If the given server ip is the client external ip, it means that the server is in the same subnet within the clients' subnet. And he should input the local one to avoid loop in the server
+
+                        /* -- Full explanation --
+                         * The loop can occur if the server tries to respond to the client by sending the response back to the client's external IP address, which is the same as the server IP address received in the request.
+
+                            In this scenario, the response from the server will be sent to the default gateway (router) instead of being sent directly to the client. The router will then forward the response back to the client, but since the response has the same IP address as the original request, the server will again receive the response and send it back to the router. This process will repeat indefinitely, creating a loop.
+                         */
                         if (IP == NetworkManager.PublicIp)
                         {
                             Console.WriteLine();
@@ -149,12 +174,22 @@ namespace SRTShareLib
                             CConsole.WriteLine("Please specify the local IP of the server\n", MessageType.txtMuted);
                         }
                         else
-                            ipAddress = true;  // found IP address, and the ip is good (not the same as the public one)
+                            IPGood = true;  // found IP address, and the ip is good (not the same as the public one)
                     }
                 }
             }
+            return IP;
+        }
 
-            Console.WriteLine();
+        /// <summary>
+        /// Gets the port from the user according the port regex pattern
+        /// </summary>
+        /// <param name="portRegex">port regex pattern</param>
+        /// <returns>port which meets all pattern requirements</returns>
+        private static string GetPort(Regex portRegex)
+        {
+            bool portGood = false;
+            string port = null;
 
             // get Port
             while (!portGood)
@@ -178,27 +213,27 @@ namespace SRTShareLib
                     CConsole.WriteLine("Bad port\n", MessageType.txtError);
                 }
             }
-            Console.WriteLine("# --- ---- ---- ----- ---- ---- --- #\n");
+            return port;
         }
 
         /// <summary>
         /// Get the directory which contains the settings file
         /// </summary>
         /// <param name="currentDirectory">current directory (on function calling, it's the current dir)</param>
-        /// <param name="settingsFileName">name of the configuration file (*.json)</param>
+        /// <param name="fileName">name of the configuration file (*.json)</param>
         /// <returns>directory which contains the config file</returns>
-        private static string UpDirTo(string currentDirectory, string settingsFileName)
+        private static string FindDirectoryWithFile(string currentDirectory, string fileName)
         {
-            if (Directory.GetFiles(currentDirectory, settingsFileName).Length == 1)  // in the current directory
+            if (Directory.GetFiles(currentDirectory, fileName).Length == 1)  // in the current directory
                 return currentDirectory;
 
             // not in current -> maybe in the parent directory?
             DirectoryInfo upDir = Directory.GetParent(currentDirectory);
-            if (upDir == null)  // there is no parent directory, and the settings wasn't found -> not exist/duplicated
+            if (upDir == null)  // there is no parent directory, and the settings still wasn't found -> not exist / duplicated (which is not really possible to be)
                 return null;
 
             string upDirName = upDir.FullName;
-            return Directory.GetFiles(upDirName, settingsFileName).Length != 1 ? UpDirTo(upDirName, settingsFileName) : upDirName;
+            return Directory.GetFiles(upDirName, fileName).Length == 1 ? upDirName : FindDirectoryWithFile(upDirName, fileName);
         }
 
         private static App CalledFrom()

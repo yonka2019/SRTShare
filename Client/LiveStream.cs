@@ -18,13 +18,15 @@ using Data = SRTShareLib.SRTManager.ProtocolFields.Data;
 
 namespace Client
 {
-    public partial class MainView : Form
+    public partial class LiveStream : Form
     {
         private readonly Random rnd = new Random();
 
         private bool serverAlive = false;  // for icmp request - answer check
         private bool handledArp = false;  // to avoid secondly induction to server (only for LOOPBACK connections (same pc server/client))
         private bool firstImage = true;
+
+        private bool handshakeDone = false;
 
         internal static uint Server_SID = 0;  // we getting know this value on the induction that the server returns to us (SID -> Socket ID)
         internal static string Server_MAC = null;
@@ -36,6 +38,8 @@ namespace Client
 
         internal static bool AutoQualityControl;
         internal static bool AudioTransmission;
+
+        private static System.Timers.Timer inductionTimer;
 
         private static Thread handlePackets, handleKeepAlivePackets, handleVideoPackets, handleAudioPackets;
 
@@ -49,29 +53,31 @@ namespace Client
         internal static ulong dataReceived = 0;  // count data packets received (included chunks)
 #endif
 
-        //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
+        //  - CONVERSATION SETTINGS (set on settings menu) - + - + - + - + - + - + - + - +
 
-        internal const EncryptionType ENCRYPTION = EncryptionType.XOR;  // The whole encryption of the conversation (from data stage)
-        internal const int INITIAL_PSN = 1;  // The first sequence number of the conversation  ! [ MUST NOT BE 0 (because of retransmitRequestedToSeq var in Server\VideoManager.cs)] !
+        internal static EncryptionType ENCRYPTION;  // The whole encryption of the conversation (from data stage)
+        internal static int INITIAL_PSN;  // The first sequence number of the conversation  ! [ MUST NOT BE 0 (because of retransmitRequestedToSeq var in Server\VideoManager.cs)] !
 
-        internal const int DATA_LOSS_PERCENT_REQUIRED = 3;  // loss percent which is required in order to send decrease quality update request to the server
-        internal const int DATA_DECREASE_QUALITY_BY = 10; // (0 - 100)
-        internal const bool AUTO_QUALITY_CONTROL = false;
-        internal const bool AUDIO_TRANSMISSION = false;
-        internal const bool RETRANSMISSION_MODE = true;
+        internal static int DATA_LOSS_PERCENT_REQUIRED;  // loss percent which is required in order to send decrease quality update request to the server
+        internal static int DATA_DECREASE_QUALITY_BY;  // (0 - 100)
+        internal static bool AUTO_QUALITY_CONTROL;
+        internal static bool AUDIO_TRANSMISSION;
+        internal static bool RETRANSMISSION_MODE;
         // DEFAULT QUALITY VALUE (to server and client) - ProtocolManager.cs : DEFAULT_QUALITY
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        public MainView()
+        public LiveStream(string serverIP, ushort serverPORT, EncryptionType encryption, int initial_psn, int data_loss_percent_required, int data_decrease_quality_by, bool auto_quality_control, bool audio_transmission, bool retransmission_mode)
         {
+            SetSettings(serverIP, serverPORT, encryption, initial_psn, data_loss_percent_required, data_decrease_quality_by, auto_quality_control, audio_transmission, retransmission_mode);
+
             InitializeComponent();
 
-            autoQualityControl.Checked = AUTO_QUALITY_CONTROL;
-            AutoQualityControl = autoQualityControl.Checked;
+            AQCItem.Checked = AUTO_QUALITY_CONTROL;
+            AutoQualityControl = AQCItem.Checked;
 
-            audioTrans.Checked = AUDIO_TRANSMISSION;
-            AudioTransmission = audioTrans.Checked;
+            ATItem.Checked = AUDIO_TRANSMISSION;
+            AudioTransmission = ATItem.Checked;
 
             QualityButtons = new Dictionary<long, ToolStripMenuItem> { { 10L, q_10p }, { 20L, q_20p }, { 30L, q_30p }, { 40L, q_40p }, { 50L, q_50p }, { 60L, q_60p }, { 70L, q_70p }, { 80L, q_80p }, { 90L, q_90p }, { 100L, q_100p } };
             QualityButtons[ProtocolManager.DEFAULT_QUALITY.RoundToNearestTen()].Checked = true;
@@ -109,6 +115,20 @@ namespace Client
             ServerAliveChecker.LostConnection += Server_LostConnection;  // subscribe the event to avoid unexpectable server shutdown
         }
 
+        private void SetSettings(string serverIP, ushort serverPORT, EncryptionType encryption, int initial_psn, int data_loss_percent_required, int data_decrease_quality_by, bool auto_quality_control, bool audio_transmission, bool retransmission_mode)
+        {
+            ConfigManager.SetData(serverIP, serverPORT);
+            NetworkManager.PrintServerData(settingsFrom: "User Settings");
+
+            ENCRYPTION = encryption;
+            INITIAL_PSN = initial_psn;
+            DATA_LOSS_PERCENT_REQUIRED = data_loss_percent_required;
+            DATA_DECREASE_QUALITY_BY = data_decrease_quality_by;
+            AUTO_QUALITY_CONTROL = auto_quality_control;
+            AUDIO_TRANSMISSION = audio_transmission;
+            RETRANSMISSION_MODE = retransmission_mode;
+        }
+
         /// <summary>
         /// Check if there is ARP response from the server (if there is response, server mac should be changed, otherwise, if the mac null, it's a sign that the server havn't responded
         /// </summary>
@@ -117,25 +137,36 @@ namespace Client
             int duration = 5;  // seconds to wait for SRT server response
 
             // Create a timer that will trigger the countdown
-            System.Timers.Timer timer = new System.Timers.Timer(1000);
-            timer.Elapsed += (sender, e) =>
+            inductionTimer = new System.Timers.Timer(1000);
+            inductionTimer.Elapsed += (sender, e) =>
             {
                 // Decrement the countdown duration
                 duration--;
 
+                if (serverAlive)  // if server alive - stop
+                {
+                    inductionTimer.Stop();
+                    return;
+                }
+
+                Invoke((MethodInvoker)delegate
+                {
+                    VideoBox.Text += '.';
+                });
+
                 // If the countdown has reached zero, stop the timer and print a message
                 if (duration <= 0)
                 {
-                    timer.Stop();
+                    inductionTimer.Stop();
                     if (!serverAlive)  // still null after 5 seconds
                     {
                         CConsole.WriteLine("[Client] Server isn't responding to INDUCTION request", MessageType.txtError);
-                        MessageBox.Show("Server isn't responding to [SRT: Induction] request..", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Environment.Exit(-1);
+                        MessageBox.Show("Server isn't responding to [SRT: Induction] request..", "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        BackToMenu();
                     }
                 }
             };
-            timer.Start();
+            inductionTimer.Start();
         }
 
         /// <summary>
@@ -168,6 +199,7 @@ namespace Client
                         {
                             Console.WriteLine($"[Handshake] Got Conclusion: {handshake_request}\n");
                             RequestsHandler.HandleConclusion(this, handshake_request);
+                            handshakeDone = true;
                         }
                     }
                     else if (Control.Shutdown.IsShutdown(payload))  // (SRT) Server Shutdown ! [HANDLES ONLY WITH CTRL + C EVENT ON SERVER SIDE] !
@@ -231,7 +263,15 @@ namespace Client
 
                 if (Data.SRTHeader.IsData(payload))  // (SRT) Data (chunk of image)
                 {
-                    if (Data.ImageData.IsImage(payload))
+                    if (!handshakeDone)
+                    {
+                        CConsole.Write("[Handshake issue] Recevied data packet without handshake.", MessageType.bgError);
+                        CConsole.WriteLine(" Closing connection..", MessageType.txtError);
+
+                        BackToMenu();
+                    }
+
+                    else if (Data.ImageData.IsImage(payload))
                     {
                         ServerAliveChecker.Check();
 
@@ -260,8 +300,14 @@ namespace Client
 
                 if (Data.SRTHeader.IsData(payload))  // (SRT) Data (chunk of audio)
                 {
+                    if (!handshakeDone)
+                    {
+                        CConsole.Write("[Handshake issue] Recevied data packet without handshake.", MessageType.bgError);
+                        CConsole.WriteLine(" Closing connection..", MessageType.txtError);
+                        BackToMenu();
+                    }
 
-                    if (Data.AudioData.IsAudio(payload))
+                    else if (Data.AudioData.IsAudio(payload))
                     {
                         if (AudioTransmission)  // check if audio transmission enabled by the user
                         {
@@ -289,7 +335,7 @@ namespace Client
         /// </summary>
         internal void Server_LostConnection()
         {
-            Finish();
+            DisposeLiveStream();
 
             CConsole.WriteLine("[ERROR] Server isn't alive anymore", MessageType.bgError);
 
@@ -314,7 +360,7 @@ namespace Client
 
             long newQuality = QualityButtons.FirstOrDefault(quality => quality.Value == qualitySelected).Key;
 
-            QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, MainView.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MainView.MY_PORT, ConfigManager.PORT));
+            QualityUpdateRequest qualityUpdate_request = new QualityUpdateRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, LiveStream.Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, LiveStream.MY_PORT, ConfigManager.PORT));
             Packet qualityUpdate_packet = qualityUpdate_request.UpdateQuality(Server_SID, My_SID, newQuality);
             PacketManager.SendPacket(qualityUpdate_packet);
 
@@ -322,18 +368,18 @@ namespace Client
             ImageDisplay.CurrentVideoQuality = newQuality;
         }
 
-        private void AudioTransmission_Click(object sender, EventArgs e)
+        private void AQCItem_Click(object sender, EventArgs e)
         {
-            AudioTransmission = audioTrans.Checked;
-            string flag = AudioTransmission ? "enabled" : "disabled";
-            CConsole.WriteLine($"[Audio] Audio transmission {flag}\n", MessageType.txtInfo);
-        }
-
-        private void AutoQualityControl_Click(object sender, EventArgs e)
-        {
-            AutoQualityControl = autoQualityControl.Checked;
+            AutoQualityControl = AQCItem.Checked;
             string flag = AutoQualityControl ? "enabled" : "disabled";
             CConsole.WriteLine($"[Quality Update] Auto quality control {flag}\n", MessageType.txtInfo);
+        }
+
+        private void ATItem_Click(object sender, EventArgs e)
+        {
+            AudioTransmission = ATItem.Checked;
+            string flag = AudioTransmission ? "enabled" : "disabled";
+            CConsole.WriteLine($"[Audio] Audio transmission {flag}\n", MessageType.txtInfo);
         }
 
         /// <summary>
@@ -343,18 +389,35 @@ namespace Client
         /// <param name="e"></param>
         private void MainView_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (Server_MAC != null)
+            if (Server_MAC != null && serverAlive)  // check if we have the mac and the server is alive (maybe form closing even before connection)
             {
                 // when the form is closed, it means the client left the conversation -> Need to send a shutdown request
                 ShutdownRequest shutdown_request = new ShutdownRequest(OSIManager.BuildBaseLayers(NetworkManager.MacAddress, Server_MAC, NetworkManager.LocalIp, ConfigManager.IP, MY_PORT, ConfigManager.PORT));
                 Packet shutdown_packet = shutdown_request.Shutdown(Server_SID, My_SID);
                 PacketManager.SendPacket(shutdown_packet);
             }
-            Finish();
+
+            DisposeLiveStream();
+
+            MainMenu mainMenu = new MainMenu();
+            Hide();
+            mainMenu.ShowDialog();
+            Dispose();
         }
 
-        private void Finish()
+        private void DisposeLiveStream()
         {
+            if (inductionTimer != null)
+            {
+                if (inductionTimer.Enabled)
+                {
+                    inductionTimer.Stop();
+                    inductionTimer.Dispose();
+                }
+            }
+
+            ServerAliveChecker.Disable();
+
             handlePackets.Abort();
             handleKeepAlivePackets.Abort();
             handleVideoPackets.Abort();
@@ -381,6 +444,18 @@ namespace Client
 
                 firstImage = false;
             });
+        }
+
+        /// <summary>
+        /// Closes current form (which is trigger FormClosing event which send [SRT Shutdown] (if needed) and opens main menu)
+        /// </summary>
+        private void BackToMenu()
+        {
+            BeginInvoke(new MethodInvoker(delegate
+            {
+                Close();
+            }));  // will call MainView_FormClosing which is simulating 'shutdown' in order to dispose data on server side
+            Console.WriteLine("\n\n");
         }
     }
 
