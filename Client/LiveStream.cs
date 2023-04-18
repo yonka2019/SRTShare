@@ -39,6 +39,8 @@ namespace Client
         internal static bool AutoQualityControl;
         internal static bool AudioTransmission;
 
+        private static System.Timers.Timer inductionTimer;
+
         private static Thread handlePackets, handleKeepAlivePackets, handleVideoPackets, handleAudioPackets;
 
         // 10% - q_10p (button)
@@ -135,15 +137,15 @@ namespace Client
             int duration = 5;  // seconds to wait for SRT server response
 
             // Create a timer that will trigger the countdown
-            System.Timers.Timer timer = new System.Timers.Timer(1000);
-            timer.Elapsed += (sender, e) =>
+            inductionTimer = new System.Timers.Timer(1000);
+            inductionTimer.Elapsed += (sender, e) =>
             {
                 // Decrement the countdown duration
                 duration--;
 
                 if (serverAlive)  // if server alive - stop
                 {
-                    timer.Stop();
+                    inductionTimer.Stop();
                     return;
                 }
 
@@ -164,7 +166,7 @@ namespace Client
                     }
                 }
             };
-            timer.Start();
+            inductionTimer.Start();
         }
 
         /// <summary>
@@ -405,6 +407,15 @@ namespace Client
 
         private void DisposeLiveStream()
         {
+            if (inductionTimer != null)
+            {
+                if (inductionTimer.Enabled)
+                {
+                    inductionTimer.Stop();
+                    inductionTimer.Dispose();
+                }
+            }
+
             ServerAliveChecker.Disable();
 
             handlePackets.Abort();
