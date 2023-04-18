@@ -33,29 +33,30 @@ namespace SRTShareLib
 
             if (calledFrom == App.Server)
             {
-                while (configDirectory == null)
+                configDirectory = FindDirectoryWithFile(Directory.GetCurrentDirectory(), CONFIG_NAME);
+
+                if (configDirectory == null || ALWAYS_CREATE_NEW)
                 {
-                    // Read the JSON file into a string
-                    configDirectory = UpDirTo(Directory.GetCurrentDirectory(), CONFIG_NAME);
-                    if (configDirectory == null || ALWAYS_CREATE_NEW)
+                    if (ALWAYS_CREATE_NEW)
+                        CConsole.WriteLine("[ERROR] Always create new configuration file flag enabled\n" +
+                                            "To create your own config file, press [C] key to create it, or any another key to exit", MessageType.txtWarning);
+                    else
+                        CConsole.WriteLine("[ERROR] Can't find config file\n" +
+                                            "To create your own config file, press [C] key to create it, or any another key to exit", MessageType.txtWarning);
+
+                    if (Console.ReadKey().Key == ConsoleKey.C)
                     {
-                        CConsole.WriteLine("[ERROR] Can't find config file (or maybe he is duplicated at the same directory?)\n" +
-                            "You can create your own config file, press [C] key to create it, or any another key to exit", MessageType.txtWarning);
+                        GetConfigData(out string ip, out string port);
+                        CreateConfig(ip, port);
 
-                        if (Console.ReadKey().Key == ConsoleKey.C)
-                        {
-                            GetConfigData(out string ip, out string port);
-                            CreateConfig(ip, port);
+                        Console.WriteLine("Config file successfully created!\n" +
+                            "Press any key to restart the application...");
+                        Console.ReadKey();
 
-                            Console.WriteLine("Config file successfully created!\n" +
-                                "Press any key to restart the application...");
-                            Console.ReadKey();
-
-                            Console.Clear();
-                        }
-                        else
-                            Environment.Exit(-1);
+                        Console.Clear();
                     }
+                    else
+                        Environment.Exit(-1);
                 }
                 string json = File.ReadAllText($"{configDirectory}\\{CONFIG_NAME}");
 
@@ -79,18 +80,13 @@ namespace SRTShareLib
                 $"\"PORT\": {port}\n" +
                 "}\n";
 
-            File.WriteAllText(Directory.GetCurrentDirectory() + "\\" + CONFIG_NAME, json);
+            File.WriteAllText(Directory.GetCurrentDirectory() + "\\" + CONFIG_NAME, json);  // writes json data to file (if file already exists (to handle with ALWAYS_CREATE_NEW flag), file will be overwritten)
         }
 
         private static void GetConfigData(out string IP, out string port)
         {
-            IP = "";
-            Regex ipRegex = new Regex(@"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$");
-            bool ipAddress = false;
-
-            port = "";
+            Regex IPRegex = new Regex(@"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$");
             Regex portRegex = new Regex(@"^\d{1,5}$");
-            bool portGood = false;
 
             Console.Clear();
 
@@ -98,8 +94,26 @@ namespace SRTShareLib
 
             Console.WriteLine($"# --- Creating config ({CONFIG_NAME}) --- #\n");
 
-            // get IP
-            while (!ipAddress)
+            IP = GetIP(IPRegex);
+
+            Console.WriteLine();
+
+            port = GetPort(portRegex);
+
+            Console.WriteLine("# --- ---- ---- ----- ---- ---- --- #\n");
+        }
+
+        /// <summary>
+        /// Gets the IP from the user according the IP regex pattern
+        /// </summary>
+        /// <param name="IPRegex">IP regex pattern</param>
+        /// <returns>IP which meets all pattern requirements</returns>
+        private static string GetIP(Regex IPRegex)
+        {
+            bool IPGood = false;
+            string IP = null;
+
+            while (!IPGood)
             {
                 if (calledFrom == App.Server)
                     Console.WriteLine("* Put here your own LOCAL IP (LAN). Even if you are using external connection.\n[OR] you can input \"my\" to auto-set your local ip.\n");
@@ -112,22 +126,23 @@ namespace SRTShareLib
                     IP = NetworkManager.LocalIp;  // auto set local ip
                 }
 
-                Match ipMatch = ipRegex.Match(IP);  // 1st check [num.num.num.num]
-                ipAddress = ipMatch.Success;
+                Match ipMatch = IPRegex.Match(IP);  // 1st check [num.num.num.num]
+                IPGood = ipMatch.Success;
 
-                if (ipAddress)
+                if (IPGood)
                 {  // 2nd check [0-255.0-255.0-255.0-255]
                     for (int i = 1; i <= 4; i++)
                     {
                         if (int.Parse(ipMatch.Groups[i].Value) < 0 || int.Parse(ipMatch.Groups[i].Value) > 255)  // check if each block is between 0-255
                         {
-                            ipAddress = false;
+                            IPGood = false;
                             break;
                         }
                     }
                 }
 
-                if (!ipAddress)  // maybe it's hostname, trying to send DNS request to get the IP
+                // ## NOT IP -> MAYBE HOSTNAME ##
+                if (!IPGood)  // trying to send DNS request to get the IP
                 {
                     CConsole.Write("[DNS Request] ", MessageType.txtWarning);
                     CConsole.WriteLine("Please wait..\n", MessageType.txtMuted);
@@ -159,12 +174,22 @@ namespace SRTShareLib
                             CConsole.WriteLine("Please specify the local IP of the server\n", MessageType.txtMuted);
                         }
                         else
-                            ipAddress = true;  // found IP address, and the ip is good (not the same as the public one)
+                            IPGood = true;  // found IP address, and the ip is good (not the same as the public one)
                     }
                 }
             }
+            return IP;
+        }
 
-            Console.WriteLine();
+        /// <summary>
+        /// Gets the port from the user according the port regex pattern
+        /// </summary>
+        /// <param name="portRegex">port regex pattern</param>
+        /// <returns>port which meets all pattern requirements</returns>
+        private static string GetPort(Regex portRegex)
+        {
+            bool portGood = false;
+            string port = null;
 
             // get Port
             while (!portGood)
@@ -188,27 +213,27 @@ namespace SRTShareLib
                     CConsole.WriteLine("Bad port\n", MessageType.txtError);
                 }
             }
-            Console.WriteLine("# --- ---- ---- ----- ---- ---- --- #\n");
+            return port;
         }
 
         /// <summary>
         /// Get the directory which contains the settings file
         /// </summary>
         /// <param name="currentDirectory">current directory (on function calling, it's the current dir)</param>
-        /// <param name="settingsFileName">name of the configuration file (*.json)</param>
+        /// <param name="fileName">name of the configuration file (*.json)</param>
         /// <returns>directory which contains the config file</returns>
-        private static string UpDirTo(string currentDirectory, string settingsFileName)
+        private static string FindDirectoryWithFile(string currentDirectory, string fileName)
         {
-            if (Directory.GetFiles(currentDirectory, settingsFileName).Length == 1)  // in the current directory
+            if (Directory.GetFiles(currentDirectory, fileName).Length == 1)  // in the current directory
                 return currentDirectory;
 
             // not in current -> maybe in the parent directory?
             DirectoryInfo upDir = Directory.GetParent(currentDirectory);
-            if (upDir == null)  // there is no parent directory, and the settings wasn't found -> not exist/duplicated
+            if (upDir == null)  // there is no parent directory, and the settings still wasn't found -> not exist / duplicated (which is not really possible to be)
                 return null;
 
             string upDirName = upDir.FullName;
-            return Directory.GetFiles(upDirName, settingsFileName).Length != 1 ? UpDirTo(upDirName, settingsFileName) : upDirName;
+            return Directory.GetFiles(upDirName, fileName).Length == 1 ? upDirName : FindDirectoryWithFile(upDirName, fileName);
         }
 
         private static App CalledFrom()

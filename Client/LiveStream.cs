@@ -157,7 +157,7 @@ namespace Client
                 // If the countdown has reached zero, stop the timer and print a message
                 if (duration <= 0)
                 {
-                    timer.Stop();
+                    inductionTimer.Stop();
                     if (!serverAlive)  // still null after 5 seconds
                     {
                         CConsole.WriteLine("[Client] Server isn't responding to INDUCTION request", MessageType.txtError);

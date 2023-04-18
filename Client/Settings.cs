@@ -154,7 +154,7 @@ namespace Client
                 //              HOSTNAME / IP                                   PORT
                 int extractedPort = Convert.ToInt32(XX_Port_Match.Groups[2].Value);
 
-                if (extractedPort > 0 && extractedPort < 65536 && XX_Port_Match.Groups[2].Value[0] != '0')
+                if (extractedPort > 0 && extractedPort < 65536)
                     return (XX_Port_Match.Groups[1].Value, extractedPort);
                 else
                     return (XX_Port_Match.Groups[1].Value, 0);
