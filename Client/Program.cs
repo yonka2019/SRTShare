@@ -37,7 +37,7 @@ namespace Client
                 MessageBox.Show("File PcapDotNet.Core.dll couldn't be found or one of its dependencies. Make sure you have installed:\n" +
                 "- .NET Framework 4.5\n" +
                 "- WinPcap\n" +
-                "- Microsoft Visual C++ 2013\n", "Libraries issue", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                "- Microsoft Visual C++ 2013\n", "File not found (probably libraries issue)", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Environment.Exit(-1);
             }
         }

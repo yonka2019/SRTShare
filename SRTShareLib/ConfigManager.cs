@@ -18,7 +18,7 @@ namespace SRTShareLib
     /// </summary>
     public static class ConfigManager
     {
-        private const bool ALWAYS_CREATE_NEW = true;  // even if the config exist - create a new one and overwrite the old one, if it's false, it will take the last created config (if exists)
+        private const bool ALWAYS_CREATE_NEW = false;  // even if the config exist - create a new one and overwrite the old one, if it's false, it will take the last created config (if exists)
 
         internal const string CONFIG_NAME = "settings.json";
         public static string IP { get; private set; }
@@ -58,6 +58,10 @@ namespace SRTShareLib
                     else
                         Environment.Exit(-1);
                 }
+
+                // search again for the settings file in the directories
+                configDirectory = FindDirectoryWithFile(Directory.GetCurrentDirectory(), CONFIG_NAME);
+
                 string json = File.ReadAllText($"{configDirectory}\\{CONFIG_NAME}");
 
                 // Deserialize the JSON string into a Person object

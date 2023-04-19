@@ -78,10 +78,11 @@ namespace Server
 
             if (ex is FileNotFoundException || ex.InnerException is FileNotFoundException)
             {
-                CConsole.WriteLine("[ERROR] File PcapDotNet.Core.dll couldn't be found or one of its dependencies. Make sure you have installed:\n" +
-                    "- .NET Framework 4.5\n" +
-                    "- WinPcap\n" +
-                    "- Microsoft Visual C++ 2013..\n", MessageType.txtError);
+                CConsole.WriteLine("[ERROR] File not found.", MessageType.txtError);
+                CConsole.WriteLine("Maybe it's happend because file PcapDotNet.Core.dll couldn't be found or one of his dependencies. Make sure you have installed:", MessageType.txtError);
+                CConsole.WriteLine("- .NET Framework 4.5", MessageType.txtError);
+                CConsole.WriteLine("- WinPcap", MessageType.txtError);
+                CConsole.WriteLine("- Microsoft Visual C++ 2013", MessageType.txtError);
 
                 Console.ReadKey();
                 Environment.Exit(-1);
