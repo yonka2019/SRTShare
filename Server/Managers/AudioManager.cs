@@ -6,7 +6,6 @@ using SRTShareLib.SRTManager.Encryption;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using CConsole = SRTShareLib.CColorManager;  // Colored Console
 
 namespace Server.Managers
@@ -22,7 +21,7 @@ namespace Server.Managers
 
         private const int SAMPLE_RATE = 44100;
         private const int CHANNELS = 2;
-        private const int AUDIO_SEQNUM_OFFSET = 50000000; 
+        private const int AUDIO_SEQNUM_OFFSET = 50000000;
 
         internal AudioManager(SClient client, BaseEncryption baseEncryption, uint intial_sequence_number)
         {

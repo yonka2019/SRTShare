@@ -1,7 +1,5 @@
 ﻿using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
-using SRTShareLib.SRTManager.Encryption;
-using System.Security.Cryptography;
 
 namespace SRTShareLib
 {
