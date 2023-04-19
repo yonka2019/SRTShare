@@ -121,7 +121,7 @@
             this.MaximizeBox = false;
             this.Name = "MainMenu";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "מיש";
+            this.Text = "Welcome";
             ((System.ComponentModel.ISupportInitialize)(this.ProjectLogo)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

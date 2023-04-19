@@ -53,7 +53,7 @@ namespace Server.Managers
             Thread videoStarter = new Thread(new ThreadStart(Run));  // create thread of keep-alive checker
             videoStarter.Start();
 
-            CConsole.WriteLine($"[Server] [{client.IPAddress}] Video is being shared\n", MessageType.txtInfo);
+            CConsole.WriteLine($"[Server] [{client.IPAddress}] Video is being shared\n", MessageType.bgSuccess);
         }
 
         /// <summary>

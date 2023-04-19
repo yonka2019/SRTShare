@@ -44,7 +44,7 @@ namespace Server.Managers
 
             capture.StartRecording();
 
-            CConsole.WriteLine($"[Server] [{client.IPAddress}] Audio is being shared\n", MessageType.txtInfo);
+            CConsole.WriteLine($"[Server] [{client.IPAddress}] Audio is being shared\n", MessageType.bgSuccess);
         }
 
         private void Capture_DataAvailable(object sender, WaveInEventArgs e)
