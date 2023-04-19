@@ -170,7 +170,7 @@ namespace Client
 
                     ToolStripMenuItem qualityButton = LiveStream.QualityButtons[CurrentVideoQuality.RoundToNearestTen()];
 
-                    CConsole.WriteLine("[Auto Quality Control] High packet loss - reducing quality", MessageType.txtInfo);
+                    CConsole.WriteLine($"[Auto Quality Control] High packet loss ({LiveStream.DATA_LOSS_PERCENT_REQUIRED}+%) - reducing quality", MessageType.txtInfo);
                     if (qualityButton.Owner.InvokeRequired && qualityButton.Owner.IsHandleCreated)  // check if invoke required and if the handle built at all
                     {
                         qualityButton.Owner.Invoke((MethodInvoker)delegate
