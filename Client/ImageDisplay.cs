@@ -82,12 +82,12 @@ namespace Client
 
         private static void ShowImage(byte[] image, bool lastChunkReceived)
         {
-            if (MainView.RETRANSMISSION_MODE)  // check if retransmission mode enabled 
+            if (LiveStream.RETRANSMISSION_MODE)  // check if retransmission mode enabled 
                 if (RetransmissionRequired(image))
                     return;  // stop the showing, wait till good image would be received
 
 
-            if (MainView.AutoQualityControl)  // check if option enabled (not the const)
+            if (LiveStream.AutoQualityControl)  // check if option enabled (not the const)
                 LowerQualityNecessity();
 
 
@@ -154,23 +154,23 @@ namespace Client
             uint[] lostChunks = GetMissingPackets();
 
             // dataPackets.Last().MESSAGE_NUMBER - the last message number which is the max
-            double minChunksToGetLost = Math.Ceiling(imageDataPackets.Last().MESSAGE_NUMBER * (MainView.DATA_LOSS_PERCENT_REQUIRED / 100.0));
+            double minChunksToGetLost = Math.Ceiling(imageDataPackets.Last().MESSAGE_NUMBER * (LiveStream.DATA_LOSS_PERCENT_REQUIRED / 100.0));
             TimeSpan timeElapsed = DateTime.Now - lastQualityModify;
 
             if ((minChunksToGetLost <= lostChunks.Length)  // check if necessary
                 && timeElapsed.TotalSeconds > MINIMUM_SECONDS_ELPASED_TO_MODIFY)  // check if min required time elapsed
             {
-                if (CurrentVideoQuality - MainView.DATA_DECREASE_QUALITY_BY > 0)  // check if current quality isn't the lowest
+                if (CurrentVideoQuality - LiveStream.DATA_DECREASE_QUALITY_BY > 0)  // check if current quality isn't the lowest
                 {
-                    CurrentVideoQuality -= MainView.DATA_DECREASE_QUALITY_BY;  // down quality and send quality update request later (after button click)
+                    CurrentVideoQuality -= LiveStream.DATA_DECREASE_QUALITY_BY;  // down quality and send quality update request later (after button click)
 
                     Debug.WriteLine($"[QUALITY-CONTROL] Quality reduced to {CurrentVideoQuality}\n" +
                         $"[-] LOST: {lostChunks.Length}\n" +
                         $"[-] MIN-TO-LOST: {minChunksToGetLost}");
 
-                    ToolStripMenuItem qualityButton = MainView.QualityButtons[CurrentVideoQuality.RoundToNearestTen()];
+                    ToolStripMenuItem qualityButton = LiveStream.QualityButtons[CurrentVideoQuality.RoundToNearestTen()];
 
-                    CConsole.WriteLine("[Auto Quality Control] High packet loss - reducing quality", MessageType.txtInfo);
+                    CConsole.WriteLine($"[Auto Quality Control] High packet loss ({LiveStream.DATA_LOSS_PERCENT_REQUIRED}+%) - reducing quality", MessageType.txtInfo);
                     if (qualityButton.Owner.InvokeRequired && qualityButton.Owner.IsHandleCreated)  // check if invoke required and if the handle built at all
                     {
                         qualityButton.Owner.Invoke((MethodInvoker)delegate

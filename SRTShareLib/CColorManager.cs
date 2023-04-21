@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
+/*
+ * [C] Yonka
+ */
 namespace SRTShareLib
 {
     public static class CColorManager  // Console Color Manager
@@ -19,7 +22,7 @@ namespace SRTShareLib
             SetValues();
         }
 
-        // support only '\n' in the END of the string "lala\n" - good ;; "la\nlala" - bad
+        // support only '\n' in the END of the string [because it will be much complicated to handle with] "lala\n" - good ;; "la\nlala" - bad
         public static void Write(string str, MessageType mType)
         {
             lock (_lock)
@@ -31,7 +34,7 @@ namespace SRTShareLib
                 {
                     int newLines = CountNewLines(str);
 
-                    str = str.Replace("\n", "");  // remove them
+                    str = str.Replace("\n", "");  // remove them to prevent colored new line down
                     Console.Write(str);  // print without them
                     Console.ResetColor();  // remove colors
 
@@ -48,7 +51,7 @@ namespace SRTShareLib
             }
         }
 
-        // support only '\n' in the END of the string "lala\n" - good ;; "la\nlala" - bad
+        // support only '\n' in the END of the string [because it will be much complicated to handle with] "lala\n" - good ;; "la\nlala" - bad
         public static void WriteLine(string str, MessageType mType)
         {
             lock (_lock)
@@ -60,7 +63,7 @@ namespace SRTShareLib
                 {
                     int newLines = CountNewLines(str);
 
-                    str = str.Replace("\n", "");  // remove them
+                    str = str.Replace("\n", "");  // remove them to prevent colored new line down
                     Console.Write(str);  // print without them
                     Console.ResetColor();  // remove colors
 

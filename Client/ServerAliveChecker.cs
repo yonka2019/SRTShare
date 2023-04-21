@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Timers;
 
 namespace Client
@@ -59,9 +58,12 @@ namespace Client
 
         internal static void Disable()
         {
-            timer.Stop();
-            timer.Dispose();
-            saChecker.Abort();
+            if (timer.Enabled)  // only if the timer runs ('The Enabled property of the Timer class in C# indicates whether the timer is running or not')
+            {
+                timer.Stop();
+                timer.Dispose();
+                saChecker.Abort();
+            }
         }
 
         internal static void ConfirmStatus()  // reset timeout seconds

@@ -48,7 +48,7 @@ namespace SRTShareLib.SRTManager.RequestsFactory
                 srt_packet_data = new SRTData.ImageData(sequence_number: sequence_number, packetPositionFlag,
                     clientEncryption.Type == EncryptionType.None ? SRTData.EncryptionFlags.NOT_ENCRYPTED : SRTData.EncryptionFlags.ENCRYPTED,
                     is_retransmitted: retransmitted, message_number: messageNumber, dest_socket_id, imageChecksum, packet_data);
-                    
+
                 GetPayloadLayer() = OSIManager.BuildPLayer(srt_packet_data.GetByted());
 
                 packets.Add(BuildPacket());  // Add the packet to the list of packets

@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 namespace SRTShareLib.SRTManager.Encryption
 {
     /*
+     * 256 key had chosen because the diffie-hellman secret key which is 256 bit
      * This encryption method is problematic because this encryption method use "hash" function in order to encrypt/decrypt the data.
      * Which means, that even if one bit will lost from the packet or will received in the wrong way, the whole packet will be damaged and unsuitable to decrypt.
      * In other words, this encrypytion method require the packet to be received fully as it was sent, and because the protocol which uses UDP connection as base,

@@ -18,6 +18,7 @@ namespace Server.Managers
 {
     internal class VideoManager : IManager
     {
+        private const int AUTO_REMOVE_DELAY_SECONDS = 10;
         private readonly SClient client;
         private bool connected;
         private uint retransmitRequestedToSeq;
@@ -53,7 +54,7 @@ namespace Server.Managers
             Thread videoStarter = new Thread(new ThreadStart(Run));  // create thread of keep-alive checker
             videoStarter.Start();
 
-            CConsole.WriteLine($"[Server] [{client.IPAddress}] Video is being shared\n", MessageType.txtInfo);
+            CConsole.WriteLine($"[Server] [{client.IPAddress}] Video is being shared\n", MessageType.bgSuccess);
         }
 
         /// <summary>
@@ -136,14 +137,14 @@ namespace Server.Managers
         }
 
         /// <summary>
-        /// After 10 seconds, if no ACK was sent from the client, remove the image from the buffer in order to save memory
+        /// After X seconds, if no ACK was sent from the client, remove the image from the buffer in order to save memory
         /// </summary>
         /// <param name="sequence_number">sequence number which is expired</param>
         private void RemoveImageFromBufferAfterDelay(uint sequence_number)
         {
             Task.Run(async () =>
             {
-                await Task.Delay(10000);  // Wait 10 seconds
+                await Task.Delay(AUTO_REMOVE_DELAY_SECONDS * 1000);  // Wait 10 seconds
                 ConfirmImage(sequence_number);  // simulate confirm (if not already confirmed (which means - exist in buffer) - remove)
             });
         }
