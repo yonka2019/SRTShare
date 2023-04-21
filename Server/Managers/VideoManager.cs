@@ -51,7 +51,7 @@ namespace Server.Managers
         /// </summary>
         public void Start()
         {
-            Thread videoStarter = new Thread(new ThreadStart(Run));  // create thread of keep-alive checker
+            Thread videoStarter = new Thread(new ThreadStart(Run));  // create thread of video-manager
             videoStarter.Start();
 
             CConsole.WriteLine($"[Server] [{client.IPAddress}] Video is being shared\n", MessageType.bgSuccess);
@@ -65,8 +65,10 @@ namespace Server.Managers
             connected = false;
         }
 
-        private void Run()
+        private async void Run()
         {
+            int counter = 0;
+
             while (connected)
             {
                 if (retransmitRequestedToSeq != 0)  // if retransmit requested, retransmit - and continue
@@ -82,6 +84,8 @@ namespace Server.Managers
                 }
 
                 byte[] currentImage = TakeReadyScreenshot();
+                counter++;
+                Console.WriteLine($"{DateTime.Now}  {counter}");
 
                 if (retransmission_mode)  // save image to retransmission buffer (only for RETR mode)
                 {
@@ -92,6 +96,8 @@ namespace Server.Managers
                 SplitAndSend(currentImage, false, current_sequence_number);
 
                 current_sequence_number++;
+
+                await Task.Delay(100);  // 1000ms -> 1s; DELAY / 10 = images in one secondq
             }
         }
 

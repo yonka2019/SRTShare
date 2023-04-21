@@ -4,6 +4,7 @@ using PcapDotNet.Packets.Transport;
 using SRTShareLib;
 using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.Encryption;
+using SRTShareLib.SRTManager.ProtocolFields.Data;
 using SRTShareLib.SRTManager.RequestsFactory;
 using System;
 using System.Collections.Generic;
@@ -57,6 +58,7 @@ namespace Client
 
         internal static EncryptionType ENCRYPTION;  // The whole encryption of the conversation (from data stage)
         internal static int INITIAL_PSN;  // The first sequence number of the conversation  ! [ MUST NOT BE 0 (because of retransmitRequestedToSeq var in Server\VideoManager.cs)] !
+        internal static VideoFPS FPS;  // frames per second of the video which server sends
 
         internal static int DATA_LOSS_PERCENT_REQUIRED;  // loss percent which is required in order to send decrease quality update request to the server
         internal static int DATA_DECREASE_QUALITY_BY;  // (0 - 100)
@@ -67,9 +69,9 @@ namespace Client
 
         //  - CONVERSATION SETTINGS - + - + - + - + - + - + - + - +
 
-        public LiveStream(string serverIP, ushort serverPORT, EncryptionType encryption, int initial_psn, int data_loss_percent_required, int data_decrease_quality_by, bool auto_quality_control, bool audio_transmission, bool retransmission_mode)
+        public LiveStream(string serverIP, ushort serverPORT, EncryptionType encryption, int initial_psn, Data.VideoFPS fps, int data_loss_percent_required, int data_decrease_quality_by, bool auto_quality_control, bool audio_transmission, bool retransmission_mode)
         {
-            SetSettings(serverIP, serverPORT, encryption, initial_psn, data_loss_percent_required, data_decrease_quality_by, auto_quality_control, audio_transmission, retransmission_mode);
+            SetSettings(serverIP, serverPORT, encryption, initial_psn, fps, data_loss_percent_required, data_decrease_quality_by, auto_quality_control, audio_transmission, retransmission_mode);
 
             InitializeComponent();
 
@@ -115,13 +117,14 @@ namespace Client
             ServerAliveChecker.LostConnection += Server_LostConnection;  // subscribe the event to avoid unexpectable server shutdown
         }
 
-        private void SetSettings(string serverIP, ushort serverPORT, EncryptionType encryption, int initial_psn, int data_loss_percent_required, int data_decrease_quality_by, bool auto_quality_control, bool audio_transmission, bool retransmission_mode)
+        private void SetSettings(string serverIP, ushort serverPORT, EncryptionType encryption, int initial_psn, Data.VideoFPS fps, int data_loss_percent_required, int data_decrease_quality_by, bool auto_quality_control, bool audio_transmission, bool retransmission_mode)
         {
             ConfigManager.SetData(serverIP, serverPORT);
             NetworkManager.PrintServerData(settingsFrom: "User Settings");
 
             ENCRYPTION = encryption;
             INITIAL_PSN = initial_psn;
+            FPS = fps;
             DATA_LOSS_PERCENT_REQUIRED = data_loss_percent_required;
             DATA_DECREASE_QUALITY_BY = data_decrease_quality_by;
             AUTO_QUALITY_CONTROL = auto_quality_control;

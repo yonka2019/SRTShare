@@ -65,9 +65,7 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         public uint VERSION { get; private set; }
 
         /// <summary>
-        /// 16 bits (2 bytes). Block cipher family and key size. The
-        /// values of this field are described in Table 2. The default value
-        /// is AES-128.
+        /// 16 bits (2 bytes). Encryption type of the conversation (setted by client)
         /// </summary>
         public ushort ENCRYPTION_TYPE { get; private set; }
 
@@ -88,6 +86,12 @@ namespace SRTShareLib.SRTManager.ProtocolFields.Control
         /// INITIAL PACKET SEQUENCE NUMBER, shortened: INITIAL_PSN
         /// </summary>
         public uint INTIAL_PSN { get; private set; }
+
+        /// <summary>
+        /// 16 bits (2 bytes). The server sends video to the client with this FPS (frame per second)
+        /// settings.
+        /// </summary>
+        public ushort FPS { get; private set; }
 
         /// <summary>
         /// 32 bits (4 bytes). This value is typically set

@@ -1,6 +1,8 @@
 ﻿using MaterialSkin;
+using SRTShareLib;
 using SRTShareLib.PcapManager;
 using SRTShareLib.SRTManager.Encryption;
+using SRTShareLib.SRTManager.ProtocolFields.Data;
 using System;
 using System.Data;
 using System.Linq;
@@ -48,6 +50,8 @@ namespace Client
             ServerIpPortTB.Text = $"{s.ServerIP}:{s.ServerPORT}";
             EncryptionCBox.SelectedItem = Enum.Parse(typeof(EncryptionType), s.Encryption);
             IntialPSNNum.Value = s.InitialPSN;
+            fpsCBox.SelectedItem = Regex.Replace(Enum.Parse(typeof(VideoFPS), s.FPS).ToString(), @"\(\d+\)", "");  // Low (3) -> Low
+
             autoQualityControlCB.Checked = s.AutoQualityControl;
             audioTransCB.Checked = s.AudioTransmission;
             retrModeCB.Checked = s.RetransmissionMode;
@@ -68,6 +72,8 @@ namespace Client
 
             s.Encryption = EncryptionCBox.SelectedItem.ToString();
             s.InitialPSN = (int)IntialPSNNum.Value;
+            s.FPS = Regex.Replace(fpsCBox.SelectedItem.ToString(), @"\(\d+\)", "");
+
             s.AutoQualityControl = autoQualityControlCB.Checked;
             s.AudioTransmission = audioTransCB.Checked;
             s.RetransmissionMode = retrModeCB.Checked;
