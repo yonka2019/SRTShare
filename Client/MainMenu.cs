@@ -23,6 +23,7 @@ namespace Client
                 Properties.Settings.Default.ServerPORT,
                 (SRTShareLib.SRTManager.Encryption.EncryptionType)Enum.Parse(typeof(SRTShareLib.SRTManager.Encryption.EncryptionType), Properties.Settings.Default.Encryption),
                 Properties.Settings.Default.InitialPSN,
+                (SRTShareLib.SRTManager.ProtocolFields.Data.VideoFPS)Enum.Parse(typeof(SRTShareLib.SRTManager.ProtocolFields.Data.VideoFPS), Properties.Settings.Default.FPS),
                 Properties.Settings.Default.DataPercentLossRequired,
                 Properties.Settings.Default.DecreaseQualityBy,
                 Properties.Settings.Default.AutoQualityControl,

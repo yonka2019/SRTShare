@@ -48,6 +48,16 @@ namespace Client
             ServerIpPortTB.Text = $"{s.ServerIP}:{s.ServerPORT}";
             EncryptionCBox.SelectedItem = Enum.Parse(typeof(EncryptionType), s.Encryption);
             IntialPSNNum.Value = s.InitialPSN;
+
+            foreach (object item in fpsCBox.Items)
+            {
+                if (item.ToString().Contains(s.FPS))
+                {
+                    fpsCBox.SelectedItem = item;
+                    break;
+                }
+            }
+
             autoQualityControlCB.Checked = s.AutoQualityControl;
             audioTransCB.Checked = s.AudioTransmission;
             retrModeCB.Checked = s.RetransmissionMode;
@@ -68,6 +78,8 @@ namespace Client
 
             s.Encryption = EncryptionCBox.SelectedItem.ToString();
             s.InitialPSN = (int)IntialPSNNum.Value;
+            s.FPS = Regex.Replace(fpsCBox.SelectedItem.ToString(), @"\s\(\d+\)", "");
+
             s.AutoQualityControl = autoQualityControlCB.Checked;
             s.AudioTransmission = audioTransCB.Checked;
             s.RetransmissionMode = retrModeCB.Checked;

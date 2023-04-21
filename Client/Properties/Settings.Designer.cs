@@ -130,5 +130,17 @@ namespace Client.Properties {
                 this["ServerPORT"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Medium")]
+        public string FPS {
+            get {
+                return ((string)(this["FPS"]));
+            }
+            set {
+                this["FPS"] = value;
+            }
+        }
     }
 }

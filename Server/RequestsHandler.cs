@@ -33,7 +33,7 @@ namespace Server
                                 (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, packet.Ethernet.Source.ToString(), NetworkManager.LocalIp, packet.Ethernet.IpV4.Source.ToString(), ConfigManager.PORT, datagram.SourcePort));
 
             IpV4Address peer_ip = new IpV4Address(NetworkManager.PublicIp);
-            Packet handshake_packet = handshake_response.Induction(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, new byte[DiffieHellman.PUBLIC_KEY_SIZE], handshake_request.RETRANSMISSION_MODE);
+            Packet handshake_packet = handshake_response.Induction(init_psn: 0, handshake_request.FPS, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, new byte[DiffieHellman.PUBLIC_KEY_SIZE], handshake_request.RETRANSMISSION_MODE);
 
             PacketManager.SendPacket(handshake_packet);
         }
@@ -56,7 +56,7 @@ namespace Server
             if ((EncryptionType)handshake_request.ENCRYPTION_TYPE != EncryptionType.None)  // save peer (client) public key, send mine public key to him
                 myPublicKey = DiffieHellman.MyPublicKey;
 
-            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey, handshake_request.RETRANSMISSION_MODE);
+            Packet handshake_packet = handshake_response.Conclusion(init_psn: 0, fps: handshake_request.FPS, p_ip: peer_ip, clientSide: false, Program.SERVER_SOCKET_ID, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey, handshake_request.RETRANSMISSION_MODE);
 
             PacketManager.SendPacket(handshake_packet);
 
@@ -66,7 +66,7 @@ namespace Server
 
             Managers.KeepAliveManager kaManager = new Managers.KeepAliveManager(currentClient);
 
-            Managers.VideoManager videoManager = new Managers.VideoManager(currentClient, EncryptionFactory.CreateEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY), handshake_request.INTIAL_PSN, handshake_request.RETRANSMISSION_MODE);
+            Managers.VideoManager videoManager = new Managers.VideoManager(currentClient,  EncryptionFactory.CreateEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY), handshake_request.INTIAL_PSN, handshake_request.FPS, handshake_request.RETRANSMISSION_MODE);
 
             Managers.AudioManager audioManager = new Managers.AudioManager(currentClient, EncryptionFactory.CreateEncryption((EncryptionType)handshake_request.ENCRYPTION_TYPE, handshake_request.ENCRYPTION_PEER_PUBLIC_KEY), handshake_request.INTIAL_PSN);
 

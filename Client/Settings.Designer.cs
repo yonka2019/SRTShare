@@ -31,6 +31,8 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Settings));
             this.ServerIpPortTB = new MaterialSkin.Controls.MaterialTextBox2();
             this.SettingsGP = new System.Windows.Forms.GroupBox();
+            this.fpsCBox = new System.Windows.Forms.ComboBox();
+            this.fpsLabel = new System.Windows.Forms.Label();
             this.SaveExitButton = new System.Windows.Forms.Button();
             this.audioTransCB = new System.Windows.Forms.CheckBox();
             this.retrModeCB = new System.Windows.Forms.CheckBox();
@@ -88,6 +90,8 @@
             // 
             // SettingsGP
             // 
+            this.SettingsGP.Controls.Add(this.fpsCBox);
+            this.SettingsGP.Controls.Add(this.fpsLabel);
             this.SettingsGP.Controls.Add(this.SaveExitButton);
             this.SettingsGP.Controls.Add(this.audioTransCB);
             this.SettingsGP.Controls.Add(this.retrModeCB);
@@ -102,10 +106,35 @@
             this.SettingsGP.Controls.Add(this.ServerIpPortTB);
             this.SettingsGP.Location = new System.Drawing.Point(12, 12);
             this.SettingsGP.Name = "SettingsGP";
-            this.SettingsGP.Size = new System.Drawing.Size(599, 334);
+            this.SettingsGP.Size = new System.Drawing.Size(599, 366);
             this.SettingsGP.TabIndex = 1;
             this.SettingsGP.TabStop = false;
             this.SettingsGP.Text = "Conversation Settings";
+            // 
+            // fpsCBox
+            // 
+            this.fpsCBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.fpsCBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.fpsCBox.FormattingEnabled = true;
+            this.fpsCBox.Items.AddRange(new object[] {
+            "Low (3)",
+            "Medium (5)",
+            "High (10)",
+            "Unlimited"});
+            this.fpsCBox.Location = new System.Drawing.Point(179, 212);
+            this.fpsCBox.Name = "fpsCBox";
+            this.fpsCBox.Size = new System.Drawing.Size(121, 24);
+            this.fpsCBox.TabIndex = 12;
+            // 
+            // fpsLabel
+            // 
+            this.fpsLabel.AutoSize = true;
+            this.fpsLabel.Font = new System.Drawing.Font("Microsoft JhengHei UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.fpsLabel.Location = new System.Drawing.Point(6, 212);
+            this.fpsLabel.Name = "fpsLabel";
+            this.fpsLabel.Size = new System.Drawing.Size(167, 20);
+            this.fpsLabel.TabIndex = 11;
+            this.fpsLabel.Text = "• Frames Per Second:";
             // 
             // SaveExitButton
             // 
@@ -125,7 +154,7 @@
             this.audioTransCB.Checked = true;
             this.audioTransCB.CheckState = System.Windows.Forms.CheckState.Checked;
             this.audioTransCB.Font = new System.Drawing.Font("Microsoft JhengHei UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.audioTransCB.Location = new System.Drawing.Point(10, 254);
+            this.audioTransCB.Location = new System.Drawing.Point(6, 292);
             this.audioTransCB.Name = "audioTransCB";
             this.audioTransCB.Size = new System.Drawing.Size(186, 24);
             this.audioTransCB.TabIndex = 6;
@@ -137,7 +166,7 @@
             this.retrModeCB.AutoSize = true;
             this.retrModeCB.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.retrModeCB.Font = new System.Drawing.Font("Microsoft JhengHei UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.retrModeCB.Location = new System.Drawing.Point(10, 296);
+            this.retrModeCB.Location = new System.Drawing.Point(6, 332);
             this.retrModeCB.Name = "retrModeCB";
             this.retrModeCB.Size = new System.Drawing.Size(201, 24);
             this.retrModeCB.TabIndex = 7;
@@ -149,7 +178,7 @@
             this.autoQualityControlCB.AutoSize = true;
             this.autoQualityControlCB.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.autoQualityControlCB.Font = new System.Drawing.Font("Microsoft JhengHei UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.autoQualityControlCB.Location = new System.Drawing.Point(10, 212);
+            this.autoQualityControlCB.Location = new System.Drawing.Point(6, 251);
             this.autoQualityControlCB.Name = "autoQualityControlCB";
             this.autoQualityControlCB.Size = new System.Drawing.Size(195, 24);
             this.autoQualityControlCB.TabIndex = 5;
@@ -315,7 +344,7 @@
             this.AcceptButton = this.SaveExitButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(623, 358);
+            this.ClientSize = new System.Drawing.Size(623, 390);
             this.Controls.Add(this.SettingsGP);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -353,5 +382,7 @@
         private System.Windows.Forms.NumericUpDown DecreaseQualityNum;
         private System.Windows.Forms.Label DecreaseQualityLabel;
         private System.Windows.Forms.Button SaveExitButton;
+        private System.Windows.Forms.Label fpsLabel;
+        private System.Windows.Forms.ComboBox fpsCBox;
     }
 }

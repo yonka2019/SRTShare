@@ -29,5 +29,8 @@
     <Setting Name="ServerPORT" Type="System.UInt16" Scope="User">
       <Value Profile="(Default)">1397</Value>
     </Setting>
+    <Setting Name="FPS" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Medium</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

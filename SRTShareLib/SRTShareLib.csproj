@@ -83,6 +83,7 @@
     <Compile Include="SRTManager\ProtocolFields\Data\DataType.cs" />
     <Compile Include="SRTManager\ProtocolFields\Data\ImageData.cs" />
     <Compile Include="SRTManager\ProtocolFields\Data\SRTHeader.cs" />
+    <Compile Include="SRTManager\ProtocolFields\Data\VideoFPS.cs" />
     <Compile Include="SRTManager\ProtocolManager.cs" />
     <Compile Include="SRTManager\RequestsFactory\ACKRequest.cs" />
     <Compile Include="SRTManager\RequestsFactory\AudioDataRequest.cs" />
