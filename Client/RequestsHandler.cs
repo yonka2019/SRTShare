@@ -34,7 +34,7 @@ namespace Client
             else
                 myPublicKey = new byte[DiffieHellman.PUBLIC_KEY_SIZE];
 
-            Packet handshake_packet = handshake_response.Conclusion(init_psn: (uint)LiveStream.INITIAL_PSN, p_ip: peer_ip, clientSide: true, LiveStream.My_SID, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey, handshake_request.RETRANSMISSION_MODE);
+            Packet handshake_packet = handshake_response.Conclusion(init_psn: (uint)LiveStream.INITIAL_PSN, fps: (ushort)LiveStream.FPS, p_ip: peer_ip, clientSide: true, LiveStream.My_SID, handshake_request.SOURCE_SOCKET_ID, handshake_request.ENCRYPTION_TYPE, myPublicKey, handshake_request.RETRANSMISSION_MODE);
             PacketManager.SendPacket(handshake_packet);
         }
 
@@ -69,7 +69,7 @@ namespace Client
                     (OSIManager.BuildBaseLayers(NetworkManager.MacAddress, server_mac, NetworkManager.LocalIp, ConfigManager.IP, myPort, ConfigManager.PORT));
 
             IpV4Address peer_ip = new IpV4Address(LiveStream.GetAdaptedIP());
-            Packet handshake_packet = handshake.Induction(init_psn: (uint)LiveStream.INITIAL_PSN, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)LiveStream.ENCRYPTION, new byte[DiffieHellman.PUBLIC_KEY_SIZE], LiveStream.RETRANSMISSION_MODE);
+            Packet handshake_packet = handshake.Induction(init_psn: (uint)LiveStream.INITIAL_PSN, fps: (ushort)LiveStream.FPS, p_ip: peer_ip, clientSide: true, client_socket_id, 0, (ushort)LiveStream.ENCRYPTION, new byte[DiffieHellman.PUBLIC_KEY_SIZE], LiveStream.RETRANSMISSION_MODE);
 
             PacketManager.SendPacket(handshake_packet);
         }

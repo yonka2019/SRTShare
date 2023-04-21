@@ -30,7 +30,7 @@
       <Value Profile="(Default)">1397</Value>
     </Setting>
     <Setting Name="FPS" Type="System.String" Scope="User">
-      <Value Profile="(Default)">High</Value>
+      <Value Profile="(Default)">Medium</Value>
     </Setting>
   </Settings>
 </SettingsFile>

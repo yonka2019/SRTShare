@@ -133,7 +133,7 @@ namespace Client.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("High")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Medium")]
         public string FPS {
             get {
                 return ((string)(this["FPS"]));

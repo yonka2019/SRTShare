@@ -26,15 +26,25 @@ namespace Server.Managers
 
         internal Dictionary<uint, byte[]> ImagesBuffer = new Dictionary<uint, byte[]>();
         private readonly BaseEncryption clientEncryption;
+        private readonly int FPS;
+        private readonly int delayTime;
 
 
         internal long CurrentQuality { private get; set; }
 
         private static uint current_sequence_number;
 
-        internal VideoManager(SClient client, BaseEncryption baseEncryption, uint intial_sequence_number, bool retransmission_mode)
+        internal VideoManager(SClient client, BaseEncryption baseEncryption, uint intial_sequence_number, int FPS, bool retransmission_mode)
         {
             current_sequence_number = intial_sequence_number;  // start from init seq number (MUST BE NOT 0 (because of retransmitRequestedToSeq var), because when retransmitRequestedToSeq is 0 its mean there is no seq number of chunk which should be retransmitted)
+            this.FPS = FPS;
+
+            // 1000ms -> 1s; 1000 / DELAY = images in one second
+            if (FPS == 0)
+                delayTime = 0;
+            else
+                delayTime = 1000 / FPS;
+
             retransmitRequestedToSeq = 0;
 
             this.client = client;
@@ -67,8 +77,6 @@ namespace Server.Managers
 
         private async void Run()
         {
-            int counter = 0;
-
             while (connected)
             {
                 if (retransmitRequestedToSeq != 0)  // if retransmit requested, retransmit - and continue
@@ -84,8 +92,6 @@ namespace Server.Managers
                 }
 
                 byte[] currentImage = TakeReadyScreenshot();
-                counter++;
-                Console.WriteLine($"{DateTime.Now}  {counter}");
 
                 if (retransmission_mode)  // save image to retransmission buffer (only for RETR mode)
                 {
@@ -97,7 +103,7 @@ namespace Server.Managers
 
                 current_sequence_number++;
 
-                await Task.Delay(100);  // 1000ms -> 1s; DELAY / 10 = images in one secondq
+                await Task.Delay(delayTime);  // 1000ms -> 1s; 1000 / DELAY = images in one second
             }
         }
 
