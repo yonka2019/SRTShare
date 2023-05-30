@@ -1,8 +1,7 @@
 # SRTShare
 Screenshare (video & audio transmission) application which work with self-made protocol. 
 Allows the server share his screen to multiplie number of clients which connected to him through the network (LAN/WAN support).
-Based on SRT protocol which includes 3 encryptions, retransmission mechanism and much more.Screenshare (video & audio transmission) application which work with self-made protocol. Allows the server share his screen to multiplie number of clients which connected to him through the network (LAN/WAN support). Based on SRT protocol which includes 3 encryptions, retransmission mechanism and much more.
-
+Based on SRT protocol which includes 3 encryptions, retransmission mechanism and much more.
 
 My original repo with all the issues and pull requests in [GitLab](https://gitlab.com/yonka2019/krayot-801-srtshare/-/tree/main)
 ## Main Menu
